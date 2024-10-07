@@ -35,12 +35,6 @@ const router = createBrowserRouter([
       {
         path: "/organization",
         element: <OrganOrganizationPage />,
-        children: [
-          {
-            path: "servicerequests",
-            element: <ServiceRequestManager />,
-          },
-        ],
       },
       {
         path: "/test",

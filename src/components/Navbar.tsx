@@ -15,11 +15,11 @@ function Navbar() {
         PartTimer
       </a>
       <nav className="hidden md:flex space-x-6">
-        <Link
-          to="/services"
+        <a
+          href={`services`}
           className="text-gray-600 hover:text-blue-600 transition-colors">
           Services
-        </Link>
+        </a>
         <a
           href="#how-it-works"
           className="text-gray-600 hover:text-blue-600 transition-colors">

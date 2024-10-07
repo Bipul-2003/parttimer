@@ -7,48 +7,51 @@ import "./index.css";
 import ServicesPage from "./pages/ServicesPage.tsx";
 import RequestedServicesPage from "./pages/RequestedServicesPage.tsx";
 import UserProfilePage from "./pages/userProfilePage.tsx";
-import Navbar from "./components/Navbar.tsx";
-import Footer from "./components/Footer.tsx";
 import OrganOrganizationPage from "./pages/OrganizationPage.tsx";
 import ServiceRequestManager from "./components/Organization/ServiceRequestManager.tsx";
+import HomePage from "./pages/HomePage.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-  },
-  {
-    path: "/services",
-    element: <ServicesPage />,
-  },
-  {
-    path: "/requested-services",
-    element: <RequestedServicesPage />,
-  },
-  {
-    path: "/profile",
-    element: <UserProfilePage />,
-  },
-  {
-    path: "/organization",
-    element: <OrganOrganizationPage />,
     children: [
       {
-        path: "servicerequests",
-        element:<ServiceRequestManager />,
+        path: "/",
+        element: <HomePage />,
+      },
+      {
+        path: "/services",
+        element: <ServicesPage />,
+      },
+      {
+        path: "/requested-services",
+        element: <RequestedServicesPage />,
+      },
+      {
+        path: "/profile",
+        element: <UserProfilePage />,
+      },
+      {
+        path: "/organization",
+        element: <OrganOrganizationPage />,
+        children: [
+          {
+            path: "servicerequests",
+            element: <ServiceRequestManager />,
+          },
+        ],
+      },
+      {
+        path: "/test",
+        element: <ServiceRequestManager />,
       },
     ],
   },
-  {
-    path: "/srvicerequest",
-    element:<ServiceRequestManager />,
-  }
 ]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Navbar />
     <RouterProvider router={router} />
-    <Footer />
   </StrictMode>
 );

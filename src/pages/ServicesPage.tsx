@@ -23,7 +23,7 @@ const services = [
 const categories = ['All Categories', ...new Set(services.map(service => service.category))]
 const subcategories = ['All Subcategories', ...new Set(services.map(service => service.subcategory))]
 
-export default function ServicesPage() {
+function ServicesPage() {
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false)
   const [isBookDialogOpen, setIsBookDialogOpen] = useState(false)
   const [selectedService, setSelectedService] = useState('')
@@ -400,3 +400,5 @@ export default function ServicesPage() {
     </div>
   )
 }
+
+export default ServicesPage

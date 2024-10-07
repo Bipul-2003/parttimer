@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 function Navbar() {
 
@@ -14,11 +15,11 @@ function Navbar() {
         PartTimer
       </a>
       <nav className="hidden md:flex space-x-6">
-        <a
-          href="#services"
+        <Link
+          to="/services"
           className="text-gray-600 hover:text-blue-600 transition-colors">
           Services
-        </a>
+        </Link>
         <a
           href="#how-it-works"
           className="text-gray-600 hover:text-blue-600 transition-colors">

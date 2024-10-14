@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { serviceApi } from "@/api/serviceApi";
 
 const services = [
   {
@@ -116,11 +117,26 @@ export function RequestService() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     // Here you would typically send the form data to your backend
-    alert("Service request submitted successfully!");
-    form.reset();
+    try {
+      const serviceData = {
+        name: values.name,
+        description: values.description,
+        category: values.category,
+        subcategory: values.subcategory,
+        baseFee: parseFloat(values.proposedPrice),
+      };
+
+      const response = await serviceApi.requestNewService(serviceData);
+      console.log("Service request submitted successfully:", response);
+      alert("Service request submitted successfully!");
+      form.reset();
+    } catch (error) {
+      console.error("Error submitting service request:", error);
+      alert("Error submitting service request. Please try again.");
+    }
   }
 
   const categories = Array.from(
@@ -132,7 +148,7 @@ export function RequestService() {
 
   return (
     <div className="p-10 rounded-lg bg-background">
-        <h1 className="text-3xl mb-4 font-bold">Request to Add a New Service</h1>
+      <h1 className="text-3xl mb-4 font-bold">Request to Add a New Service</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 mx-6">
           <FormField
@@ -160,7 +176,8 @@ export function RequestService() {
                 <FormLabel>Category</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}>
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a category" />
@@ -205,7 +222,8 @@ export function RequestService() {
                 <FormLabel>Subcategory</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}>
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a subcategory" />

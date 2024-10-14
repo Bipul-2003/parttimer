@@ -1,80 +1,177 @@
-import { useState, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { animateScroll as scroll } from 'react-scroll'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { CalendarIcon, CarIcon, HomeIcon, LeafIcon, ClockIcon, MapPinIcon, UserIcon, MailIcon, StarIcon, CheckCircleIcon, SearchIcon } from 'lucide-react'
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { animateScroll as scroll } from "react-scroll";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  CalendarIcon,
+  CarIcon,
+  HomeIcon,
+  LeafIcon,
+  ClockIcon,
+  MapPinIcon,
+  UserIcon,
+  MailIcon,
+  StarIcon,
+  CheckCircleIcon,
+  SearchIcon,
+  Dumbbell,
+  GraduationCapIcon,
+} from "lucide-react";
+import { fetchServices } from "@/api/service.api";
+import { bookService } from "@/api/apiService";
 
-const services = [
-  { id: 1, name: 'Car Wash', description: 'Professional car cleaning service', icon: CarIcon, category: 'Automotive', subcategory: 'Cleaning', requestCount: 150 },
-  { id: 2, name: 'Oil Change', description: 'Quick and reliable oil change service', icon: CarIcon, category: 'Automotive', subcategory: 'Maintenance', requestCount: 120 },
-  { id: 3, name: 'Lawn Mowing', description: 'Expert lawn care and maintenance', icon: LeafIcon, category: 'Home & Garden', subcategory: 'Lawn Care', requestCount: 200 },
-  { id: 4, name: 'Garden Design', description: 'Professional garden design and landscaping', icon: LeafIcon, category: 'Home & Garden', subcategory: 'Landscaping', requestCount: 80 },
-  { id: 5, name: 'House Cleaning', description: 'Thorough home cleaning service', icon: HomeIcon, category: 'Home & Garden', subcategory: 'Cleaning', requestCount: 250 },
-  { id: 6, name: 'Carpet Cleaning', description: 'Deep carpet cleaning and stain removal', icon: HomeIcon, category: 'Home & Garden', subcategory: 'Cleaning', requestCount: 100 },
-]
-
-const categories = ['All Categories', ...new Set(services.map(service => service.category))]
-const subcategories = ['All Subcategories', ...new Set(services.map(service => service.subcategory))]
+interface Service {
+  serviceId: number;
+  name: string;
+  category: string;
+  baseFee: number;
+  subcategory: string;
+  description: string;
+}
 
 function ServicesPage() {
-  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false)
-  const [isBookDialogOpen, setIsBookDialogOpen] = useState(false)
-  const [selectedService, setSelectedService] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All Categories')
-  const [selectedSubcategory, setSelectedSubcategory] = useState('All Subcategories')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filteredServices, setFilteredServices] = useState(services)
-  const servicesRef = useRef<HTMLDivElement>(null)
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
+  const [isBookDialogOpen, setIsBookDialogOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
+  const [selectedSubcategory, setSelectedSubcategory] =
+    useState("All Subcategories");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [services, setServices] = useState<Service[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  const servicesRef = useRef<HTMLDivElement>(null);
+
+  const iconMap: { [key: string]: React.ElementType } = {
+    Other: UserIcon, // General icon for "Other" category
+    Automotive: CarIcon, // Icon for automotive services
+    "Home & Garden": LeafIcon, // Icon for home and garden services
+    Education: GraduationCapIcon, // Icon for education services
+    // You can add more as needed
+  };
 
   useEffect(() => {
-    const filtered = services.filter(service => 
-      (selectedCategory === 'All Categories' || service.category === selectedCategory) &&
-      (selectedSubcategory === 'All Subcategories' || service.subcategory === selectedSubcategory) &&
-      (service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-       service.description.toLowerCase().includes(searchQuery.toLowerCase()))
-    )
-    setFilteredServices(filtered)
-  }, [selectedCategory, selectedSubcategory, searchQuery])
+    const loadServices = async () => {
+      try {
+        const fetchedServices = await fetchServices();
+        setServices(fetchedServices);
+        setFilteredServices(fetchedServices);
+      } catch (error) {
+        console.error("Failed to load services:", error);
+      }
+    };
+    loadServices();
+  }, []);
+
+  useEffect(() => {
+    const filtered = services.filter(
+      (service) =>
+        (selectedCategory === "All Categories" ||
+          service.category === selectedCategory) &&
+        (selectedSubcategory === "All Subcategories" ||
+          service.subcategory === selectedSubcategory) &&
+        (service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          service.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+    setFilteredServices(filtered);
+  }, [selectedCategory, selectedSubcategory, searchQuery, services]);
+
+  const categories = [
+    "All Categories",
+    ...Array.from(new Set(services.map((service) => service.category))),
+  ];
+  const subcategories = [
+    "All Subcategories",
+    ...Array.from(new Set(services.map((service) => service.subcategory))),
+  ];
 
   const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value)
-    setSelectedSubcategory('All Subcategories')
-  }
+    setSelectedCategory(value);
+    setSelectedSubcategory("All Subcategories");
+  };
 
   const handleRequestSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+    event.preventDefault();
     // Handle request form submission logic here
-    console.log('Request form submitted')
-    setIsRequestDialogOpen(false)
-  }
+    console.log("Request form submitted");
+    setIsRequestDialogOpen(false);
+  };
 
-  const handleBookSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    // Handle booking form submission logic here
-    console.log('Booking form submitted')
-    setIsBookDialogOpen(false)
-  }
+  const handleBookSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // Collect form data
+    const serviceId =
+      services
+        .find(
+          (service) =>
+            service.name.toLowerCase().replace(" ", "-") === selectedService
+        )
+        ?.serviceId?.toString() || "";
+    const bookingRequest = {
+      serviceId: serviceId,
+      customerName: (event.currentTarget["book-fullname"] as HTMLInputElement)
+        .value,
+      email: (event.currentTarget["book-email"] as HTMLInputElement).value,
+      location: (event.currentTarget["book-location"] as HTMLInputElement)
+        .value,
+      date: (event.currentTarget["book-date"] as HTMLInputElement).value,
+      time: (event.currentTarget["book-time"] as HTMLInputElement).value,
+      description: (event.currentTarget["book-description"] as HTMLInputElement)
+        .value,
+    };
+
+    try {
+      const result = await bookService(serviceId, bookingRequest);
+      console.log("Booking successful:", result);
+      // Handle success (e.g., show a confirmation message, close dialog)
+      setIsBookDialogOpen(false); // Close the dialog on success
+    } catch (error) {
+      console.error("Error booking service:", error);
+      // Handle error (e.g., show an error message)
+    }
+  };
 
   const scrollToServices = () => {
     if (servicesRef.current) {
       scroll.scrollTo(servicesRef.current.offsetTop, {
         duration: 800,
-        smooth: 'easeInOutQuart',
-      })
+        smooth: "easeInOutQuart",
+      });
     }
-  }
+  };
 
   const openBookDialog = (serviceName: string) => {
-    setSelectedService(serviceName.toLowerCase().replace(' ', '-'))
-    setIsBookDialogOpen(true)
-  }
+    setSelectedService(serviceName.toLowerCase().replace(" ", "-"));
+    setIsBookDialogOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-background">
@@ -84,9 +181,14 @@ function ServicesPage() {
             className="text-center"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}>
-            <h1 className="text-5xl font-bold mb-4">Experience Premium Services</h1>
-            <p className="text-xl mb-8">Elevate your lifestyle with our top-tier solutions</p>
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-5xl font-bold mb-4">
+              Experience Premium Services
+            </h1>
+            <p className="text-xl mb-8">
+              Elevate your lifestyle with our top-tier solutions
+            </p>
             <div className="flex justify-center space-x-4">
               <Button size="lg" variant="secondary" onClick={scrollToServices}>
                 Book Now
@@ -94,7 +196,8 @@ function ServicesPage() {
               <Button
                 size="lg"
                 variant="secondary"
-                onClick={() => setIsRequestDialogOpen(true)}>
+                onClick={() => setIsRequestDialogOpen(true)}
+              >
                 Request a Service
               </Button>
             </div>
@@ -107,8 +210,11 @@ function ServicesPage() {
           className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}>
-          <h2 className="text-4xl font-bold mb-4 text-primary">Why Choose Us?</h2>
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <h2 className="text-4xl font-bold mb-4 text-primary">
+            Why Choose Us?
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
             <div className="flex flex-col items-center">
               <StarIcon className="w-12 h-12 text-primary mb-4" />
@@ -126,7 +232,9 @@ function ServicesPage() {
             </div>
             <div className="flex flex-col items-center">
               <CheckCircleIcon className="w-12 h-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Customer Satisfaction</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                Customer Satisfaction
+              </h3>
               <p className="text-muted-foreground text-center">
                 Your happiness is our top priority.
               </p>
@@ -139,11 +247,17 @@ function ServicesPage() {
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}>
-          <h2 className="text-4xl font-bold mb-8 text-center text-primary">Our Premium Services</h2>
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <h2 className="text-4xl font-bold mb-8 text-center text-primary">
+            Our Premium Services
+          </h2>
           <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
             <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+              <Select
+                value={selectedCategory}
+                onValueChange={handleCategoryChange}
+              >
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
@@ -155,10 +269,11 @@ function ServicesPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select 
-                value={selectedSubcategory} 
+              <Select
+                value={selectedSubcategory}
                 onValueChange={setSelectedSubcategory}
-                disabled={selectedCategory === 'All Categories'}>
+                disabled={selectedCategory === "All Categories"}
+              >
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select Subcategory" />
                 </SelectTrigger>
@@ -185,15 +300,16 @@ function ServicesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {filteredServices.map((service, index) => (
               <motion.div
-                key={service.id}
+                key={service.serviceId}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}>
+                transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
+              >
                 <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
                   <CardHeader>
-                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4">
+                    {/* <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4">
                       <service.icon className="w-6 h-6 text-primary-foreground" />
-                    </div>
+                    </div> */}
                     <CardTitle className="text-2xl">{service.name}</CardTitle>
                     <CardDescription className="text-sm text-muted-foreground">
                       {service.category} - {service.subcategory}
@@ -207,11 +323,12 @@ function ServicesPage() {
                   <CardFooter className="mt-auto flex justify-between items-center">
                     <Button
                       variant="outline"
-                      onClick={() => openBookDialog(service.name)}>
+                      onClick={() => openBookDialog(service.name)}
+                    >
                       Book Now
                     </Button>
                     <Badge variant="secondary">
-                      {service.requestCount} requests
+                      ${service.baseFee.toFixed(2)}
                     </Badge>
                   </CardFooter>
                 </Card>
@@ -224,10 +341,12 @@ function ServicesPage() {
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}>
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           <Dialog
             open={isRequestDialogOpen}
-            onOpenChange={setIsRequestDialogOpen}>
+            onOpenChange={setIsRequestDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button size="lg" className="px-8 py-6 text-lg">
                 <CalendarIcon className="mr-2 h-5 w-5" /> Request a Service
@@ -260,8 +379,9 @@ function ServicesPage() {
                       <SelectContent>
                         {services.map((service) => (
                           <SelectItem
-                            key={service.id}
-                            value={service.name.toLowerCase().replace(' ', '-')}>
+                            key={service.serviceId}
+                            value={service.name.toLowerCase().replace(" ", "-")}
+                          >
                             {service.name}
                           </SelectItem>
                         ))}
@@ -316,8 +436,9 @@ function ServicesPage() {
                   <SelectContent>
                     {services.map((service) => (
                       <SelectItem
-                        key={service.id}
-                        value={service.name.toLowerCase().replace(" ", "-")}>
+                        key={service.serviceId}
+                        value={service.name.toLowerCase().replace(" ", "-")}
+                      >
                         {service.name}
                       </SelectItem>
                     ))}
@@ -398,7 +519,7 @@ function ServicesPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
-export default ServicesPage
+export default ServicesPage;

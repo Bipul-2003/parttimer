@@ -10,6 +10,8 @@ import UserProfilePage from "./pages/userProfilePage.tsx";
 import OrganOrganizationPage from "./pages/OrganizationPage.tsx";
 import ServiceRequestManager from "./components/Organization/ServiceRequestManager.tsx";
 import HomePage from "./pages/HomePage.tsx";
+import LoginPage from "./pages/LoginPage.tsx";
+import SignUpPage from "./pages/SignUpPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +21,14 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <HomePage />,
+      },
+      {
+        path: "/login",
+        element: <LoginPage />,
+      },
+      {
+        path: "/sign-up",
+        element: <SignUpPage />,
       },
       {
         path: "/services",

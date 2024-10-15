@@ -41,7 +41,8 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { signup } from "@/api/auth";
 
 const formSchema = z
   .object({
@@ -70,6 +71,8 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showOTPDialog, setShowOTPDialog] = useState(false);
   const [otp, setOTP] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -87,20 +90,38 @@ export default function SignUpPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log(values);
+    setErrorMessage("");
+
+    try {
+      const signupData = {
+        namePrefix: values.namePrefix,
+        firstName: values.firstName,
+        middleName: values.middleName,
+        lastName: values.lastName,
+        phoneNumber: values.phoneNumber,
+        email: values.email,
+        password: values.password,
+        location: values.location,
+      };
+
+      const data = await signup(signupData);
+      console.log("Signup successful:", data);
       setIsLoading(false);
       setShowOTPDialog(true);
-    }, 2000);
+      // Note: Typically, the OTP would be sent by the server after successful signup
+    } catch (error: any) {
+      setIsLoading(false);
+      setErrorMessage(error.message || "Signup failed. Please try again.");
+    }
   }
 
   function verifyOTP() {
     // Simulate OTP verification
     console.log("OTP verified:", otp);
     setShowOTPDialog(false);
+    navigate("/login");
     // Here you would typically redirect to a success page or login
   }
 
@@ -108,7 +129,6 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 p-4">
       <Card className="w-full max-w-[600px] shadow-lg">
         <CardHeader className="space-y-1">
-  
           <CardTitle className="text-2xl text-center">
             Create an account
           </CardTitle>
@@ -127,7 +147,8 @@ export default function SignUpPage() {
                     <FormLabel>Title</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}>
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a title" />
@@ -164,7 +185,9 @@ export default function SignUpPage() {
                   name="middleName"
                   render={({ field }) => (
                     <FormItem className="flex-1">
-                      <FormLabel>Middle Name <span className="text-xs">(Optional)</span></FormLabel>
+                      <FormLabel>
+                        Middle Name <span className="text-xs">(Optional)</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="M." {...field} />
                       </FormControl>
@@ -285,7 +308,8 @@ export default function SignUpPage() {
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={isLoading}>
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -301,7 +325,7 @@ export default function SignUpPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600">
             Already have an account?{" "}
-            <Link to='/login' className="text-blue-600 hover:underline">
+            <Link to="/login" className="text-blue-600 hover:underline">
               Log in
             </Link>
           </p>
@@ -333,7 +357,8 @@ export default function SignUpPage() {
             </InputOTP>
             <Button
               onClick={verifyOTP}
-              className="w-full bg-blue-600 hover:bg-blue-700">
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
               Verify OTP
             </Button>
           </div>

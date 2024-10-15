@@ -20,7 +20,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { login } from "@/api/auth";
 
 const formSchema = z.object({
   usernameOrEmail: z.string().min(1, "Username or email is required"),
@@ -29,6 +30,8 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,13 +41,19 @@ export default function LoginPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log(values);
+    setErrorMessage("");
+
+    try {
+      const data = await login(values.usernameOrEmail, values.password);
+      console.log("Login successful:", data);
       setIsLoading(false);
-    }, 2000);
+      navigate("/dashboard"); // Redirect after successful login
+    } catch (error: any) {
+      setIsLoading(false);
+      setErrorMessage(error.message || "Login failed. Please try again.");
+    }
   }
 
   return (
@@ -92,7 +101,8 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={isLoading}>
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -108,7 +118,7 @@ export default function LoginPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link to='/sign-up' className="text-blue-600 hover:underline">
+            <Link to="/sign-up" className="text-blue-600 hover:underline">
               Sign up
             </Link>
           </p>

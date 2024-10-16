@@ -142,6 +142,7 @@ function ServicesPage() {
       email: (event.currentTarget["book-email"] as HTMLInputElement).value,
       location: (event.currentTarget["book-location"] as HTMLInputElement)
         .value,
+      name: (event.currentTarget["book-fullname"] as HTMLInputElement).value,
       date: (event.currentTarget["book-date"] as HTMLInputElement).value,
       time: (event.currentTarget["book-time"] as HTMLInputElement).value,
       description: (event.currentTarget["book-description"] as HTMLInputElement)
@@ -149,7 +150,7 @@ function ServicesPage() {
     };
 
     try {
-      const result = await bookService(serviceId, bookingRequest);
+      const result = await bookService(bookingRequest);
       console.log("Booking successful:", result);
       // Handle success (e.g., show a confirmation message, close dialog)
       setIsBookDialogOpen(false); // Close the dialog on success

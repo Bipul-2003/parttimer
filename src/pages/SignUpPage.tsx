@@ -94,6 +94,8 @@ export default function SignUpPage() {
     setIsLoading(true);
     setErrorMessage("");
 
+    console.log("Form values: ", values); // Log form values for debugging
+
     try {
       const signupData = {
         namePrefix: values.namePrefix,
@@ -105,6 +107,8 @@ export default function SignUpPage() {
         password: values.password,
         location: values.location,
       };
+
+      console.log("Signup Data: ", signupData); // Log the final data being sent
 
       const data = await signup(signupData);
       console.log("Signup successful:", data);
@@ -146,6 +150,7 @@ export default function SignUpPage() {
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <Select
+                      value={field.value}
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >

@@ -12,6 +12,8 @@ import ServiceRequestManager from "./components/Organization/ServiceRequestManag
 import HomePage from "./pages/HomePage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import SignUpPage from "./pages/SignUpPage.tsx";
+import SubscriptionsPage from "./pages/SubscriptionPage.tsx";
+import DetailedServiceRequestPage from "./pages/DetailedRequestPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -21,6 +23,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <HomePage />,
+      },
+      {
+        path: "/requests/:requestId",
+        element:<DetailedServiceRequestPage />,
       },
       {
         path: "/login",
@@ -45,6 +51,10 @@ const router = createBrowserRouter([
       {
         path: "/organization",
         element: <OrganOrganizationPage />,
+      },
+      {
+        path: "/subscriptions",
+        element: <SubscriptionsPage />,
       },
       {
         path: "/test",

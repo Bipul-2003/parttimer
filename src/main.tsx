@@ -26,7 +26,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/requests/:requestId",
-        element:<DetailedServiceRequestPage />,
+        element: <DetailedServiceRequestPage />,
       },
       {
         path: "/login",

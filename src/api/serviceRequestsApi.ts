@@ -16,6 +16,8 @@ export interface ServiceRequest {
   userId: number | null;
   associatedOrganization?: Organization;
   employeesInvolved?: Employee[];
+  organizationOwnerName?: string;
+  organizationCoOwnerNames?: string[];
 }
 
 export interface Organization {
@@ -71,6 +73,7 @@ export const fetchServiceRequest = async (
   }
   return response.json();
 };
+
 export const selectOrganization = async (
   requestId: number,
   organizationId: number
@@ -81,7 +84,7 @@ export const selectOrganization = async (
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // Just send the organizationId as a raw number, not as an object
-      body: JSON.stringify(organizationId),
+      body: JSON.stringify(organizationId), //body: JSON.stringify(organizationId),
     }
   );
   if (!response.ok) {
@@ -89,6 +92,7 @@ export const selectOrganization = async (
   }
   return response.json();
 };
+
 export const simulatePayment = async (
   requestId: number,
   paymentInfo: PaymentSimulation
@@ -137,6 +141,50 @@ export const confirmServiceRequest = async (
   );
   if (!response.ok) {
     throw new Error(`Failed to confirm service: ${response.statusText}`);
+  }
+  return response.json();
+};
+
+// new endpoints (20/10/2024)
+
+export const initiateServiceRequest = async (
+  requestId: number
+): Promise<ServiceRequest> => {
+  const response = await fetch(
+    `${API_BASE_URL}/requests/${requestId}/initiate`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to initiate service: ${response.statusText}`);
+  }
+  return response.json();
+};
+
+export const finishServiceRequest = async (
+  requestId: number
+): Promise<ServiceRequest> => {
+  const response = await fetch(`${API_BASE_URL}/requests/${requestId}/finish`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to finish service: ${response.statusText}`);
+  }
+  return response.json();
+};
+
+export const verifyPayment = async (
+  requestId: number
+): Promise<ServiceRequest> => {
+  const response = await fetch(`${API_BASE_URL}/requests/${requestId}/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to verify payment: ${response.statusText}`);
   }
   return response.json();
 };

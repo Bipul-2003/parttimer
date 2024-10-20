@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Star, CheckCircle2 } from "lucide-react";
+import { Star, CheckCircle2, Play, Flag } from "lucide-react";
 
 import {
   ServiceRequest,
@@ -24,11 +24,28 @@ import {
   simulatePayment,
   submitFeedback,
   confirmServiceRequest,
+  initiateServiceRequest,
+  finishServiceRequest,
+  verifyPayment,
 } from "@/api/serviceRequestsApi";
 import { useParams } from "react-router-dom";
 
-type BackendStatus = "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED";
-
+type BackendStatus =
+  | "POSTED"
+  | "REQUEST_SENT"
+  | "CONFIRMED"
+  | "INITIATED"
+  | "PAYMENT_PENDING"
+  | "PAYMENT_SUBMITTED"
+  | "COMPLETED";
+type FrontendStatus =
+  | "posted"
+  | "request sent"
+  | "confirmed"
+  | "initiated"
+  | "payment pending"
+  | "payment submitted"
+  | "completed";
 export default function DetailedServiceRequestPage() {
   const { requestId } = useParams<{ requestId: string }>();
   const [request, setRequest] = React.useState<ServiceRequest | null>(null);
@@ -42,31 +59,27 @@ export default function DetailedServiceRequestPage() {
 
   const [newStatus, setNewStatus] = React.useState<BackendStatus | null>(null);
 
-  const statusOrder: Status[] = [
+  const isPosted = (request: ServiceRequest): boolean => {
+    return request.status.toUpperCase() === "POSTED";
+  };
+
+  const statusOrder: FrontendStatus[] = [
     "posted",
     "request sent",
     "confirmed",
+    "initiated",
     "payment pending",
+    "payment submitted",
     "completed",
   ];
   React.useEffect(() => {
     const loadServiceRequest = async () => {
-      if (!requestId) {
-        setError("No request ID provided");
-        console.log("no request ID provided");
-        return;
-      }
-
+      if (!requestId) return;
       try {
         setIsLoading(true);
         const data = await fetchServiceRequest(parseInt(requestId, 10));
-        console.log("Received data:", data);
-        setRequest({
-          ...data,
-          // Make sure optional fields are properly handled
-          associatedOrganization: data.associatedOrganization || undefined,
-          employeesInvolved: data.employeesInvolved || undefined,
-        });
+        // Make sure to handle the status correctly
+        setRequest(data);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load service request"
@@ -123,7 +136,7 @@ export default function DetailedServiceRequestPage() {
     if (!request) return;
     try {
       setIsLoading(true);
-      const updatedRequest = await confirmServiceRequest(request.id); // Call the new API function
+      const updatedRequest = await confirmServiceRequest(request.id); // Call the new API function to fetch owners and co-owners of organization
       setRequest(updatedRequest);
     } catch (err) {
       setError(
@@ -152,16 +165,112 @@ export default function DetailedServiceRequestPage() {
       setIsLoading(false);
     }
   };
-  const statusMapping: Record<BackendStatus, Status> = {
-    PENDING: "posted",
+  const statusMapping: Record<BackendStatus, FrontendStatus> = {
+    POSTED: "posted",
+    REQUEST_SENT: "request sent",
     CONFIRMED: "confirmed",
-    IN_PROGRESS: "payment pending",
+    INITIATED: "initiated",
+    PAYMENT_PENDING: "payment pending",
+    PAYMENT_SUBMITTED: "payment submitted",
     COMPLETED: "completed",
   };
   // Then update your status progression display
-  const getDisplayStatus = (status: string): Status => {
+  const getDisplayStatus = (status: string): FrontendStatus => {
     return (
-      statusMapping[status as BackendStatus] || (status.toLowerCase() as Status)
+      statusMapping[status as BackendStatus] ||
+      (status.toLowerCase() as FrontendStatus)
+    );
+  };
+
+  //new ones, (20/10/2024)
+  const handleInitiateService = async () => {
+    if (!request) return;
+    try {
+      setIsLoading(true);
+      const updatedRequest = await initiateServiceRequest(request.id);
+      setRequest(updatedRequest);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to initiate service"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFinishService = async () => {
+    if (!request) return;
+    try {
+      setIsLoading(true);
+      const updatedRequest = await finishServiceRequest(request.id);
+      setRequest(updatedRequest);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to finish service");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyPayment = async () => {
+    if (!request) return;
+    try {
+      setIsLoading(true);
+      const updatedRequest = await verifyPayment(request.id);
+      setRequest(updatedRequest);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to verify payment");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const ServiceRequestDetails: React.FC<{ request: ServiceRequest }> = ({
+    request,
+  }) => {
+    return (
+      <div>
+        {/* existing request details */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Service Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Date</Label>
+                <div className="font-medium">{request.date}</div>
+              </div>
+              <div>
+                <Label>Time</Label>
+                <div className="font-medium">{request.time}</div>
+              </div>
+              <div className="col-span-2">
+                <Label>Address</Label>
+                <div className="font-medium">{request.address}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {request.organizationOwnerName && (
+          <div className="mt-4">
+            <h4 className="font-semibold">Organization Owner:</h4>
+            <p>{request.organizationOwnerName}</p>
+          </div>
+        )}
+
+        {request.organizationCoOwnerNames &&
+          request.organizationCoOwnerNames.length > 0 && (
+            <div className="mt-2">
+              <h4 className="font-semibold">Organization Co-Owners:</h4>
+              <ul className="list-disc pl-5">
+                {request.organizationCoOwnerNames.map((name, index) => (
+                  <li key={index}>{name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+      </div>
     );
   };
 
@@ -263,36 +372,37 @@ export default function DetailedServiceRequestPage() {
       </Card>
 
       {/* Organization Proposals */}
-      {request.status === "PENDING" && request.availableOrganizations && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Choose a Service Provider</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {request.availableOrganizations.map((org) => (
-                <div
-                  key={org.id}
-                  className="flex justify-between items-center p-4 border rounded-lg hover:bg-accent"
-                >
-                  <div>
-                    <div className="font-medium">{org.name}</div>
-                    <Badge variant="secondary" className="mt-1">
-                      ${org.expectedFee.toFixed(2)}
-                    </Badge>
-                  </div>
-                  <Button
-                    onClick={() => handleSelectService(org.id)}
-                    disabled={isLoading}
+      {request.status.toUpperCase() === "POSTED" &&
+        request.availableOrganizations && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Choose a Service Provider</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {request.availableOrganizations.map((org) => (
+                  <div
+                    key={org.id}
+                    className="flex justify-between items-center p-4 border rounded-lg hover:bg-accent"
                   >
-                    Select
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                    <div>
+                      <div className="font-medium">{org.name}</div>
+                      <Badge variant="secondary" className="mt-1">
+                        ${org.expectedFee.toFixed(2)}
+                      </Badge>
+                    </div>
+                    <Button
+                      onClick={() => handleSelectService(org.id)}
+                      disabled={isLoading}
+                    >
+                      Select
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Request Sent */}
       {request.status === "request sent" && (
@@ -312,7 +422,7 @@ export default function DetailedServiceRequestPage() {
       )}
 
       {/* Associated Organization */}
-      {request.status !== "PENDING" && request.associatedOrganization && (
+      {request.status !== "POSTED" && request.associatedOrganization && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Service Provider</CardTitle>
@@ -362,7 +472,7 @@ export default function DetailedServiceRequestPage() {
       )}
 
       {/* Payment Section */}
-      {request.paymentStatus === "PENDING" && (
+      {request.status.toUpperCase() === "PAYMENT_PENDING" && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Payment Options</CardTitle>
@@ -468,6 +578,70 @@ export default function DetailedServiceRequestPage() {
                 {isLoading ? "Submitting..." : "Submit Feedback"}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Confirmed Status */}
+      {request.status === "CONFIRMED" && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Start Service</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">
+              The service request has been confirmed. Ready to begin?
+            </p>
+            <Button
+              onClick={handleInitiateService}
+              disabled={isLoading}
+              className="w-full"
+            >
+              <Play className="mr-2 h-4 w-4" />
+              Start Service
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Initiated Status */}
+      {request.status === "INITIATED" && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Service In Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">Service is currently in progress.</p>
+            <Button
+              onClick={handleFinishService}
+              disabled={isLoading}
+              className="w-full"
+            >
+              <Flag className="mr-2 h-4 w-4" />
+              Complete Service
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Payment Submitted Status */}
+      {request.status === "PAYMENT_SUBMITTED" && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Payment Verification</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center mb-4">
+              Payment has been submitted and is awaiting verification.
+            </p>
+            {/* This button would typically only be shown to organization users */}
+            <Button
+              onClick={handleVerifyPayment}
+              disabled={isLoading}
+              className="w-full"
+            >
+              Verify Payment
+            </Button>
           </CardContent>
         </Card>
       )}

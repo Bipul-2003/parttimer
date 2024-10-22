@@ -91,7 +91,7 @@ export default function DetailedServiceRequestPage() {
 
     loadServiceRequest();
   }, [requestId]);
-
+  console.log(request);
   const handleSelectService = async (orgId: number) => {
     if (!request) return;
     try {
@@ -120,9 +120,9 @@ export default function DetailedServiceRequestPage() {
       };
       const updatedRequest = await simulatePayment(request.id, paymentInfo);
       setRequest(updatedRequest);
-      if (updatedRequest.paymentStatus === "COMPLETED") {
-        await confirmServiceRequest(request.id);
-      }
+      // if (updatedRequest.paymentStatus === "COMPLETED") {
+      //   await confirmServiceRequest(request.id);
+      // }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to process payment"
@@ -136,7 +136,7 @@ export default function DetailedServiceRequestPage() {
     if (!request) return;
     try {
       setIsLoading(true);
-      const updatedRequest = await confirmServiceRequest(request.id); // Call the new API function to fetch owners and co-owners of organization
+      const updatedRequest = await confirmServiceRequest(request.id); // Call the new API function to employees
       setRequest(updatedRequest);
     } catch (err) {
       setError(
@@ -422,18 +422,16 @@ export default function DetailedServiceRequestPage() {
       )}
 
       {/* Associated Organization */}
-      {request.status !== "POSTED" && request.associatedOrganization && (
+      {request.status !== "POSTED" && request.organizationName && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Service Provider</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex justify-between items-center">
-              <span className="font-medium">
-                {request.associatedOrganization.name}
-              </span>
+              <span className="font-medium">{request.organizationName}</span>
               <Badge variant="secondary">
-                ${request.associatedOrganization.expectedFee.toFixed(2)}
+                ${request.agreedPrice?.toFixed(2)}
               </Badge>
             </div>
           </CardContent>

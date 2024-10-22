@@ -49,7 +49,7 @@ const router = createBrowserRouter([
         element: <UserProfilePage />,
       },
       {
-        path: "/organization",
+        path: "/organizations/:orgId",
         element: <OrganOrganizationPage />,
       },
       {

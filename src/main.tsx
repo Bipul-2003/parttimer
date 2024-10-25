@@ -14,6 +14,12 @@ import LoginPage from "./pages/LoginPage.tsx";
 import SignUpPage from "./pages/SignUpPage.tsx";
 import SubscriptionsPage from "./pages/SubscriptionPage.tsx";
 import DetailedServiceRequestPage from "./pages/DetailedRequestPage.tsx";
+import OrganizationPage from "./pages/OrganizationPage.tsx";
+import OrgDashboard from "./components/Organization/OrgDashboard.tsx";
+import { EmployeeManagement } from "./components/Organization/EmployeeManagement.tsx";
+import { ManageService } from "./components/Organization/ManageServices.tsx";
+import { RequestService } from "./components/Organization/RequestService.tsx";
+import { PaymentManagement } from "./components/Organization/PaymentManagement.tsx";
 
 const router = createBrowserRouter([
   {
@@ -49,8 +55,58 @@ const router = createBrowserRouter([
         element: <UserProfilePage />,
       },
       {
-        path: "/organizations/:orgId",
-        element: <OrganOrganizationPage />,
+        path: "/organization/:orgId/*",
+        element: <OrganizationPage />,
+        children: [
+          {
+            path: "dashboard",
+            element: <OrgDashboard />,
+          },
+          {
+            path: "people/employees",
+            element: <EmployeeManagement />,
+          },
+          {
+            path: "people/owners",
+            element: <OrgDashboard />,
+          },
+          {
+            path: "services/manage",
+            element: <ManageService />,
+          },
+          {
+            path: "services/request",
+            element: <RequestService />,
+          },
+          {
+            path: "service-assignment",
+            element: <OrgDashboard />,
+          },
+          {
+            path: "subscription",
+            element: <OrgDashboard />,
+          },
+          {
+            path: "details",
+            element: <OrgDashboard />,
+          },
+          {
+            path: "payments/epm",
+            element: <PaymentManagement />,
+          },
+          {
+            path: "payments/manage",
+            element: <OrgTransaction />,
+          },
+          {
+            path: "settings",
+            element: <OrgDashboard />,
+          },
+          {
+            index: true,
+            element: <OrgDashboard />,
+          },
+        ],
       },
       {
         path: "/subscriptions",

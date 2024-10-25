@@ -74,7 +74,7 @@ export default function OrgDashboard() {
         setError(null);
 
         const [statsResponse, bookingsResponse] = await Promise.all([
-          dashboardAPI.getDashboardStats(orgId as string),
+          dashboardAPI.getDashboardStats(orgId as string), //
           dashboardAPI.getBookings(orgId as string),
         ]);
 
@@ -151,7 +151,9 @@ export default function OrgDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEmployees}</div>
+            <div className="text-2xl font-bold">
+              {stats.totalEmployees || 0}
+            </div>
             <p className="text-xs text-muted-foreground">Active employees</p>
           </CardContent>
         </Card>
@@ -163,7 +165,9 @@ export default function OrgDashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeServices}</div>
+            <div className="text-2xl font-bold">
+              {stats.activeServices || 0}
+            </div>
             <p className="text-xs text-muted-foreground">Active services</p>
           </CardContent>
         </Card>
@@ -175,7 +179,9 @@ export default function OrgDashboard() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.completedBookings}</div>
+            <div className="text-2xl font-bold">
+              {stats.completedBookings || 0}
+            </div>
             <p className="text-xs text-muted-foreground">Complete bookings</p>
           </CardContent>
         </Card>
@@ -187,7 +193,9 @@ export default function OrgDashboard() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.completedBookings}</div>
+            <div className="text-2xl font-bold">
+              {stats.completedBookings || 0}
+            </div>
             <p className="text-xs text-muted-foreground">
               Successfully completed
             </p>

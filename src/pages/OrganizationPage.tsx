@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, Outlet, useParams } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,12 +8,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-import { RequestService } from "@/components/Organization/RequestService";
-import { ManageService } from "@/components/Organization/ManageServices";
-import { EmployeeManagement } from "@/components/Organization/EmployeeManagement";
-import { PaymentManagement } from "@/components/Organization/PaymentManagement"; // Ensure this matches the actual file name
-import { OrgTransaction } from "@/components/Organization/OrgTransactions"; // Ensure this matches the actual file name
 import {
   Accordion,
   AccordionContent,
@@ -31,53 +26,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import OrgDashboard from "@/components/Organization/OrgDashboard";
-import { dashboardAPI } from "@/api/dashboard";
-import {
-  Employee,
-  DashboardStats,
-  OrganizationService,
-} from "@/types/dashboardTypes";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-
-export interface DashboardComponentProps {
-  stats: DashboardStats | null;
-  employees: Employee[];
-  services: OrganizationService[];
-  loading: boolean;
-  error: string | null;
-  onUpdate: () => Promise<void>;
-}
-
-interface ComponentProps {
-  label: string;
-  component: React.ComponentType<DashboardComponentProps>;
-}
-
-interface SidebarItemBase {
-  icon: React.ComponentType;
-  label: string;
-  path: string; // Add path property
-}
-
-interface SidebarItemWithComponent extends SidebarItemBase {
-  component: React.ComponentType<DashboardComponentProps>;
-  children?: never;
-}
-
-interface SidebarItemWithChildren extends SidebarItemBase {
-  component?: never;
-  children: (ComponentProps & { path: string })[]; // Add path to children
-}
-type SidebarItem = SidebarItemWithComponent | SidebarItemWithChildren;
-
-interface DashboardState {
-  stats: DashboardStats | null;
-  employees: Employee[];
-  services: OrganizationService[];
-  loading: boolean;
-  error: string | null;
-}
 
 const CustomIcon = ({
   Icon,
@@ -85,34 +33,25 @@ const CustomIcon = ({
   width = 20,
   height = 20,
 }: {
-  Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>; // Ensure the Icon can accept SVG props
+  Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   className?: string;
   width?: number;
   height?: number;
 }) => <Icon width={width} height={height} className={className} />;
 
-const sidebarItems: SidebarItem[] = [
+const sidebarItems = [
   {
     icon: BarChart3,
     label: "Dashboard",
     path: "dashboard",
-    component: OrgDashboard,
   },
   {
     icon: Users,
     label: "People",
     path: "people",
     children: [
-      {
-        label: "Employee management",
-        path: "employees",
-        component: EmployeeManagement,
-      },
-      {
-        label: "Owners",
-        path: "owners",
-        component: OrgDashboard,
-      },
+      { label: "Employee management", path: "employees" },
+      { label: "Owners", path: "owners" },
     ],
   },
   {
@@ -120,194 +59,63 @@ const sidebarItems: SidebarItem[] = [
     label: "Services",
     path: "services",
     children: [
-      {
-        label: "Manage Services",
-        path: "manage",
-        component: ManageService,
-      },
-      {
-        label: "Request New Service",
-        path: "request",
-        component: RequestService,
-      },
+      { label: "Manage Services", path: "manage" },
+      { label: "Request New Service", path: "request" },
     ],
   },
   {
     icon: UserCog,
     label: "Service Assignment",
     path: "service-assignment",
-    component: OrgDashboard,
   },
   {
     icon: CreditCard,
     label: "Subscription",
     path: "subscription",
-    component: OrgDashboard,
   },
   {
     icon: Building,
     label: "Organization Details",
     path: "details",
-    component: OrgDashboard,
   },
   {
     icon: DollarSign,
     label: "Payments",
     path: "payments",
     children: [
-      {
-        label: "EPM",
-        path: "epm",
-        component: PaymentManagement,
-      },
-      {
-        label: "Manage Payment",
-        path: "manage",
-        component: OrgTransaction,
-      },
+      { label: "EPM", path: "epm" },
+      { label: "Manage Payment", path: "manage" },
     ],
   },
   {
     icon: Settings,
     label: "Settings",
     path: "settings",
-    component: OrgDashboard,
   },
 ];
 
 export default function OrganizationPage() {
-  //OrganOrganizationPage
-  //const [activeItem, setActiveItem] = useState("Dashboard");
-  const [userRole, setUserRole] = useState<"admin" | "manager" | "employee">(
-    "admin"
-  );
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [dashboardState, setDashboardState] = useState<DashboardState>({
-    stats: null,
-    employees: [],
-    services: [],
-    loading: true,
-    error: null,
-  });
-
-  //const orgId = "http://localhost:8080/api";
+  const [activeItem, setActiveItem] = useState("Dashboard");
   const { orgId } = useParams<{ orgId: string }>();
-
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Function to get active item based on current path
-  const getActiveItemFromPath = () => {
-    const path = location.pathname.split("/").pop();
-    for (const item of sidebarItems) {
-      if (item.path === path) return item.label;
-      if (item.children) {
-        const child = item.children.find((c) => c.path === path);
-        if (child) return child.label;
-      }
-    }
-    return "Dashboard";
-  };
-
-  const [activeItem, setActiveItem] = useState(getActiveItemFromPath());
-
-  // Update activeItem when location changes
   useEffect(() => {
-    setActiveItem(getActiveItemFromPath());
+    const path = location.pathname.split("/").pop();
+    const newActiveItem = sidebarItems.find(item => 
+      item.path === path || item.children?.some(child => child.path === path)
+    );
+    if (newActiveItem) {
+      setActiveItem(newActiveItem.label);
+    }
   }, [location]);
 
-  // Function to handle navigation
-  const handleNavigation = (
-    item: SidebarItemBase | (ComponentProps & { path: string })
-  ) => {
-    setActiveItem(item.label);
-    navigate(`/organization/${orgId}/${item.path}`);
+  const handleNavigation = (path: string, label: string) => {
+    setActiveItem(label);
+    navigate(`/organization/${orgId}/${path}`);
   };
 
-  // Effect to fetch initial data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setDashboardState((prev) => ({ ...prev, loading: true, error: null }));
-
-        const [stats, employees, services] = await Promise.all([
-          dashboardAPI.getDashboardStats(orgId as string),
-          dashboardAPI.getEmployees(orgId as string),
-          dashboardAPI.getServices(orgId as string),
-        ]);
-
-        setDashboardState({
-          stats,
-          employees,
-          services,
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
-        setDashboardState((prev) => ({
-          ...prev,
-          loading: false,
-          error: error instanceof Error ? error.message : "An error occurred",
-        }));
-      }
-    };
-
-    fetchDashboardData();
-  }, [orgId]);
-
-  // Access control function
-  const canAccess = (item: string) => {
-    if (userRole === "admin") return true;
-    if (userRole === "manager" && item !== "Owners" && item !== "Subscription")
-      return true;
-    if (
-      userRole === "employee" &&
-      ["Dashboard", "Service Requests", "Service Responses"].includes(item)
-    )
-      return true;
-    return false;
-  };
-
-  const findActiveComponent =
-    (): React.ComponentType<DashboardComponentProps> => {
-      for (const item of sidebarItems) {
-        if (item.component && item.label === activeItem) {
-          return item.component;
-        }
-        if (item.children) {
-          const childComponent = item.children.find(
-            (child) => child.label === activeItem
-          )?.component;
-          if (childComponent) return childComponent;
-        }
-      }
-      return OrgDashboard;
-    };
-  // Updated active component handling with proper typing
-  const ActiveComponent = findActiveComponent();
-  const handleUpdate = async () => {
-    try {
-      setDashboardState((prev) => ({ ...prev, loading: true, error: null }));
-      const [stats, employees, services] = await Promise.all([
-        dashboardAPI.getDashboardStats(orgId as string),
-        dashboardAPI.getEmployees(orgId as string),
-        dashboardAPI.getServices(orgId as string),
-      ]);
-      setDashboardState({
-        stats,
-        employees,
-        services,
-        loading: false,
-        error: null,
-      });
-    } catch (error) {
-      setDashboardState((prev) => ({
-        ...prev,
-        loading: false,
-        error: error instanceof Error ? error.message : "An error occurred",
-      }));
-    }
-  };
   return (
     <div className="flex h-screen bg-gray-100">
       <aside
@@ -353,7 +161,6 @@ export default function OrganizationPage() {
                                   Icon={item.icon}
                                   className={`${isCollapsed ? "" : "mr-3"}`}
                                 />
-
                                 {!isCollapsed && item.label}
                               </span>
                             </TooltipTrigger>
@@ -366,55 +173,49 @@ export default function OrganizationPage() {
                         </AccordionTrigger>
                         {!isCollapsed && (
                           <AccordionContent>
-                            {item.children.map(
-                              (child, childIndex) =>
-                                canAccess(child.label) && (
-                                  <Button
-                                    key={childIndex}
-                                    variant="ghost"
-                                    className={`w-full justify-start py-2 px-4 mb-1 ${
-                                      activeItem === child.label
-                                        ? "bg-purple-100 text-purple-700"
-                                        : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
-                                    }`}
-                                    onClick={() => setActiveItem(child.label)}
-                                  >
-                                    {child.label}
-                                  </Button>
-                                )
-                            )}
+                            {item.children.map((child, childIndex) => (
+                              <Button
+                                key={childIndex}
+                                variant="ghost"
+                                className={`w-full justify-start py-2 px-4 mb-1 ${
+                                  activeItem === child.label
+                                    ? "bg-purple-100 text-purple-700"
+                                    : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
+                                }`}
+                                onClick={() => handleNavigation(child.path, child.label)}
+                              >
+                                {child.label}
+                              </Button>
+                            ))}
                           </AccordionContent>
                         )}
                       </AccordionItem>
                     </Accordion>
                   ) : (
-                    canAccess(item.label) && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className={`w-full justify-start py-2 px-4 mb-1 ${
-                              activeItem === item.label
-                                ? "bg-purple-100 text-purple-700"
-                                : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
-                            } ${isCollapsed ? "justify-center" : ""}`}
-                            onClick={() => setActiveItem(item.label)}
-                          >
-                            <CustomIcon
-                              Icon={item.icon}
-                              className={`${isCollapsed ? "" : "mr-3"}`}
-                            />
-
-                            {!isCollapsed && item.label}
-                          </Button>
-                        </TooltipTrigger>
-                        {isCollapsed && (
-                          <TooltipContent side="right">
-                            {item.label}
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    )
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className={`w-full justify-start py-2 px-4 mb-1 ${
+                            activeItem === item.label
+                              ? "bg-purple-100 text-purple-700"
+                              : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
+                          } ${isCollapsed ? "justify-center" : ""}`}
+                          onClick={() => handleNavigation(item.path, item.label)}
+                        >
+                          <CustomIcon
+                            Icon={item.icon}
+                            className={`${isCollapsed ? "" : "mr-3"}`}
+                          />
+                          {!isCollapsed && item.label}
+                        </Button>
+                      </TooltipTrigger>
+                      {isCollapsed && (
+                        <TooltipContent side="right">
+                          {item.label}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                   )}
                 </div>
               ))}
@@ -424,15 +225,7 @@ export default function OrganizationPage() {
       </aside>
 
       <main className="flex-1 p-8 overflow-auto">
-        {dashboardState.loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-700" />
-          </div>
-        ) : dashboardState.error ? (
-          <div className="text-red-500 text-center">{dashboardState.error}</div>
-        ) : (
-          <ActiveComponent {...dashboardState} onUpdate={handleUpdate} />
-        )}
+        <Outlet />
       </main>
     </div>
   );

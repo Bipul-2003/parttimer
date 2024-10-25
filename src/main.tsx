@@ -7,7 +7,7 @@ import "./index.css";
 import ServicesPage from "./pages/ServicesPage.tsx";
 import RequestedServicesPage from "./pages/RequestedServicesPage.tsx";
 import UserProfilePage from "./pages/userProfilePage.tsx";
-import OrganOrganizationPage from "./pages/OrganizationPage.tsx";
+// import OrganOrganizationPage from "./pages/OrganizationPage.tsx";
 import ServiceRequestManager from "./components/Organization/ServiceRequestManager.tsx";
 import HomePage from "./pages/HomePage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
@@ -20,6 +20,7 @@ import { EmployeeManagement } from "./components/Organization/EmployeeManagement
 import { ManageService } from "./components/Organization/ManageServices.tsx";
 import { RequestService } from "./components/Organization/RequestService.tsx";
 import { PaymentManagement } from "./components/Organization/PaymentManagement.tsx";
+import { OrgTransaction } from "./components/Organization/OrgTransactions.tsx";
 
 const router = createBrowserRouter([
   {

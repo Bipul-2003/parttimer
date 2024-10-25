@@ -1,4 +1,5 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -42,61 +43,126 @@ import {
   Package,
   MoreHorizontal,
 } from "lucide-react";
+import axios from "axios";
 
-import { DashboardComponentProps } from "@/pages/OrganizationPage";
+type ServiceRequest = {
+  id: number;
+  name: string;
+  type: string;
+  date: string;
+  time: string;
+  expectedFee: number;
+};
 
-// Updated mock data for service requests
-const serviceRequests = [
-  {
-    id: 1,
-    name: "Car Wash",
-    type: "Primitive",
-    status: "Pending",
-    date: "2023-07-01",
-    time: "10:00 AM",
-  },
-  {
-    id: 2,
-    name: "Lawn Mowing",
-    type: "Primitive",
-    status: "In Progress",
-    date: "2023-06-28",
-    time: "2:30 PM",
-  },
-  {
-    id: 3,
-    name: "Tennis Coaching",
-    type: "Primitive",
-    status: "Completed",
-    date: "2023-06-25",
-    time: "4:00 PM",
-  },
-  {
-    id: 4,
-    name: "House Cleaning",
-    type: "Primitive",
-    status: "Pending",
-    date: "2023-07-03",
-    time: "9:00 AM",
-  },
-  {
-    id: 5,
-    name: "Custom Garden Design",
-    type: "New",
-    status: "In Progress",
-    date: "2023-06-30",
-    time: "11:30 AM",
-  },
-];
+type DashboardStats = {
+  revenue: {
+    monthly: number;
+  };
+  activeClients: number;
+  activeServices: number;
+  serviceRequests: number;
+};
 
-export default function OrgDashboard({
-  stats,
-  services,
-  loading,
-}: DashboardComponentProps) {
+export default function OrgDashboard() {
+  const { orgId } = useParams<{ orgId: string }>();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentBookings, setRecentBookings] = useState<ServiceRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [offerPrice, setOfferPrice] = useState<string>("");
 
-  // Early return for loading state
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        setRecentBookings([
+          {
+            id: 1,
+            name: "Website Design",
+            type: "Digital",
+            date: "2024-10-25",
+            time: "10:00 AM",
+            expectedFee: 2500,
+          },
+          {
+            id: 2,
+            name: "Logo Creation",
+            type: "Design",
+            date: "2024-10-26",
+            time: "2:30 PM",
+            expectedFee: 500,
+          },
+          {
+            id: 3,
+            name: "SEO Optimization",
+            type: "Digital",
+            date: "2024-10-27",
+            time: "11:15 AM",
+            expectedFee: 1200,
+          },
+          {
+            id: 4,
+            name: "Social Media Management",
+            type: "Marketing",
+            date: "2024-10-28",
+            time: "9:00 AM",
+            expectedFee: 800,
+          },
+          {
+            id: 5,
+            name: "Content Writing",
+            type: "Content",
+            date: "2024-10-29",
+            time: "3:45 PM",
+            expectedFee: 300,
+          },
+        ]);
+        setStats({
+          revenue: {
+            monthly: 125000,
+          },
+          activeClients: 1250,
+          activeServices: 75,
+          serviceRequests: 320,
+        });
+
+        // const [statsResponse, bookingsResponse] = await Promise.all([
+        //   axios.get<DashboardStats>(`/api/organization/${orgId}/stats`),
+        //   axios.get<ServiceRequest[]>(`/api/organization/${orgId}/recent-bookings`)
+        // ])
+
+        // setStats(statsResponse.data)
+        // setRecentBookings(bookingsResponse.data)
+      } catch (err) {
+        setError("Failed to fetch dashboard data. Please try again later.");
+        console.error("Error fetching dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [orgId]);
+
+  const handleOfferPrice = async (requestId: number, newPrice: number) => {
+    try {
+      await axios.post(`/api/organization/${orgId}/offer-price`, {
+        requestId,
+        offerPrice: newPrice,
+      });
+      // Refresh the bookings data after successful offer
+      const response = await axios.get<ServiceRequest[]>(
+        `/api/organization/${orgId}/recent-bookings`
+      );
+      setRecentBookings(response.data);
+    } catch (err) {
+      console.error("Error offering price:", err);
+      // Handle error (e.g., show an error message to the user)
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -105,7 +171,10 @@ export default function OrgDashboard({
     );
   }
 
-  // Early return if stats are not available
+  if (error) {
+    return <div className="text-center text-red-500">{error}</div>;
+  }
+
   if (!stats) {
     return (
       <div className="text-center text-gray-500">
@@ -113,15 +182,6 @@ export default function OrgDashboard({
       </div>
     );
   }
-  const recentBookings = services.slice(0, 5).map((service) => ({
-    id: service.id,
-    name: service.name,
-    type: service.category || "Primitive",
-    status: service.status,
-    date: new Date().toISOString().split("T")[0], // You might want to add bookingDate to your service type
-    time: "10:00 AM", // You might want to add bookingTime to your service type
-    expectedFee: service.expectedFee,
-  }));
 
   return (
     <div className="space-y-6">
@@ -132,16 +192,10 @@ export default function OrgDashboard({
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-muted-foreground">
-              +20.1% from last month
-            </p>
-            {/* <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold">
               ${stats.revenue.monthly.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Monthly Revenue
-            </p> */}
+            <p className="text-xs text-muted-foreground">Monthly Revenue</p>
           </CardContent>
         </Card>
         <Card>
@@ -152,9 +206,11 @@ export default function OrgDashboard({
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,350</div>
+            <div className="text-2xl font-bold">
+              {stats.activeClients.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +180.1% from last month
+              Total active clients
             </p>
           </CardContent>
         </Card>
@@ -166,9 +222,11 @@ export default function OrgDashboard({
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12,234</div>
+            <div className="text-2xl font-bold">
+              {stats.activeServices.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +19% from last month
+              Total active services
             </p>
           </CardContent>
         </Card>
@@ -180,9 +238,11 @@ export default function OrgDashboard({
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">573</div>
+            <div className="text-2xl font-bold">
+              {stats.serviceRequests.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +201 since last hour
+              Total service requests
             </p>
           </CardContent>
         </Card>
@@ -200,9 +260,9 @@ export default function OrgDashboard({
               <TableRow>
                 <TableHead>Service Name</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
+                <TableHead>Expected Fee</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -213,23 +273,14 @@ export default function OrgDashboard({
                   <TableCell>
                     <Badge
                       variant={
-                        request.type === "Primitive" ? "secondary" : "default"
-                      }
-                    >
+                        request.type === "Digital" ? "secondary" : "default"
+                      }>
                       {request.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        request.status === "active" ? "default" : "secondary"
-                      }
-                    >
-                      {request.status}
                     </Badge>
                   </TableCell>
                   <TableCell>{request.date}</TableCell>
                   <TableCell>{request.time}</TableCell>
+                  <TableCell>${request.expectedFee.toLocaleString()}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -243,8 +294,7 @@ export default function OrgDashboard({
                         <DropdownMenuItem
                           onClick={() =>
                             navigator.clipboard.writeText(request.id.toString())
-                          }
-                        >
+                          }>
                           Copy request ID
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -252,24 +302,23 @@ export default function OrgDashboard({
                         <Dialog>
                           <DialogTrigger asChild>
                             <DropdownMenuItem
-                              onSelect={(e) => e.preventDefault()}
-                            >
-                              Update price
+                              onSelect={(e) => e.preventDefault()}>
+                              Offer price
                             </DropdownMenuItem>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
                               <DialogTitle>
-                                Update Price for {request.name}
+                                Offer Price for {request.name}
                               </DialogTitle>
                               <DialogDescription>
-                                Current price: ${request.expectedFee}
+                                Current expected fee: ${request.expectedFee}
                               </DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
                               <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="price" className="text-right">
-                                  New Price
+                                  Offer Price
                                 </Label>
                                 <Input
                                   id="price"
@@ -282,7 +331,16 @@ export default function OrgDashboard({
                               </div>
                             </div>
                             <DialogFooter>
-                              <Button type="submit">Update price</Button>
+                              <Button
+                                type="submit"
+                                onClick={() =>
+                                  handleOfferPrice(
+                                    request.id,
+                                    Number(offerPrice)
+                                  )
+                                }>
+                                Submit Offer
+                              </Button>
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>

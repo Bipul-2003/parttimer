@@ -36,31 +36,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import {
-  BarChart3,
-  DollarSign,
-  Users,
-  Package,
-  MoreHorizontal,
-} from "lucide-react";
+import { BarChart3, Users, Package, Clock, MoreHorizontal } from "lucide-react";
 import axios from "axios";
 
 type ServiceRequest = {
-  id: number;
-  name: string;
-  type: string;
+  bookingId: number;
+  serviceName: string;
+  customerName: string;
   date: string;
   time: string;
-  expectedFee: number;
+  status: string;
+  paymentStatus: string;
 };
 
 type DashboardStats = {
-  revenue: {
-    monthly: number;
-  };
-  activeClients: number;
-  activeServices: number;
-  serviceRequests: number;
+  totalEmployees: number;
+  totalServices: number;
+  totalBookings: number;
+  completedBookings: number;
+  pendingBookings: number;
 };
 
 export default function OrgDashboard() {
@@ -77,64 +71,71 @@ export default function OrgDashboard() {
         setLoading(true);
         setError(null);
 
-        setRecentBookings([
-          {
-            id: 1,
-            name: "Website Design",
-            type: "Digital",
-            date: "2024-10-25",
-            time: "10:00 AM",
-            expectedFee: 2500,
-          },
-          {
-            id: 2,
-            name: "Logo Creation",
-            type: "Design",
-            date: "2024-10-26",
-            time: "2:30 PM",
-            expectedFee: 500,
-          },
-          {
-            id: 3,
-            name: "SEO Optimization",
-            type: "Digital",
-            date: "2024-10-27",
-            time: "11:15 AM",
-            expectedFee: 1200,
-          },
-          {
-            id: 4,
-            name: "Social Media Management",
-            type: "Marketing",
-            date: "2024-10-28",
-            time: "9:00 AM",
-            expectedFee: 800,
-          },
-          {
-            id: 5,
-            name: "Content Writing",
-            type: "Content",
-            date: "2024-10-29",
-            time: "3:45 PM",
-            expectedFee: 300,
-          },
+        // Dummy data for demonstration
+        // setRecentBookings([
+        //   {
+        //     bookingId: 9,
+        //     serviceName: "Car Wash",
+        //     customerName: "v rajesh",
+        //     date: "2024-11-01",
+        //     time: "22:10",
+        //     status: "CONFIRMED",
+        //     paymentStatus: "COMPLETED",
+        //   },
+        //   {
+        //     bookingId: 10,
+        //     serviceName: "House Cleaning",
+        //     customerName: "John Doe",
+        //     date: "2024-11-02",
+        //     time: "10:00",
+        //     status: "PENDING",
+        //     paymentStatus: "PENDING",
+        //   },
+        //   {
+        //     bookingId: 11,
+        //     serviceName: "Lawn Mowing",
+        //     customerName: "Jane Smith",
+        //     date: "2024-11-03",
+        //     time: "14:30",
+        //     status: "CONFIRMED",
+        //     paymentStatus: "PENDING",
+        //   },
+        //   {
+        //     bookingId: 12,
+        //     serviceName: "Plumbing Service",
+        //     customerName: "Alice Johnson",
+        //     date: "2024-11-04",
+        //     time: "09:15",
+        //     status: "CONFIRMED",
+        //     paymentStatus: "COMPLETED",
+        //   },
+        //   {
+        //     bookingId: 13,
+        //     serviceName: "Pest Control",
+        //     customerName: "Bob Williams",
+        //     date: "2024-11-05",
+        //     time: "11:45",
+        //     status: "PENDING",
+        //     paymentStatus: "PENDING",
+        //   },
+        // ]);
+        // setStats({
+        //   totalEmployees: 3,
+        //   totalServices: 3,
+        //   totalBookings: 40,
+        //   completedBookings: 11,
+        //   pendingBookings: 0,
+        // });
+
+        // Uncomment the following lines when ready to fetch from API
+        const [statsResponse, bookingsResponse] = await Promise.all([
+          axios.get<DashboardStats>(`/api/organization/${orgId}/dashboard`),
+          axios.get<ServiceRequest[]>(`/api/organization/${orgId}/bookings`),
         ]);
-        setStats({
-          revenue: {
-            monthly: 125000,
-          },
-          activeClients: 1250,
-          activeServices: 75,
-          serviceRequests: 320,
-        });
-
-        // const [statsResponse, bookingsResponse] = await Promise.all([
-        //   axios.get<DashboardStats>(`/api/organization/${orgId}/stats`),
-        //   axios.get<ServiceRequest[]>(`/api/organization/${orgId}/recent-bookings`)
-        // ])
-
-        // setStats(statsResponse.data)
-        // setRecentBookings(bookingsResponse.data)
+        console.log(statsResponse.data);
+        console.log(bookingsResponse.data);
+        setStats(statsResponse.data);
+        setRecentBookings(bookingsResponse.data);
       } catch (err) {
         setError("Failed to fetch dashboard data. Please try again later.");
         console.error("Error fetching dashboard data:", err);
@@ -146,10 +147,10 @@ export default function OrgDashboard() {
     fetchDashboardData();
   }, [orgId]);
 
-  const handleOfferPrice = async (requestId: number, newPrice: number) => {
+  const handleOfferPrice = async (bookingId: number, newPrice: number) => {
     try {
       await axios.post(`/api/organization/${orgId}/offer-price`, {
-        requestId,
+        bookingId,
         offerPrice: newPrice,
       });
       // Refresh the bookings data after successful offer
@@ -188,61 +189,51 @@ export default function OrgDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${stats.revenue.monthly.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Monthly Revenue</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Active Clients
+              Total Employees
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.activeClients.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total active clients
-            </p>
+            <div className="text-2xl font-bold">{stats.totalEmployees}</div>
+            <p className="text-xs text-muted-foreground">Active employees</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Active Services
+              Total Services
             </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.activeServices.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total active services
-            </p>
+            <div className="text-2xl font-bold">{stats.totalServices}</div>
+            <p className="text-xs text-muted-foreground">Available services</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Service Requests
+              Total Bookings
             </CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.serviceRequests.toLocaleString()}
-            </div>
+            <div className="text-2xl font-bold">{stats.totalBookings}</div>
+            <p className="text-xs text-muted-foreground">All-time bookings</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Completed Bookings
+            </CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.completedBookings}</div>
             <p className="text-xs text-muted-foreground">
-              Total service requests
+              Successfully completed
             </p>
           </CardContent>
         </Card>
@@ -259,29 +250,43 @@ export default function OrgDashboard() {
             <TableHeader>
               <TableRow>
                 <TableHead>Service Name</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Customer Name</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
-                <TableHead>Expected Fee</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Payment Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentBookings.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell className="font-medium">{request.name}</TableCell>
+              {recentBookings.map((booking) => (
+                <TableRow key={booking.bookingId}>
+                  <TableCell className="font-medium">
+                    {booking.serviceName}
+                  </TableCell>
+                  <TableCell>{booking.customerName}</TableCell>
+                  <TableCell>{booking.date}</TableCell>
+                  <TableCell>{booking.time}</TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        request.type === "Digital" ? "secondary" : "default"
+                        booking.status === "CONFIRMED" ? "default" : "secondary"
                       }
                     >
-                      {request.type}
+                      {booking.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{request.date}</TableCell>
-                  <TableCell>{request.time}</TableCell>
-                  <TableCell>${request.expectedFee.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        booking.paymentStatus === "COMPLETED"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
+                      {booking.paymentStatus}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -294,10 +299,12 @@ export default function OrgDashboard() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem
                           onClick={() =>
-                            navigator.clipboard.writeText(request.id.toString())
+                            navigator.clipboard.writeText(
+                              booking.bookingId.toString()
+                            )
                           }
                         >
-                          Copy request ID
+                          Copy booking ID
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>View details</DropdownMenuItem>
@@ -312,10 +319,10 @@ export default function OrgDashboard() {
                           <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
                               <DialogTitle>
-                                Offer Price for {request.name}
+                                Offer Price for {booking.serviceName}
                               </DialogTitle>
                               <DialogDescription>
-                                Current expected fee: ${request.expectedFee}
+                                Booking for {booking.customerName}
                               </DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
@@ -338,7 +345,7 @@ export default function OrgDashboard() {
                                 type="submit"
                                 onClick={() =>
                                   handleOfferPrice(
-                                    request.id,
+                                    booking.bookingId,
                                     Number(offerPrice)
                                   )
                                 }

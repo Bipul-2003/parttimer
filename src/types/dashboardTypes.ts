@@ -3,11 +3,11 @@ export interface DashboardStats {
   activeServices: number;
   pendingBookings: number;
   completedBookings: number;
-  revenue: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-  };
+  // revenue: {
+  //   daily: number;
+  //   weekly: number;
+  //   monthly: number;
+  // };
 }
 
 export interface Employee {

@@ -274,7 +274,8 @@ export default function OrgDashboard() {
                     <Badge
                       variant={
                         request.type === "Digital" ? "secondary" : "default"
-                      }>
+                      }
+                    >
                       {request.type}
                     </Badge>
                   </TableCell>
@@ -294,7 +295,8 @@ export default function OrgDashboard() {
                         <DropdownMenuItem
                           onClick={() =>
                             navigator.clipboard.writeText(request.id.toString())
-                          }>
+                          }
+                        >
                           Copy request ID
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -302,7 +304,8 @@ export default function OrgDashboard() {
                         <Dialog>
                           <DialogTrigger asChild>
                             <DropdownMenuItem
-                              onSelect={(e) => e.preventDefault()}>
+                              onSelect={(e) => e.preventDefault()}
+                            >
                               Offer price
                             </DropdownMenuItem>
                           </DialogTrigger>
@@ -338,7 +341,8 @@ export default function OrgDashboard() {
                                     request.id,
                                     Number(offerPrice)
                                   )
-                                }>
+                                }
+                              >
                                 Submit Offer
                               </Button>
                             </DialogFooter>

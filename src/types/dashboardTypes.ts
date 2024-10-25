@@ -31,15 +31,13 @@ export interface OrganizationService {
 }
 
 export interface Booking {
-  id: number;
-  serviceId: number;
+  bookingId: number;
   serviceName: string;
-  customerId: number;
   customerName: string;
-  status: "pending" | "confirmed" | "in-progress" | "completed" | "cancelled";
-  bookingDate: string;
-  scheduledDate: string;
-  fee: number;
+  date: string;
+  time: string;
+  status: string;
+  paymentStatus: string;
 }
 
 export interface ServiceAssignment {

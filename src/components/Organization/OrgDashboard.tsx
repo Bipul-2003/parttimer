@@ -39,29 +39,30 @@ import { Badge } from "@/components/ui/badge";
 import { BarChart3, Users, Package, Clock, MoreHorizontal } from "lucide-react";
 import axios from "axios";
 import { dashboardAPI } from "@/api/dashboard";
+import { Booking, DashboardStats } from "@/types/dashboardTypes";
 
-type ServiceRequest = {
-  bookingId: number;
-  serviceName: string;
-  customerName: string;
-  date: string;
-  time: string;
-  status: string;
-  paymentStatus: string;
-};
+// type ServiceRequest = {
+//   bookingId: number;
+//   serviceName: string;
+//   customerName: string;
+//   date: string;
+//   time: string;
+//   status: string;
+//   paymentStatus: string;
+// };
 
-type DashboardStats = {
-  totalEmployees: number;
-  totalServices: number;
-  totalBookings: number;
-  completedBookings: number;
-  pendingBookings: number;
-};
+// type DashboardStats = {
+//   totalEmployees: number;
+//   totalServices: number;
+//   totalBookings: number;
+//   completedBookings: number;
+//   pendingBookings: number;
+// };
 
 export default function OrgDashboard() {
   const { orgId } = useParams<{ orgId: string }>();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentBookings, setRecentBookings] = useState<ServiceRequest[]>([]);
+  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [offerPrice, setOfferPrice] = useState<string>("");
@@ -89,7 +90,7 @@ export default function OrgDashboard() {
         //   pendingBookings: statsResponse.pendingBookings || 0,
         // };
 
-        setStats(dashboardStats);
+        setStats(statsResponse);
         setRecentBookings(bookingsResponse);
       } catch (err) {
         setError("Failed to fetch dashboard data. Please try again later.");
@@ -109,7 +110,7 @@ export default function OrgDashboard() {
         offerPrice: newPrice,
       });
       // Refresh the bookings data after successful offer
-      const response = await axios.get<ServiceRequest[]>(
+      const response = await axios.get<Booking[]>(
         `/api/organization/${orgId}/bookings`
       );
       setRecentBookings(response.data);
@@ -162,8 +163,8 @@ export default function OrgDashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalServices}</div>
-            <p className="text-xs text-muted-foreground">Available services</p>
+            <div className="text-2xl font-bold">{stats.activeServices}</div>
+            <p className="text-xs text-muted-foreground">Active services</p>
           </CardContent>
         </Card>
         <Card>
@@ -174,8 +175,8 @@ export default function OrgDashboard() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalBookings}</div>
-            <p className="text-xs text-muted-foreground">All-time bookings</p>
+            <div className="text-2xl font-bold">{stats.completedBookings}</div>
+            <p className="text-xs text-muted-foreground">Complete bookings</p>
           </CardContent>
         </Card>
         <Card>

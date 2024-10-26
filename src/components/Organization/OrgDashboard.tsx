@@ -73,13 +73,14 @@ export default function OrgDashboard() {
         setLoading(true);
         setError(null);
 
-        const [statsResponse, bookingsResponse] = await Promise.all([
+        const [statsResponse, latestBookingsResponse] = await Promise.all([
           dashboardAPI.getDashboardStats(orgId as string), //
-          dashboardAPI.getBookings(orgId as string),
+          //dashboardAPI.getBookings(orgId as string),
+          dashboardAPI.getLatestBookings(orgId as string),
         ]);
 
         console.log(statsResponse);
-        console.log(bookingsResponse);
+        //console.log(bookingsResponse);
 
         // Ensure the response data matches our expected structure
         // const dashboardStats: DashboardStats = {
@@ -91,7 +92,7 @@ export default function OrgDashboard() {
         // };
 
         setStats(statsResponse);
-        setRecentBookings(bookingsResponse);
+        setRecentBookings(latestBookingsResponse);
       } catch (err) {
         setError("Failed to fetch dashboard data. Please try again later.");
         console.error("Error fetching dashboard data:", err);
@@ -165,9 +166,7 @@ export default function OrgDashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.activeServices || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats.totalServices || 0}</div>
             <p className="text-xs text-muted-foreground">Active services</p>
           </CardContent>
         </Card>

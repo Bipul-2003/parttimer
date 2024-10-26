@@ -1,6 +1,6 @@
 export interface DashboardStats {
   totalEmployees: number;
-  activeServices: number;
+  totalServices: number;
   pendingBookings: number;
   completedBookings: number;
   // revenue: {

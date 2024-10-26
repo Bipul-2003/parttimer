@@ -125,6 +125,13 @@ class DashboardAPI {
       )
     );
   }
+
+  // Latest Bookings for Dashboard
+  async getLatestBookings(orgId: string | number): Promise<Booking[]> {
+    return this.handleRequest<Booking[]>(
+      this.api.get(`${this.getOrgEndpoint(orgId)}/latest-bookings`)
+    );
+  }
 }
 
 export const dashboardAPI = new DashboardAPI();

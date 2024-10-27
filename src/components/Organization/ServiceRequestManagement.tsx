@@ -1,4 +1,7 @@
-import { useState } from "react";
+'use client'
+
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +31,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
@@ -62,45 +65,6 @@ type ServiceRequest = {
   progress: number;
 };
 
-const serviceRequests: ServiceRequest[] = [
-  {
-    id: 1,
-    customerName: "Alice Johnson",
-    status: "Pending",
-    allocatedEmployee: "Bob Smith",
-    estimatedRevenue: 100,
-    area: "Downtown",
-    address: "123 Main St",
-    date: "2023-07-15",
-    time: "14:00",
-    progress: 0,
-  },
-  {
-    id: 2,
-    customerName: "Charlie Brown",
-    status: "Ongoing",
-    allocatedEmployee: "Diana Ross",
-    estimatedRevenue: 150,
-    area: "Suburb",
-    address: "456 Oak Ave",
-    date: "2023-07-16",
-    time: "10:30",
-    progress: 50,
-  },
-  {
-    id: 3,
-    customerName: "Eva Green",
-    status: "Completed",
-    allocatedEmployee: "Frank White",
-    estimatedRevenue: 200,
-    area: "City Center",
-    address: "789 Pine Rd",
-    date: "2023-07-14",
-    time: "09:00",
-    progress: 100,
-  },
-];
-
 type ServiceRequestManagementProps = {
   service: {
     id: number;
@@ -113,11 +77,32 @@ export function ServiceRequestManagement({
   service,
   onClose,
 }: ServiceRequestManagementProps) {
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [date, setDate] = useState<Date>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchServiceRequests = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get<ServiceRequest[]>(`/api/service-requests/${service.id}`);
+        setServiceRequests(response.data);
+      } catch (error) {
+        console.error('Error fetching service requests:', error);
+        setError('Failed to load service requests. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchServiceRequests();
+  }, [service.id]);
 
   const columns: ColumnDef<ServiceRequest>[] = [
     {
@@ -278,7 +263,7 @@ export function ServiceRequestManagement({
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="">All</SelectItem>
                 <SelectItem value="Pending">Pending</SelectItem>
                 <SelectItem value="Ongoing">Ongoing</SelectItem>
                 <SelectItem value="Completed">Completed</SelectItem>
@@ -325,54 +310,63 @@ export function ServiceRequestManagement({
             />
           </div>
         </div>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="sr-only">Loading...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-4">{error}</div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center">
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center">
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
             {table.getFilteredSelectedRowModel().rows.length} of{" "}

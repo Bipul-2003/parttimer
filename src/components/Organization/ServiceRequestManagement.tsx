@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,11 +89,13 @@ export function ServiceRequestManagement({
       setIsLoading(true);
       setError(null);
       try {
-        const response = await axios.get<ServiceRequest[]>(`/api/service-requests/${service.id}`);
+        const response = await axios.get<ServiceRequest[]>(
+          `/api/service-requests/${service.id}`
+        );
         setServiceRequests(response.data);
       } catch (error) {
-        console.error('Error fetching service requests:', error);
-        setError('Failed to load service requests. Please try again later.');
+        console.error("Error fetching service requests:", error);
+        setError("Failed to load service requests. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -148,7 +148,8 @@ export function ServiceRequestManagement({
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div
             className="bg-blue-600 h-2.5 rounded-full"
-            style={{ width: `${row.getValue("progress")}%` }}></div>
+            style={{ width: `${row.getValue("progress")}%` }}
+          ></div>
         </div>
       ),
     },
@@ -258,7 +259,8 @@ export function ServiceRequestManagement({
             <Select
               onValueChange={(value) =>
                 table.getColumn("status")?.setFilterValue(value)
-              }>
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -279,7 +281,8 @@ export function ServiceRequestManagement({
                   className={cn(
                     "w-full justify-start text-left font-normal",
                     !date && "text-muted-foreground"
-                  )}>
+                  )}
+                >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date ? format(date, "PPP") : <span>Pick a date</span>}
                 </Button>
@@ -343,7 +346,8 @@ export function ServiceRequestManagement({
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
-                      data-state={row.getIsSelected() && "selected"}>
+                      data-state={row.getIsSelected() && "selected"}
+                    >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(
@@ -358,7 +362,8 @@ export function ServiceRequestManagement({
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center">
+                      className="h-24 text-center"
+                    >
                       No results.
                     </TableCell>
                   </TableRow>
@@ -377,14 +382,16 @@ export function ServiceRequestManagement({
               variant="outline"
               size="sm"
               onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}>
+              disabled={!table.getCanPreviousPage()}
+            >
               Previous
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}>
+              disabled={!table.getCanNextPage()}
+            >
               Next
             </Button>
           </div>

@@ -30,6 +30,17 @@ export interface OrganizationService {
   category?: string;
 }
 
+export interface fetchOrganizationService {
+  id: number;
+  name: string;
+  category: string;
+  subcategory?: string;
+  pendingCount?: number;
+  completedCount?: number;
+  ongoingCount?: number;
+  revenue?: number;
+}
+
 export interface Booking {
   bookingId: number;
   serviceName: string;
@@ -47,6 +58,17 @@ export interface ServiceAssignment {
   status: "assigned" | "in-progress" | "completed";
   assignedAt: string;
   updatedAt: string;
+}
+
+export interface fetchOrganizationServices {
+  id: number;
+  name: string;
+  category: string;
+  subcategory: string;
+  completedCount: number;
+  ongoingCount: number;
+  pendingCount: number;
+  revenue: number;
 }
 
 export type CreateEmployeeData = Omit<Employee, "id" | "joinedAt">;

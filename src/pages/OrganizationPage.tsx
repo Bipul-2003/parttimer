@@ -59,7 +59,7 @@ const sidebarItems = [
     label: "Services",
     path: "services",
     children: [
-      { label: "Manage Services", path: "manage" },
+      { label: "Manage Services", path: "services/manage" },
       { label: "Request New Service", path: "request" },
     ],
   },
@@ -103,8 +103,10 @@ export default function OrganizationPage() {
 
   useEffect(() => {
     const path = location.pathname.split("/").pop();
-    const newActiveItem = sidebarItems.find(item => 
-      item.path === path || item.children?.some(child => child.path === path)
+    const newActiveItem = sidebarItems.find(
+      (item) =>
+        item.path === path ||
+        item.children?.some((child) => child.path === path)
     );
     if (newActiveItem) {
       setActiveItem(newActiveItem.label);
@@ -182,7 +184,9 @@ export default function OrganizationPage() {
                                     ? "bg-purple-100 text-purple-700"
                                     : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
                                 }`}
-                                onClick={() => handleNavigation(child.path, child.label)}
+                                onClick={() =>
+                                  handleNavigation(child.path, child.label)
+                                }
                               >
                                 {child.label}
                               </Button>
@@ -201,7 +205,9 @@ export default function OrganizationPage() {
                               ? "bg-purple-100 text-purple-700"
                               : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
                           } ${isCollapsed ? "justify-center" : ""}`}
-                          onClick={() => handleNavigation(item.path, item.label)}
+                          onClick={() =>
+                            handleNavigation(item.path, item.label)
+                          }
                         >
                           <CustomIcon
                             Icon={item.icon}

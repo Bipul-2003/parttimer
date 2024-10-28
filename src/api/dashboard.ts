@@ -8,6 +8,7 @@ import {
   CreateEmployeeData,
   UpdateEmployeeData,
   UpdateServiceData,
+  fetchOrganizationServices,
 } from "../types/dashboardTypes";
 
 class DashboardAPI {
@@ -131,6 +132,13 @@ class DashboardAPI {
     return this.handleRequest<Booking[]>(
       this.api.get(`${this.getOrgEndpoint(orgId)}/latest-bookings`)
     );
+  }
+
+  // 28-10-2024
+  async fetchOrganizationServices(
+    orgId: string | number
+  ): Promise<fetchOrganizationServices[]> {
+    return this.handleRequest(this.api.get(`/services/organization/${orgId}`));
   }
 }
 

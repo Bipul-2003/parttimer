@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -40,7 +40,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ServiceRequestManagement } from "./ServiceRequestManagement";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { dashboardAPI } from "@/api/dashboard";
+import { fetchOrganizationServices } from "@/types/dashboardTypes";
 
 type Service = {
   id: number;
@@ -54,27 +56,44 @@ type Service = {
 };
 
 export function ManageService() {
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<fetchOrganizationServices[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
+  const { orgId } = useParams<{ orgId: string }>();
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await axios.get<Service[]>('/api/services');
-        setServices(response.data);
+        //const response = await axios.get<Service[]>('/api/services');
+
+        const response = await dashboardAPI.fetchOrganizationServices(
+          orgId as string
+        );
+        const transformedData = response.map(
+          (service): fetchOrganizationServices => ({
+            id: service.id,
+            name: service.name,
+            category: service.category,
+            subcategory: service.subcategory ?? "", // Nullish coalescing
+            pendingCount: service.pendingCount ?? 0,
+            completedCount: service.completedCount ?? 0,
+            ongoingCount: service.ongoingCount ?? 0,
+            revenue: service.revenue ?? 0,
+          })
+        );
+        setServices(transformedData);
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error("Error fetching services:", error);
       }
     };
 
     fetchServices();
-  }, []);
+  }, [orgId]);
 
-  const columns: ColumnDef<Service>[] = [
+  const columns: ColumnDef<fetchOrganizationServices>[] = [
     {
       accessorKey: "name",
       header: "Service Name",
@@ -165,7 +184,9 @@ export function ManageService() {
           <div className="mb-4 flex flex-col sm:flex-row gap-4">
             <Input
               placeholder="Search services..."
-              value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+              value={
+                (table.getColumn("name")?.getFilterValue() as string) ?? ""
+              }
               onChange={(event) =>
                 table.getColumn("name")?.setFilterValue(event.target.value)
               }
@@ -180,7 +201,7 @@ export function ManageService() {
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="All">All Categories</SelectItem>
                 <SelectItem value="Automotive">Automotive</SelectItem>
                 <SelectItem value="Home">Home</SelectItem>
                 <SelectItem value="Gardening">Gardening</SelectItem>
@@ -195,7 +216,7 @@ export function ManageService() {
                 <SelectValue placeholder="Select subcategory" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Subcategories</SelectItem>
+                <SelectItem value="All">All Subcategories</SelectItem>
                 <SelectItem value="Cleaning">Cleaning</SelectItem>
                 <SelectItem value="Maintenance">Maintenance</SelectItem>
               </SelectContent>

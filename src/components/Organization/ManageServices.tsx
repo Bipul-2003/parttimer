@@ -1,7 +1,4 @@
-"use client";
-
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +36,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ServiceRequestManagement } from "./ServiceRequestManagement";
+import  ServiceRequestManagement  from "./ServiceRequestManagement";
 import { Link, useParams } from "react-router-dom";
 import { dashboardAPI } from "@/api/dashboard";
 import { fetchOrganizationServices } from "@/types/dashboardTypes";

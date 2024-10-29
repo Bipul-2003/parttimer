@@ -1,114 +1,58 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { ServiceDelivery, ServiceDeliveryUpdate } from "@/types/dashboardTypes";
-import { useParams } from "react-router-dom";
-import { dashboardAPI } from "@/api/dashboard";
-type ServiceRequest = {
-  id: number;
-  customerName: string;
-  status: "Pending" | "Ongoing" | "Completed";
-  allocatedEmployee: string;
-  estimatedRevenue: number;
-  area: string;
-  address: string;
-  date: string;
-  time: string;
-  progress: number;
-};
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Calendar } from "@/components/ui/calendar"
+import { CalendarIcon, Loader2 } from "lucide-react"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
+import { ColumnDef, ColumnFiltersState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
+import { dashboardAPI } from "@/api/dashboard"
+import { ServiceDelivery } from "@/types/dashboardTypes"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 
-type ServiceRequestManagementProps = {
+
+
+interface ServiceRequestManagementProps {
   service: {
-    id: number;
-    name: string;
-  };
-  onClose: () => void;
-};
+    id: number
+    name: string
+  }
+  onClose: () => void
+}
 
-export function ServiceRequestManagement({
-  service,
-  onClose,
-}: ServiceRequestManagementProps) {
-  const [serviceRequests, setServiceRequests] = useState<ServiceDelivery[]>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState({});
-  const [date, setDate] = useState<Date>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [serviceDeliveries, setServiceDeliveries] = useState<ServiceDelivery[]>(
-    []
-  );
-  const [isUpdating, setIsUpdating] = useState(false);
+export default function ServiceRequestManagement({ service, onClose }: ServiceRequestManagementProps) {
+  const [serviceRequests, setServiceRequests] = useState<ServiceDelivery[]>([])
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = useState({})
+  const [date, setDate] = useState<Date>()
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchServiceRequests = async () => {
-      setIsLoading(true);
-      setError(null);
+      setIsLoading(true)
+      setError(null)
       try {
-        console.log(service.id);
-        const data = await dashboardAPI.fetchServiceDeliveries(service.id);
-        setServiceRequests(data);
+        const data = await dashboardAPI.fetchServiceDeliveries(service.id)
+        setServiceRequests(data)
       } catch (error) {
-        console.error("Error fetching service requests:", error);
-        setError("Failed to load service requests. Please try again later.");
+        console.error("Error fetching service requests:", error)
+        setError("Failed to load service requests. Please try again later.")
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchServiceRequests();
-  }, [service.id]);
+    fetchServiceRequests()
+  }, [service.id])
 
   const columns: ColumnDef<ServiceDelivery>[] = [
     {
@@ -121,7 +65,7 @@ export function ServiceRequestManagement({
     },
     {
       accessorKey: "assignedEmployees",
-      header: "Allocated Employees",
+      header: "Assigned Employees",
       cell: ({ row }) => (
         <div>
           {row.original.assignedEmployees.map((employee) => (
@@ -134,12 +78,12 @@ export function ServiceRequestManagement({
       accessorKey: "estimatedRevenue",
       header: "Est. Revenue",
       cell: ({ row }) => {
-        const amount = parseFloat(row.getValue("estimatedRevenue"));
+        const amount = parseFloat(row.getValue("estimatedRevenue"))
         const formatted = new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
-        }).format(amount);
-        return <div className="font-medium">{formatted}</div>;
+        }).format(amount)
+        return <div className="font-medium">{formatted}</div>
       },
     },
     {
@@ -182,17 +126,20 @@ export function ServiceRequestManagement({
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="employee" className="text-right">
-                  Employee
+                <Label htmlFor="employees" className="text-right">
+                  Employees
                 </Label>
                 <Select>
                   <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder={row.original.allocatedEmployee} />
+                    <SelectValue placeholder="Select employees" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="bob-smith">Bob Smith</SelectItem>
-                    <SelectItem value="diana-ross">Diana Ross</SelectItem>
-                    <SelectItem value="frank-white">Frank White</SelectItem>
+                    {row.original.assignedEmployees.map((employee) => (
+                      <SelectItem key={employee.userId} value={employee.userId.toString()}>
+                        {employee.name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="add-new">Add New Employee</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -236,7 +183,7 @@ export function ServiceRequestManagement({
         </Dialog>
       ),
     },
-  ];
+  ]
 
   const table = useReactTable({
     data: serviceRequests,
@@ -255,7 +202,7 @@ export function ServiceRequestManagement({
       columnVisibility,
       rowSelection,
     },
-  });
+  })
 
   return (
     <Card className="mt-4">
@@ -314,14 +261,9 @@ export function ServiceRequestManagement({
             <Label>Search</Label>
             <Input
               placeholder="Search requests..."
-              value={
-                (table.getColumn("customerName")?.getFilterValue() as string) ??
-                ""
-              }
+              value={(table.getColumn("customerName")?.getFilterValue() as string) ?? ""}
               onChange={(event) =>
-                table
-                  .getColumn("customerName")
-                  ?.setFilterValue(event.target.value)
+                table.getColumn("customerName")?.setFilterValue(event.target.value)
               }
             />
           </div>
@@ -349,7 +291,7 @@ export function ServiceRequestManagement({
                                 header.getContext()
                               )}
                         </TableHead>
-                      );
+                      )
                     })}
                   </TableRow>
                 ))}
@@ -411,5 +353,5 @@ export function ServiceRequestManagement({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

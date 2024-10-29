@@ -71,6 +71,33 @@ export interface fetchOrganizationServices {
   revenue: number;
 }
 
+// dashboardTypes.ts 29-10-2024
+export interface ServiceDelivery {
+  id: number;
+  customerName: string;
+  status: string;
+  assignedEmployees: AssignedEmployee[];
+  estimatedRevenue: number;
+  area: string;
+  address: string;
+  date: string;
+  time: string;
+  progress: number;
+}
+
+export interface ServiceDeliveryUpdate {
+  //29-10-2024
+  status?: string;
+  allocatedEmployee?: string;
+  progress?: number;
+  notes?: string;
+}
+
+export interface AssignedEmployee {
+  userId: number;
+  name: string;
+}
+
 export type CreateEmployeeData = Omit<Employee, "id" | "joinedAt">;
 export type UpdateEmployeeData = Partial<CreateEmployeeData>;
 export type UpdateServiceData = Pick<

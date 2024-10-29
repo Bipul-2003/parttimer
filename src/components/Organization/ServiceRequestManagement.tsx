@@ -49,7 +49,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
+import { ServiceDelivery, ServiceDeliveryUpdate } from "@/types/dashboardTypes";
+import { useParams } from "react-router-dom";
+import { dashboardAPI } from "@/api/dashboard";
 type ServiceRequest = {
   id: number;
   customerName: string;
@@ -75,7 +77,7 @@ export function ServiceRequestManagement({
   service,
   onClose,
 }: ServiceRequestManagementProps) {
-  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
+  const [serviceRequests, setServiceRequests] = useState<ServiceDelivery[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -84,15 +86,19 @@ export function ServiceRequestManagement({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [serviceDeliveries, setServiceDeliveries] = useState<ServiceDelivery[]>(
+    []
+  );
+  const [isUpdating, setIsUpdating] = useState(false);
+
   useEffect(() => {
     const fetchServiceRequests = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await axios.get<ServiceRequest[]>(
-          `/api/service-requests/${service.id}`
-        );
-        setServiceRequests(response.data);
+        console.log(service.id);
+        const data = await dashboardAPI.fetchServiceDeliveries(service.id);
+        setServiceRequests(data);
       } catch (error) {
         console.error("Error fetching service requests:", error);
         setError("Failed to load service requests. Please try again later.");
@@ -104,7 +110,7 @@ export function ServiceRequestManagement({
     fetchServiceRequests();
   }, [service.id]);
 
-  const columns: ColumnDef<ServiceRequest>[] = [
+  const columns: ColumnDef<ServiceDelivery>[] = [
     {
       accessorKey: "customerName",
       header: "Customer Name",
@@ -114,8 +120,15 @@ export function ServiceRequestManagement({
       header: "Status",
     },
     {
-      accessorKey: "allocatedEmployee",
-      header: "Allocated Employee",
+      accessorKey: "assignedEmployees",
+      header: "Allocated Employees",
+      cell: ({ row }) => (
+        <div>
+          {row.original.assignedEmployees.map((employee) => (
+            <div key={employee.userId}>{employee.name}</div>
+          ))}
+        </div>
+      ),
     },
     {
       accessorKey: "estimatedRevenue",
@@ -265,7 +278,7 @@ export function ServiceRequestManagement({
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="Pending">Pending</SelectItem>
                 <SelectItem value="Ongoing">Ongoing</SelectItem>
                 <SelectItem value="Completed">Completed</SelectItem>

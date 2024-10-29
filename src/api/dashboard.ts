@@ -9,6 +9,8 @@ import {
   UpdateEmployeeData,
   UpdateServiceData,
   fetchOrganizationServices,
+  ServiceDelivery,
+  ServiceDeliveryUpdate,
 } from "../types/dashboardTypes";
 
 class DashboardAPI {
@@ -139,6 +141,21 @@ class DashboardAPI {
     orgId: string | number
   ): Promise<fetchOrganizationServices[]> {
     return this.handleRequest(this.api.get(`/services/organization/${orgId}`));
+  }
+
+  // dashboard.ts 29-10-2024
+  async fetchServiceDeliveries(serviceId: number): Promise<ServiceDelivery[]> {
+    console.log(serviceId);
+    return this.handleRequest(this.api.get(`service-requests/${serviceId}`));
+  }
+
+  async updateServiceDelivery(
+    requestId: number,
+    updateData: ServiceDeliveryUpdate
+  ): Promise<ServiceDelivery> {
+    return this.handleRequest(
+      this.api.put(`service-requests/${requestId}`, updateData)
+    );
   }
 }
 

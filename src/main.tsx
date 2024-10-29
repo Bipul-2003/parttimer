@@ -21,6 +21,7 @@ import { ManageService } from "./components/Organization/ManageServices.tsx";
 import { RequestService } from "./components/Organization/RequestService.tsx";
 import { PaymentManagement } from "./components/Organization/PaymentManagement.tsx";
 import { OrgTransaction } from "./components/Organization/OrgTransactions.tsx";
+import ServiceSettings from "./components/Organization/ServiceSettings.tsx";
 
 const router = createBrowserRouter([
   {
@@ -100,8 +101,14 @@ const router = createBrowserRouter([
             element: <OrgTransaction />,
           },
           {
-            path: "settings",
-            element: <OrgDashboard />,
+            path: "settings/",
+            element: <ServiceSettings />,
+            children: [
+              {
+                path: "service-settings",
+                element: <ServiceSettings />,
+              }
+            ]
           },
           {
             index: true,

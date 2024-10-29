@@ -91,7 +91,12 @@ const sidebarItems = [
     icon: Settings,
     label: "Settings",
     path: "settings",
+    children: [
+      { label: "Service Settings", path: "settings/service-settings" },
+      // { label: "Manage Payment", path: "manage" },
+    ],
   },
+  
 ];
 
 export default function OrganizationPage() {

@@ -1,58 +1,91 @@
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Calendar } from "@/components/ui/calendar"
-import { CalendarIcon, Loader2 } from "lucide-react"
-import { format } from "date-fns"
-import { cn } from "@/lib/utils"
-import { ColumnDef, ColumnFiltersState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
-import { dashboardAPI } from "@/api/dashboard"
-import { ServiceDelivery } from "@/types/dashboardTypes"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-
-
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { dashboardAPI } from "@/api/dashboard";
+import { ServiceDelivery } from "@/types/dashboardTypes";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Link } from "react-router-dom";
 
 interface ServiceRequestManagementProps {
   service: {
-    id: number
-    name: string
-  }
-  onClose: () => void
+    id: number;
+    name: string;
+  };
+  onClose: () => void;
 }
 
-export default function ServiceRequestManagement({ service, onClose }: ServiceRequestManagementProps) {
-  const [serviceRequests, setServiceRequests] = useState<ServiceDelivery[]>([])
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = useState({})
-  const [date, setDate] = useState<Date>()
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default function ServiceRequestManagement({
+  service,
+  onClose,
+}: ServiceRequestManagementProps) {
+  const [serviceRequests, setServiceRequests] = useState<ServiceDelivery[]>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+  const [date, setDate] = useState<Date>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchServiceRequests = async () => {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
       try {
-        const data = await dashboardAPI.fetchServiceDeliveries(service.id)
-        setServiceRequests(data)
+        const data = await dashboardAPI.fetchServiceDeliveries(service.id);
+        setServiceRequests(data);
       } catch (error) {
-        console.error("Error fetching service requests:", error)
-        setError("Failed to load service requests. Please try again later.")
+        console.error("Error fetching service requests:", error);
+        setError("Failed to load service requests. Please try again later.");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchServiceRequests()
-  }, [service.id])
+    fetchServiceRequests();
+  }, [service.id]);
 
   const columns: ColumnDef<ServiceDelivery>[] = [
     {
@@ -78,12 +111,12 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
       accessorKey: "estimatedRevenue",
       header: "Est. Revenue",
       cell: ({ row }) => {
-        const amount = parseFloat(row.getValue("estimatedRevenue"))
+        const amount = parseFloat(row.getValue("estimatedRevenue"));
         const formatted = new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
-        }).format(amount)
-        return <div className="font-medium">{formatted}</div>
+        }).format(amount);
+        return <div className="font-medium">{formatted}</div>;
       },
     },
     {
@@ -105,85 +138,87 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div
             className="bg-blue-600 h-2.5 rounded-full"
-            style={{ width: `${row.getValue("progress")}%` }}
-          ></div>
+            style={{ width: `${row.getValue("progress")}%` }}></div>
         </div>
       ),
     },
     {
       id: "actions",
       cell: ({ row }) => (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline">Manage</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Manage Service Request</DialogTitle>
-              <DialogDescription>
-                Update the details of this service request.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="employees" className="text-right">
-                  Employees
-                </Label>
-                <Select>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select employees" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {row.original.assignedEmployees.map((employee) => (
-                      <SelectItem key={employee.userId} value={employee.userId.toString()}>
-                        {employee.name}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="add-new">Add New Employee</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">
-                  Status
-                </Label>
-                <Select>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder={row.original.status} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="ongoing">Ongoing</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="progress" className="text-right">
-                  Progress
-                </Label>
-                <Input
-                  id="progress"
-                  type="number"
-                  className="col-span-3"
-                  defaultValue={row.original.progress}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="notes" className="text-right">
-                  Notes
-                </Label>
-                <Textarea id="notes" className="col-span-3" />
-              </div>
-            </div>
-            <DialogTrigger asChild>
-              <Button type="submit">Save changes</Button>
-            </DialogTrigger>
-          </DialogContent>
-        </Dialog>
+        <Button variant="outline">
+          <Link to={`/service-requests/${row.original.id}`}>Manage</Link>
+        </Button>
+        // <Dialog>
+        //   <DialogTrigger asChild>
+        //     <Button variant="outline">Manage</Button>
+        //   </DialogTrigger>
+        //   <DialogContent className="sm:max-w-[425px]">
+        //     <DialogHeader>
+        //       <DialogTitle>Manage Service Request</DialogTitle>
+        //       <DialogDescription>
+        //         Update the details of this service request.
+        //       </DialogDescription>
+        //     </DialogHeader>
+        //     <div className="grid gap-4 py-4">
+        //       <div className="grid grid-cols-4 items-center gap-4">
+        //         <Label htmlFor="employees" className="text-right">
+        //           Employees
+        //         </Label>
+        //         <Select>
+        //           <SelectTrigger className="col-span-3">
+        //             <SelectValue placeholder="Select employees" />
+        //           </SelectTrigger>
+        //           <SelectContent>
+        //             {row.original.assignedEmployees.map((employee) => (
+        //               <SelectItem key={employee.userId} value={employee.userId.toString()}>
+        //                 {employee.name}
+        //               </SelectItem>
+        //             ))}
+        //             <SelectItem value="add-new">Add New Employee</SelectItem>
+        //           </SelectContent>
+        //         </Select>
+        //       </div>
+        //       <div className="grid grid-cols-4 items-center gap-4">
+        //         <Label htmlFor="status" className="text-right">
+        //           Status
+        //         </Label>
+        //         <Select>
+        //           <SelectTrigger className="col-span-3">
+        //             <SelectValue placeholder={row.original.status} />
+        //           </SelectTrigger>
+        //           <SelectContent>
+        //             <SelectItem value="pending">Pending</SelectItem>
+        //             <SelectItem value="ongoing">Ongoing</SelectItem>
+        //             <SelectItem value="completed">Completed</SelectItem>
+        //           </SelectContent>
+        //         </Select>
+        //       </div>
+        //       <div className="grid grid-cols-4 items-center gap-4">
+        //         <Label htmlFor="progress" className="text-right">
+        //           Progress
+        //         </Label>
+        //         <Input
+        //           id="progress"
+        //           type="number"
+        //           className="col-span-3"
+        //           defaultValue={row.original.progress}
+        //         />
+        //       </div>
+        //       <div className="grid grid-cols-4 items-center gap-4">
+        //         <Label htmlFor="notes" className="text-right">
+        //           Notes
+        //         </Label>
+        //         <Textarea id="notes" className="col-span-3" />
+        //       </div>
+        //     </div>
+        //     <DialogTrigger asChild>
+        //       <Button type="submit">Save changes</Button>
+        //     </DialogTrigger>
+        //   </DialogContent>
+        // </Dialog>
       ),
     },
-  ]
+  ];
 
   const table = useReactTable({
     data: serviceRequests,
@@ -202,7 +237,7 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
       columnVisibility,
       rowSelection,
     },
-  })
+  });
 
   return (
     <Card className="mt-4">
@@ -219,8 +254,7 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
             <Select
               onValueChange={(value) =>
                 table.getColumn("status")?.setFilterValue(value)
-              }
-            >
+              }>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -241,8 +275,7 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
                   className={cn(
                     "w-full justify-start text-left font-normal",
                     !date && "text-muted-foreground"
-                  )}
-                >
+                  )}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date ? format(date, "PPP") : <span>Pick a date</span>}
                 </Button>
@@ -261,9 +294,14 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
             <Label>Search</Label>
             <Input
               placeholder="Search requests..."
-              value={(table.getColumn("customerName")?.getFilterValue() as string) ?? ""}
+              value={
+                (table.getColumn("customerName")?.getFilterValue() as string) ??
+                ""
+              }
               onChange={(event) =>
-                table.getColumn("customerName")?.setFilterValue(event.target.value)
+                table
+                  .getColumn("customerName")
+                  ?.setFilterValue(event.target.value)
               }
             />
           </div>
@@ -291,7 +329,7 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
                                 header.getContext()
                               )}
                         </TableHead>
-                      )
+                      );
                     })}
                   </TableRow>
                 ))}
@@ -301,8 +339,7 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
+                      data-state={row.getIsSelected() && "selected"}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(
@@ -317,8 +354,7 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
+                      className="h-24 text-center">
                       No results.
                     </TableCell>
                   </TableRow>
@@ -337,21 +373,19 @@ export default function ServiceRequestManagement({ service, onClose }: ServiceRe
               variant="outline"
               size="sm"
               onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
+              disabled={!table.getCanPreviousPage()}>
               Previous
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
+              disabled={!table.getCanNextPage()}>
               Next
             </Button>
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

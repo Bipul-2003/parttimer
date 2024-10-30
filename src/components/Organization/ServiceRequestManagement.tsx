@@ -146,7 +146,7 @@ export default function ServiceRequestManagement({
       id: "actions",
       cell: ({ row }) => (
         <Button variant="outline">
-          <Link to={`/service-requests/${row.original.id}`}>Manage</Link>
+          <Link to={`/service-request-management/${row.original.id}`}>Manage</Link>
         </Button>
         // <Dialog>
         //   <DialogTrigger asChild>

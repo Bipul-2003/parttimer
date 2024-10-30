@@ -121,7 +121,7 @@ const router = createBrowserRouter([
         element: <SubscriptionsPage />,
       },
       {
-        path: "/service-request-manager/:requestId",
+        path: "/service-request-management/:requestId",
         element: <ServiceRequestManager />,
       },
     ],

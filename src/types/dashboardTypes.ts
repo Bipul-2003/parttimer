@@ -98,6 +98,15 @@ export interface AssignedEmployee {
   name: string;
 }
 
+export interface OrganizationSettingsServiceDTO {
+  id: number;
+  name: string;
+  location: string;
+  isAvailable: boolean;
+  category: string;
+  subcategory: string;
+}
+
 export type CreateEmployeeData = Omit<Employee, "id" | "joinedAt">;
 export type UpdateEmployeeData = Partial<CreateEmployeeData>;
 export type UpdateServiceData = Pick<

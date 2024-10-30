@@ -11,6 +11,7 @@ import {
   fetchOrganizationServices,
   ServiceDelivery,
   ServiceDeliveryUpdate,
+  OrganizationSettingsServiceDTO,
 } from "../types/dashboardTypes";
 
 class DashboardAPI {
@@ -157,6 +158,34 @@ class DashboardAPI {
       this.api.put(`service-requests/${requestId}`, updateData)
     );
   }
+
+  // Fetch all services
+  async fetchAllOrganizationServices(): Promise<
+    OrganizationSettingsServiceDTO[]
+  > {
+    return this.api.get("/organization-services").then((res) => res.data);
+  }
+
+  // Fetch services by organization ID
+  async fetchServicesByOrganization(
+    id: string
+  ): Promise<OrganizationSettingsServiceDTO[]> {
+    return this.api.get(`/organization-services/${id}`).then((res) => res.data);
+  }
+
+  // Toggle availability of a service
+  async toggleServiceAvailability(
+    organizationId: number,
+    serviceId: number
+  ): Promise<OrganizationSettingsServiceDTO> {
+    return this.api
+      .patch(
+        `/organization-services/org/${organizationId}/service/${serviceId}/toggle-availability`
+      )
+      .then((res) => res.data);
+  }
 }
+
+export default DashboardAPI;
 
 export const dashboardAPI = new DashboardAPI();

@@ -1,11 +1,9 @@
-'use client'
-
-import { useState } from 'react'
-import { MapPin, Search } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect } from "react";
+import { MapPin, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -13,14 +11,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
   ColumnDef,
   flexRender,
@@ -30,43 +28,142 @@ import {
   getSortedRowModel,
   ColumnFiltersState,
   getFilteredRowModel,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
-interface Service {
-  id: number
-  name: string
-  location: string
-  isAvailable: boolean
-  category: string
-  subcategory: string
-}
+import DashboardAPI, { dashboardAPI } from "@/api/dashboard";
+import { OrganizationSettingsServiceDTO } from "@/types/dashboardTypes";
+import { useParams } from "react-router-dom";
 
-const services: Service[] = [
-  { id: 1, name: "Car Wash", location: "New York", isAvailable: true, category: "Automotive", subcategory: "Cleaning" },
-  { id: 2, name: "Lawn Mowing", location: "New York", isAvailable: false, category: "Home", subcategory: "Landscaping" },
-  { id: 3, name: "Gardening", location: "New York", isAvailable: true, category: "Home", subcategory: "Landscaping" },
-  { id: 4, name: "House Cleaning", location: "New York", isAvailable: false, category: "Home", subcategory: "Cleaning" },
-  { id: 5, name: "Window Washing", location: "New York", isAvailable: true, category: "Home", subcategory: "Cleaning" },
-  { id: 6, name: "Pest Control", location: "New York", isAvailable: false, category: "Home", subcategory: "Maintenance" },
-]
+// interface Service {
+//   id: number;
+//   name: string;
+//   location: string;
+//   isAvailable: boolean;
+//   category: string;
+//   subcategory: string;
+// }
+
+// const services: Service[] = [
+//   {
+//     id: 1,
+//     name: "Car Wash",
+//     location: "New York",
+//     isAvailable: true,
+//     category: "Automotive",
+//     subcategory: "Cleaning",
+//   },
+//   {
+//     id: 2,
+//     name: "Lawn Mowing",
+//     location: "New York",
+//     isAvailable: false,
+//     category: "Home",
+//     subcategory: "Landscaping",
+//   },
+//   {
+//     id: 3,
+//     name: "Gardening",
+//     location: "New York",
+//     isAvailable: true,
+//     category: "Home",
+//     subcategory: "Landscaping",
+//   },
+//   {
+//     id: 4,
+//     name: "House Cleaning",
+//     location: "New York",
+//     isAvailable: false,
+//     category: "Home",
+//     subcategory: "Cleaning",
+//   },
+//   {
+//     id: 5,
+//     name: "Window Washing",
+//     location: "New York",
+//     isAvailable: true,
+//     category: "Home",
+//     subcategory: "Cleaning",
+//   },
+//   {
+//     id: 6,
+//     name: "Pest Control",
+//     location: "New York",
+//     isAvailable: false,
+//     category: "Home",
+//     subcategory: "Maintenance",
+//   },
+// ];
+
+// const api = new DashboardAPI();
 
 export default function Component() {
-  const [data, setData] = useState<Service[]>(services)
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [data, setData] = useState<OrganizationSettingsServiceDTO[]>([]); //services
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const { orgId } = useParams<{ orgId: string }>();
+  // const toggleServiceAvailability = (id: number) => {
+  //   setData(
+  //     data.map((service) =>
+  //       service.id === id
+  //         ? { ...service, isAvailable: !service.isAvailable }
+  //         : service
+  //     )
+  //   );
+  // };
 
-  const toggleServiceAvailability = (id: number) => {
-    setData(data.map(service =>
-      service.id === id ? { ...service, isAvailable: !service.isAvailable } : service
-    ))
-  }
+  // Load services on mount
+  useEffect(() => {
+    loadServices();
+  }, []);
 
-  const columns: ColumnDef<Service>[] = [
+  // Function to load all organization services
+  const loadServices = async () => {
+    setLoading(true);
+    try {
+      const services = await dashboardAPI.fetchServicesByOrganization(
+        orgId as string
+      );
+      console.log(services);
+      setData(services);
+    } catch (error) {
+      console.error("Failed to load services:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Toggle service availability and update state
+  const toggleServiceAvailability = async (
+    organizationId: number,
+    serviceId: number
+  ) => {
+    try {
+      const updatedService = await dashboardAPI.toggleServiceAvailability(
+        organizationId,
+        serviceId
+      );
+      // setData((prevData) =>
+      //   prevData.map((service) =>
+      //     service.id === serviceId
+      //       ? { ...service, isAvailable: !service.isAvailable }
+      //       : service
+      //   )
+      // );
+      await loadServices();
+    } catch (error) {
+      console.error("Failed to toggle service availability:", error);
+    }
+  };
+
+  const columns: ColumnDef<OrganizationSettingsServiceDTO>[] = [
     {
       accessorKey: "name",
       header: "Service Name",
-      cell: ({ row }) => <div className="font-medium">{row.getValue("name")}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("name")}</div>
+      ),
     },
     {
       accessorKey: "location",
@@ -90,25 +187,29 @@ export default function Component() {
       accessorKey: "isAvailable",
       header: "Availability",
       cell: ({ row }) => {
-        const service = row.original
+        const service = row.original;
+        console.log(service);
         return (
           <div className="flex items-center space-x-2">
             <Switch
               checked={service.isAvailable}
-              onCheckedChange={() => toggleServiceAvailability(service.id)}
+              onCheckedChange={() =>
+                toggleServiceAvailability(Number(orgId), service.id)
+              }
             />
+
             <Badge variant={service.isAvailable ? "default" : "secondary"}>
               {service.isAvailable ? "Available" : "Unavailable"}
             </Badge>
           </div>
-        )
+        );
       },
       filterFn: (row, id, value) => {
         if (value === "all") return true;
         return value === "Available" ? row.getValue(id) : !row.getValue(id);
       },
     },
-  ]
+  ];
 
   const table = useReactTable({
     data,
@@ -124,7 +225,7 @@ export default function Component() {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-  })
+  });
 
   return (
     <div className="container mx-auto p-6 bg-background rounded-xl">
@@ -135,7 +236,7 @@ export default function Component() {
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search services..."
-              value={globalFilter ?? ''}
+              value={globalFilter ?? ""}
               onChange={(event) => setGlobalFilter(event.target.value)}
               className="pl-8"
             />
@@ -143,11 +244,14 @@ export default function Component() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Select
-            value={(table.getColumn("isAvailable")?.getFilterValue() as string) ?? "all"}
+            value={
+              (table.getColumn("isAvailable")?.getFilterValue() as string) ??
+              "all"
+            }
             onValueChange={(value) =>
-              table.getColumn("isAvailable")?.setFilterValue(
-                value === "all" ? undefined : value
-              )
+              table
+                .getColumn("isAvailable")
+                ?.setFilterValue(value === "all" ? undefined : value)
             }
           >
             <SelectTrigger className="w-[180px]">
@@ -160,9 +264,13 @@ export default function Component() {
             </SelectContent>
           </Select>
           <Select
-            value={(table.getColumn("category")?.getFilterValue() as string) ?? "all"}
+            value={
+              (table.getColumn("category")?.getFilterValue() as string) ?? "all"
+            }
             onValueChange={(value) =>
-              table.getColumn("category")?.setFilterValue(value === "all" ? undefined : value)
+              table
+                .getColumn("category")
+                ?.setFilterValue(value === "all" ? undefined : value)
             }
           >
             <SelectTrigger className="w-[180px]">
@@ -175,9 +283,14 @@ export default function Component() {
             </SelectContent>
           </Select>
           <Select
-            value={(table.getColumn("subcategory")?.getFilterValue() as string) ?? "all"}
+            value={
+              (table.getColumn("subcategory")?.getFilterValue() as string) ??
+              "all"
+            }
             onValueChange={(value) =>
-              table.getColumn("subcategory")?.setFilterValue(value === "all" ? undefined : value)
+              table
+                .getColumn("subcategory")
+                ?.setFilterValue(value === "all" ? undefined : value)
             }
           >
             <SelectTrigger className="w-[180px]">
@@ -219,14 +332,20 @@ export default function Component() {
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No services available.
                 </TableCell>
               </TableRow>
@@ -235,5 +354,5 @@ export default function Component() {
         </Table>
       </div>
     </div>
-  )
+  );
 }

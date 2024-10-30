@@ -125,7 +125,7 @@ export default function Component() {
       const services = await dashboardAPI.fetchServicesByOrganization(
         orgId as string
       );
-      console.log(services);
+      //console.log(services);
       setData(services);
     } catch (error) {
       console.error("Failed to load services:", error);
@@ -188,7 +188,7 @@ export default function Component() {
       header: "Availability",
       cell: ({ row }) => {
         const service = row.original;
-        console.log(service);
+        //console.log(service);
         return (
           <div className="flex items-center space-x-2">
             <Switch

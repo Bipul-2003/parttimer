@@ -1,0 +1,94 @@
+import axios, { AxiosInstance } from "axios";
+import {
+  BookingDetailsDTO,
+  ServiceAssignmentDTO,
+  OrganizationEmployeeDTO,
+  BookingAssignmentDTO,
+  EmployeeDetails,
+} from "@/types/BookingDetailsDTO";
+
+class BookingApi {
+  private http: AxiosInstance;
+
+  constructor(baseURL = "http://localhost:8080/api/organizations") {
+    this.http = axios.create({
+      baseURL,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
+
+  getBookingDetails = async (
+    orgId: number,
+    bookingId: number
+  ): Promise<BookingDetailsDTO> => {
+    const response = await this.http.get(`/${orgId}/bookings/${bookingId}`);
+    return response.data;
+  };
+
+  offerPrice = async (
+    orgId: number,
+    bookingId: number,
+    offeredPrice: number
+  ): Promise<ServiceAssignmentDTO> => {
+    const response = await this.http.post(
+      `/${orgId}/bookings/${bookingId}/price-offer`,
+      { offeredPrice }
+    );
+    return response.data;
+  };
+
+  getAvailableEmployees = async (
+    orgId: number,
+    bookingId: number
+  ): Promise<OrganizationEmployeeDTO> => {
+    const response = await this.http.get(
+      `/${orgId}/bookings/${bookingId}/available-employees`
+    );
+    return response.data;
+  };
+
+  assignEmployees = async (
+    orgId: number,
+    bookingId: number,
+    employeeIds: number[]
+  ): Promise<BookingAssignmentDTO> => {
+    const response = await this.http.post(
+      `/${orgId}/bookings/${bookingId}/assign-employees`,
+      { employeeIds }
+    );
+    return response.data;
+  };
+
+  initiateServiceRequest = async (
+    bookingId: number
+  ): Promise<BookingAssignmentDTO> => {
+    const response = await this.http.post(`/${bookingId}/initiate-request`);
+    return response.data;
+  };
+
+  completeWork = async (bookingId: number): Promise<BookingAssignmentDTO> => {
+    const response = await this.http.post(`/${bookingId}/finish-request`);
+    return response.data;
+  };
+
+  verifyPayment = async (bookingId: number): Promise<BookingAssignmentDTO> => {
+    const response = await this.http.post(`/${bookingId}/verify-payment`);
+    return response.data;
+  };
+
+  submitFeedback = async (
+    bookingId: number,
+    feedback: string,
+    rating: number
+  ): Promise<BookingAssignmentDTO> => {
+    const response = await this.http.post(`/${bookingId}/user-feedback`, {
+      feedback,
+      rating,
+    });
+    return response.data;
+  };
+}
+
+export default BookingApi;

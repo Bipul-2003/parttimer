@@ -33,20 +33,20 @@ import { bookingAPI } from "@/api/bookingApi";
 
 type FrontendStatus =
   | "posted"
-  | "request sent"
+  | "request_sent"
   | "confirmed"
   | "initiated"
-  | "payment pending"
-  | "payment submitted"
+  | "payment_pending"
+  | "payment_submitted"
   | "completed";
 
 const statusOrder: FrontendStatus[] = [
   "posted",
-  "request sent",
+  "request_sent",
   "confirmed",
   "initiated",
-  "payment pending",
-  "payment submitted",
+  "payment_pending",
+  "payment_submitted",
   "completed",
 ];
 
@@ -194,11 +194,11 @@ export default function ServiceRequestManager() {
                       className="flex flex-col items-center">
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          statusOrder.indexOf(requestData.status as FrontendStatus) >= index
+                          statusOrder.indexOf(requestData.status.toLowerCase() as FrontendStatus) >= index
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground"
                         } mb-2`}>
-                        {statusOrder.indexOf(requestData.status as FrontendStatus) > index ? (
+                        {statusOrder.indexOf(requestData.status.toLowerCase()  as FrontendStatus) > index ? (
                           <CheckCircle2 className="w-5 h-5" />
                         ) : (
                           index + 1
@@ -213,7 +213,7 @@ export default function ServiceRequestManager() {
               </CardContent>
             </Card>
 
-            {requestData.status === "posted" && (
+            {requestData.status.toLowerCase()  === "posted" && (
               <div className="mb-4">
                 <Label htmlFor="offeredPrice">Offer Price</Label>
                 <div className="flex items-center mt-2">
@@ -243,7 +243,7 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {requestData.status === "request sent" && (
+            {requestData.status.toLowerCase()  === "request sent" && (
               <div className="mb-4 w-full">
                 <div className="flex flex-col sm:flex-row gap-4 w-full">
                   <div className="w-full sm:w-1/2">
@@ -350,13 +350,13 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {requestData.status === "confirmed" && (
+            {requestData.status.toLowerCase()  === "confirmed" && (
               <div className="mb-4">
                 <Button onClick={handleInitiateWork}>Initiate Work</Button>
               </div>
             )}
 
-            {requestData.status === "initiated" && (
+            {requestData.status.toLowerCase()  === "initiated" && (
               <div className="mb-4">
                 <Button onClick={handleCompleteWork}>
                   Complete Work & Request Payment
@@ -364,7 +364,7 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {requestData.status === "payment submitted" && (
+            {requestData.status.toLowerCase()  === "payment submitted" && (
               <div className="mb-4">
                 <Button onClick={handleVerifyPayment}>Verify Payment</Button>
               </div>
@@ -389,7 +389,7 @@ export default function ServiceRequestManager() {
                   </p>
                   <div className="flex items-start mt-2">
                     <div>
-                      {statusOrder.indexOf(requestData.status as FrontendStatus) >=
+                      {statusOrder.indexOf(requestData.status.toLowerCase()  as FrontendStatus) >=
                       statusOrder.indexOf("confirmed") ? (
                         <p className="text-sm sm:text-base">
                           <strong>Address:</strong>
@@ -409,7 +409,7 @@ export default function ServiceRequestManager() {
                       )}
                     </div>
                   </div>
-                  {statusOrder.indexOf(requestData.status as FrontendStatus) >=
+                  {statusOrder.indexOf(requestData.status.toLowerCase()  as FrontendStatus) >=
                     statusOrder.indexOf("confirmed") && (
                     <div className="flex items-center mt-2">
                       <p className="text-sm sm:text-base">
@@ -419,7 +419,7 @@ export default function ServiceRequestManager() {
                       </p>
                     </div>
                   )}
-                  {statusOrder.indexOf(requestData.status as FrontendStatus) >=
+                  {statusOrder.indexOf(requestData.status.toLowerCase()  as FrontendStatus) >=
                     statusOrder.indexOf("completed") && (
                     <p className="text-sm sm:text-base mt-2">
                       <strong>Estimated Revenue:</strong>{" "}

@@ -1,17 +1,12 @@
+'use client'
+
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -27,16 +22,14 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import {
   CheckCircle2,
   DollarSign,
   ChevronLeft,
-  MapPin,
-  Mail,
 } from "lucide-react";
+import { BookingDetailsDTO, OrganizationEmployeeDTO } from "@/types/BookingDetailsDTO";
+import { bookingAPI } from "@/api/bookingApi";
 
 type FrontendStatus =
   | "posted"
@@ -46,30 +39,6 @@ type FrontendStatus =
   | "payment pending"
   | "payment submitted"
   | "completed";
-
-const serviceRequest = {
-  id: "REQ001",
-  name: "Air Conditioning Repair",
-  status: "posted" as FrontendStatus,
-  info: "Customer reported AC not cooling. Unit is 5 years old. Last serviced 2 years ago.",
-  date: "2023-06-15",
-  time: "14:30",
-  address: "123 Main St",
-  city: "Anytown",
-  state: "ST",
-  zip: "12345",
-  estimatedRevenue: "$250.00",
-  pastOfferedPrices: ["$200", "$225"],
-  clientEmail: "client@example.com",
-};
-
-const employees = [
-  { id: 1, name: "John Doe", designation: "Senior Technician" },
-  { id: 2, name: "Jane Smith", designation: "HVAC Specialist" },
-  { id: 3, name: "Mike Johnson", designation: "Junior Technician" },
-  { id: 4, name: "Emily Brown", designation: "Electrician" },
-  { id: 5, name: "Chris Lee", designation: "Plumber" },
-];
 
 const statusOrder: FrontendStatus[] = [
   "posted",
@@ -82,22 +51,37 @@ const statusOrder: FrontendStatus[] = [
 ];
 
 export default function ServiceRequestManager() {
-  const [status, setStatus] = useState<FrontendStatus>(serviceRequest.status);
+  const [requestData, setRequestData] = useState<BookingDetailsDTO>();
   const [assignedEmployees, setAssignedEmployees] = useState<number[]>([]);
   const [offeredPrice, setOfferedPrice] = useState("");
-  const [pastPrices, setPastPrices] = useState(
-    serviceRequest.pastOfferedPrices
-  );
+  const [availableEmployees, setAvailableEmployees] = useState<OrganizationEmployeeDTO>();
+
+  const { requestId, orgId } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (status === "request sent") {
-      setAssignedEmployees([]);
-    }
-  }, [status]);
+    fetchDetails();
+  }, []);
 
-  const handleStatusChange = (newStatus: FrontendStatus) => {
-    setStatus(newStatus);
+  const fetchDetails = async () => {
+    try {
+      const data = await bookingAPI.getBookingDetails(orgId as string, requestId as string);
+      setRequestData(data);
+      if (data.status === "request sent") {
+        fetchAvailableEmployees();
+      }
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+    }
+  };
+
+  const fetchAvailableEmployees = async () => {
+    try {
+      const employees = await bookingAPI.getAvailableEmployees(orgId as string, requestId as string);
+      setAvailableEmployees(employees);
+    } catch (error) {
+      console.error("Error fetching available employees:", error);
+    }
   };
 
   const handleEmployeeToggle = (employeeId: number) => {
@@ -112,35 +96,61 @@ export default function ServiceRequestManager() {
     return status.replace(/_/g, " ");
   };
 
-  const handleOfferPrice = () => {
+  const handleOfferPrice = async () => {
     if (offeredPrice) {
-      setPastPrices([...pastPrices, offeredPrice]);
-      setOfferedPrice("");
-      handleStatusChange("request sent");
+      try {
+        await bookingAPI.offerPrice(orgId as string, requestId as string, Number(offeredPrice));
+        setOfferedPrice("");
+        fetchDetails();
+      } catch (error) {
+        console.error("Error offering price:", error);
+      }
     }
   };
 
-  const handleConfirmRequest = () => {
+  const handleConfirmRequest = async () => {
     if (assignedEmployees.length > 0) {
-      handleStatusChange("confirmed");
+      try {
+        await bookingAPI.assignEmployees(orgId as string, requestId as string, assignedEmployees);
+        fetchDetails();
+      } catch (error) {
+        console.error("Error confirming request:", error);
+      }
     } else {
-      alert(
-        "Please assign at least one employee before confirming the request."
-      );
+      alert("Please assign at least one employee before confirming the request.");
     }
   };
 
-  const handleInitiateWork = () => {
-    handleStatusChange("initiated");
+  const handleInitiateWork = async () => {
+    try {
+      await bookingAPI.initiateServiceRequest( requestId as string);
+      fetchDetails();
+    } catch (error) {
+      console.error("Error initiating work:", error);
+    }
   };
 
-  const handleCompleteWork = () => {
-    handleStatusChange("payment pending");
+  const handleCompleteWork = async () => {
+    try {
+      // await bookingAPI.completeWork(orgId as string, requestId as string);
+      fetchDetails();
+    } catch (error) {
+      console.error("Error completing work:", error);
+    }
   };
 
-  const handleVerifyPayment = () => {
-    handleStatusChange("completed");
+  const handleVerifyPayment = async () => {
+    try {
+      await bookingAPI.verifyPayment(requestId as string);
+      fetchDetails();
+    } catch (error) {
+      console.error("Error verifying payment:", error);
+    }
   };
+
+  if (!requestData) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -162,9 +172,9 @@ export default function ServiceRequestManager() {
             </BreadcrumbList>
           </Breadcrumb>
           <CardTitle className="text-xl sm:text-2xl font-semibold mt-2">
-            Service Request: {serviceRequest.id}
+            Service Request: {requestData.id}
           </CardTitle>
-          <p className="text-base sm:text-lg">{serviceRequest.name}</p>
+          <p className="text-base sm:text-lg">{requestData.name}</p>
         </CardHeader>
         <CardContent className="pt-6 px-4 sm:px-6">
           <div className="mb-8">
@@ -184,11 +194,11 @@ export default function ServiceRequestManager() {
                       className="flex flex-col items-center">
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          statusOrder.indexOf(status) >= index
+                          statusOrder.indexOf(requestData.status as FrontendStatus) >= index
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground"
                         } mb-2`}>
-                        {statusOrder.indexOf(status) > index ? (
+                        {statusOrder.indexOf(requestData.status as FrontendStatus) > index ? (
                           <CheckCircle2 className="w-5 h-5" />
                         ) : (
                           index + 1
@@ -203,7 +213,7 @@ export default function ServiceRequestManager() {
               </CardContent>
             </Card>
 
-            {status === "posted" && (
+            {requestData.status === "posted" && (
               <div className="mb-4">
                 <Label htmlFor="offeredPrice">Offer Price</Label>
                 <div className="flex items-center mt-2">
@@ -217,11 +227,11 @@ export default function ServiceRequestManager() {
                   />
                   <Button onClick={handleOfferPrice}>Offer Price</Button>
                 </div>
-                {pastPrices.length > 0 && (
+                {requestData.pastOfferedPrices && requestData.pastOfferedPrices.length > 0 && (
                   <div className="mt-2">
                     <Label>Past Offered Prices:</Label>
                     <div className="flex flex-wrap gap-2 mt-1">
-                      {pastPrices.map((price, index) => (
+                      {requestData.pastOfferedPrices.map((price, index) => (
                         <Badge key={index} variant="secondary">
                           <DollarSign className="w-4 h-4 mr-1" />
                           {price}
@@ -233,7 +243,7 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {status === "request sent" && (
+            {requestData.status === "request sent" && (
               <div className="mb-4 w-full">
                 <div className="flex flex-col sm:flex-row gap-4 w-full">
                   <div className="w-full sm:w-1/2">
@@ -256,24 +266,24 @@ export default function ServiceRequestManager() {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {employees
-                                .filter((e) => assignedEmployees.includes(e.id))
+                              {availableEmployees && availableEmployees.employees
+                                .filter((e) => assignedEmployees.includes(e.userId))
                                 .map((employee) => (
-                                  <TableRow key={employee.id}>
+                                  <TableRow key={employee.userId}>
                                     <TableCell>
                                       <Checkbox
-                                        id={`assigned-${employee.id}`}
+                                        id={`assigned-${employee.userId}`}
                                         checked={true}
                                         onCheckedChange={() =>
-                                          handleEmployeeToggle(employee.id)
+                                          handleEmployeeToggle(employee.userId)
                                         }
                                       />
                                     </TableCell>
                                     <TableCell className="font-medium">
-                                      {employee.name}
+                                      {employee.fullName}
                                     </TableCell>
                                     <TableCell className="hidden sm:table-cell">
-                                      {employee.designation}
+                                      {employee.role}
                                     </TableCell>
                                   </TableRow>
                                 ))}
@@ -304,26 +314,26 @@ export default function ServiceRequestManager() {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {employees
+                              {availableEmployees && availableEmployees.employees
                                 .filter(
-                                  (e) => !assignedEmployees.includes(e.id)
+                                  (e) => !assignedEmployees.includes(e.userId)
                                 )
                                 .map((employee) => (
-                                  <TableRow key={employee.id}>
+                                  <TableRow key={employee.userId}>
                                     <TableCell>
                                       <Checkbox
-                                        id={`available-${employee.id}`}
+                                        id={`available-${employee.userId}`}
                                         checked={false}
                                         onCheckedChange={() =>
-                                          handleEmployeeToggle(employee.id)
+                                          handleEmployeeToggle(employee.userId)
                                         }
                                       />
                                     </TableCell>
                                     <TableCell className="font-medium">
-                                      {employee.name}
+                                      {employee.fullName}
                                     </TableCell>
                                     <TableCell className="hidden sm:table-cell">
-                                      {employee.designation}
+                                      {employee.role}
                                     </TableCell>
                                   </TableRow>
                                 ))}
@@ -340,13 +350,13 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {status === "confirmed" && (
+            {requestData.status === "confirmed" && (
               <div className="mb-4">
                 <Button onClick={handleInitiateWork}>Initiate Work</Button>
               </div>
             )}
 
-            {status === "initiated" && (
+            {requestData.status === "initiated" && (
               <div className="mb-4">
                 <Button onClick={handleCompleteWork}>
                   Complete Work & Request Payment
@@ -354,24 +364,11 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {status === "payment submitted" && (
+            {requestData.status === "payment submitted" && (
               <div className="mb-4">
                 <Button onClick={handleVerifyPayment}>Verify Payment</Button>
               </div>
             )}
-
-            <Select value={status} onValueChange={handleStatusChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Change status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOrder.map((step) => (
-                  <SelectItem key={step} value={step}>
-                    {getDisplayStatus(step)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="space-y-6">
@@ -382,27 +379,27 @@ export default function ServiceRequestManager() {
               <Card className="mt-2">
                 <CardContent className="pt-4 sm:pt-6">
                   <p className="mb-2 text-sm sm:text-base">
-                    {serviceRequest.info}
+                    {requestData.description}
                   </p>
                   <p className="text-sm sm:text-base">
-                    <strong>Date:</strong> {serviceRequest.date}
+                    <strong>Date:</strong> {requestData.date}
                   </p>
                   <p className="text-sm sm:text-base">
-                    <strong>Time:</strong> {serviceRequest.time}
+                    <strong>Time:</strong> {requestData.time}
                   </p>
                   <div className="flex items-start mt-2">
                     <div>
-                      {statusOrder.indexOf(status) >=
+                      {statusOrder.indexOf(requestData.status as FrontendStatus) >=
                       statusOrder.indexOf("confirmed") ? (
                         <p className="text-sm sm:text-base">
                           <strong>Address:</strong>
-                          {`${serviceRequest.address}, ${serviceRequest.zip}, ${serviceRequest.city}`}{" "}
+                          {`${requestData.address}, ${requestData.zip}, ${requestData.city}`}{" "}
                         </p>
                       ) : (
                         <div className="">
                           <p className="text-sm sm:text-base">
                             <strong>Location:</strong>
-                            {`${serviceRequest.zip}, ${serviceRequest.city}`}{" "}
+                            {`${requestData.zip}, ${requestData.city}`}{" "}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
                             Complete address will be shown after the service
@@ -412,27 +409,28 @@ export default function ServiceRequestManager() {
                       )}
                     </div>
                   </div>
-                  {statusOrder.indexOf(status) >=
+                  {statusOrder.indexOf(requestData.status as FrontendStatus) >=
                     statusOrder.indexOf("confirmed") && (
                     <div className="flex items-center mt-2">
                       <p className="text-sm sm:text-base">
                         <strong>Client Email:</strong>{" "}
-                        {serviceRequest.clientEmail}
+                        {requestData.clientEmail}
+                      
                       </p>
                     </div>
                   )}
-                  {statusOrder.indexOf(status) >=
+                  {statusOrder.indexOf(requestData.status as FrontendStatus) >=
                     statusOrder.indexOf("completed") && (
                     <p className="text-sm sm:text-base mt-2">
                       <strong>Estimated Revenue:</strong>{" "}
-                      {serviceRequest.estimatedRevenue}
+                      {requestData.agreedPrice}
                     </p>
                   )}
                 </CardContent>
               </Card>
             </div>
 
-            {assignedEmployees.length > 0 && (
+            {requestData.assignedEmployees && requestData.assignedEmployees.length > 0 && (
               <div>
                 <Label className="text-base sm:text-lg font-semibold">
                   Assigned Employees
@@ -448,16 +446,14 @@ export default function ServiceRequestManager() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {employees
-                            .filter((e) => assignedEmployees.includes(e.id))
-                            .map((employee) => (
-                              <TableRow key={employee.id}>
-                                <TableCell className="font-medium">
-                                  {employee.name}
-                                </TableCell>
-                                <TableCell>{employee.designation}</TableCell>
-                              </TableRow>
-                            ))}
+                          {requestData.assignedEmployees.map((employee) => (
+                            <TableRow key={employee.userId}>
+                              <TableCell className="font-medium">
+                                {employee.firstName + " " + employee.lastName}
+                              </TableCell>
+                              {/* <TableCell>{employee.role}</TableCell> */}
+                            </TableRow>
+                          ))}
                         </TableBody>
                       </Table>
                     </ScrollArea>

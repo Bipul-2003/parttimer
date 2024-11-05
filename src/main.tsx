@@ -114,16 +114,17 @@ const router = createBrowserRouter([
             index: true,
             element: <OrgDashboard />,
           },
+          {
+            path: "service-request-management/:requestId/*",
+            element: <ServiceRequestManager />,
+          },
         ],
       },
       {
         path: "/subscriptions",
         element: <SubscriptionsPage />,
       },
-      {
-        path: "/service-request-management/:requestId",
-        element: <ServiceRequestManager />,
-      },
+      
     ],
   },
 ]);

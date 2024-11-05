@@ -20,16 +20,16 @@ class BookingApi {
   }
 
   getBookingDetails = async (
-    orgId: number,
-    bookingId: number
+    orgId: string,
+    bookingId: string
   ): Promise<BookingDetailsDTO> => {
     const response = await this.http.get(`/${orgId}/bookings/${bookingId}`);
     return response.data;
   };
 
   offerPrice = async (
-    orgId: number,
-    bookingId: number,
+    orgId: string,
+    bookingId: string,
     offeredPrice: number
   ): Promise<ServiceAssignmentDTO> => {
     const response = await this.http.post(
@@ -40,8 +40,8 @@ class BookingApi {
   };
 
   getAvailableEmployees = async (
-    orgId: number,
-    bookingId: number
+    orgId: string,
+    bookingId: string
   ): Promise<OrganizationEmployeeDTO> => {
     const response = await this.http.get(
       `/${orgId}/bookings/${bookingId}/available-employees`
@@ -50,8 +50,8 @@ class BookingApi {
   };
 
   assignEmployees = async (
-    orgId: number,
-    bookingId: number,
+    orgId: string,
+    bookingId: string,
     employeeIds: number[]
   ): Promise<BookingAssignmentDTO> => {
     const response = await this.http.post(
@@ -62,7 +62,7 @@ class BookingApi {
   };
 
   initiateServiceRequest = async (
-    bookingId: number
+    bookingId: string
   ): Promise<BookingAssignmentDTO> => {
     const response = await this.http.post(`/${bookingId}/initiate-request`);
     return response.data;
@@ -73,7 +73,7 @@ class BookingApi {
     return response.data;
   };
 
-  verifyPayment = async (bookingId: number): Promise<BookingAssignmentDTO> => {
+  verifyPayment = async (bookingId: string): Promise<BookingAssignmentDTO> => {
     const response = await this.http.post(`/${bookingId}/verify-payment`);
     return response.data;
   };
@@ -92,3 +92,6 @@ class BookingApi {
 }
 
 export default BookingApi;
+
+
+export const bookingAPI = new BookingApi();

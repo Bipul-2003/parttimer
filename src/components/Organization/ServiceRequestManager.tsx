@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -213,7 +211,7 @@ export default function ServiceRequestManager() {
               </CardContent>
             </Card>
 
-            {requestData.status.toLowerCase()  === "posted" && (
+            {requestData.status.toLowerCase() === "posted" && (
               <div className="mb-4">
                 <Label htmlFor="offeredPrice">Offer Price</Label>
                 <div className="flex items-center mt-2">
@@ -243,7 +241,7 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {requestData.status.toLowerCase()  === "request sent" && (
+            {requestData.status.toLowerCase()  === "request_sent" && (
               <div className="mb-4 w-full">
                 <div className="flex flex-col sm:flex-row gap-4 w-full">
                   <div className="w-full sm:w-1/2">
@@ -364,7 +362,7 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {requestData.status.toLowerCase()  === "payment submitted" && (
+            {requestData.status.toLowerCase()  === "payment_submitted" && (
               <div className="mb-4">
                 <Button onClick={handleVerifyPayment}>Verify Payment</Button>
               </div>

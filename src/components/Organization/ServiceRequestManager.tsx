@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,23 +31,42 @@ import {
 import { BookingDetailsDTO, OrganizationEmployeeDTO } from "@/types/BookingDetailsDTO";
 import { bookingAPI } from "@/api/bookingApi";
 
-type FrontendStatus =
-  | "posted"
-  | "request_sent"
-  | "confirmed"
-  | "initiated"
-  | "payment_pending"
-  | "payment_submitted"
-  | "completed";
+// type FrontendStatus =
+//   | "POSTED"
+//   | "REQUEST_SENT"
+//   | "CONFIRMED"
+//   | "INITIATED"
+//   | "PAYMENT_PENDING"
+//   | "PAYMENT_SUBMITTED"
+//   | "COMPLETED";
+
+  type FrontendStatus =
+  | "OPEN"
+  | "SELLER_SELECTED"
+  | "SELLER_ACCEPTED"
+  // | "INITIATED"
+  // | "PAYMENT_PENDING"
+  // | "PAYMENT_SUBMITTED"
+  // | "COMPLETED";
+
+// const statusOrder: FrontendStatus[] = [
+//   "POSTED",
+//   "REQUEST_SENT",
+//   "CONFIRMED",
+//   "INITIATED",
+//   "PAYMENT_PENDING",
+//   "PAYMENT_SUBMITTED",
+//   "COMPLETED",
+// ];
 
 const statusOrder: FrontendStatus[] = [
-  "posted",
-  "request_sent",
-  "confirmed",
-  "initiated",
-  "payment_pending",
-  "payment_submitted",
-  "completed",
+  "OPEN",
+  "SELLER_SELECTED",
+  "SELLER_ACCEPTED",
+  // "INITIATED",
+  // "PAYMENT_PENDING",
+  // "PAYMENT_SUBMITTED",
+  // "COMPLETED",
 ];
 
 export default function ServiceRequestManager() {
@@ -91,7 +112,7 @@ export default function ServiceRequestManager() {
   };
 
   const getDisplayStatus = (status: FrontendStatus): string => {
-    return status.replace(/_/g, " ");
+    return status.replace(/_/g, " ").toLowerCase();
   };
 
   const handleOfferPrice = async () => {
@@ -119,32 +140,32 @@ export default function ServiceRequestManager() {
     }
   };
 
-  const handleInitiateWork = async () => {
-    try {
-      await bookingAPI.initiateServiceRequest( requestId as string);
-      fetchDetails();
-    } catch (error) {
-      console.error("Error initiating work:", error);
-    }
-  };
+  // const handleInitiateWork = async () => {
+  //   try {
+  //     await bookingAPI.initiateServiceRequest( requestId as string);
+  //     fetchDetails();
+  //   } catch (error) {
+  //     console.error("Error initiating work:", error);
+  //   }
+  // };
 
-  const handleCompleteWork = async () => {
-    try {
-      // await bookingAPI.completeWork(orgId as string, requestId as string);
-      fetchDetails();
-    } catch (error) {
-      console.error("Error completing work:", error);
-    }
-  };
+  // const handleCompleteWork = async () => {
+  //   try {
+  //     // await bookingAPI.completeWork(orgId as string, requestId as string);
+  //     fetchDetails();
+  //   } catch (error) {
+  //     console.error("Error completing work:", error);
+  //   }
+  // };
 
-  const handleVerifyPayment = async () => {
-    try {
-      await bookingAPI.verifyPayment(requestId as string);
-      fetchDetails();
-    } catch (error) {
-      console.error("Error verifying payment:", error);
-    }
-  };
+  // const handleVerifyPayment = async () => {
+  //   try {
+  //     await bookingAPI.verifyPayment(requestId as string);
+  //     fetchDetails();
+  //   } catch (error) {
+  //     console.error("Error verifying payment:", error);
+  //   }
+  // };
 
   if (!requestData) {
     return <div>Loading...</div>;
@@ -192,11 +213,11 @@ export default function ServiceRequestManager() {
                       className="flex flex-col items-center">
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          statusOrder.indexOf(requestData.status.toLowerCase() as FrontendStatus) >= index
+                          statusOrder.indexOf(requestData.status as FrontendStatus) >= index
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground"
                         } mb-2`}>
-                        {statusOrder.indexOf(requestData.status.toLowerCase()  as FrontendStatus) > index ? (
+                        {statusOrder.indexOf(requestData.status as FrontendStatus) > index ? (
                           <CheckCircle2 className="w-5 h-5" />
                         ) : (
                           index + 1
@@ -211,7 +232,7 @@ export default function ServiceRequestManager() {
               </CardContent>
             </Card>
 
-            {requestData.status.toLowerCase() === "posted" && (
+            {requestData.status === "OPEN" && (
               <div className="mb-4">
                 <Label htmlFor="offeredPrice">Offer Price</Label>
                 <div className="flex items-center mt-2">
@@ -241,7 +262,7 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {requestData.status.toLowerCase()  === "request_sent" && (
+            {requestData.status === "SELLER_SELECTED" && (
               <div className="mb-4 w-full">
                 <div className="flex flex-col sm:flex-row gap-4 w-full">
                   <div className="w-full sm:w-1/2">
@@ -348,25 +369,25 @@ export default function ServiceRequestManager() {
               </div>
             )}
 
-            {requestData.status.toLowerCase()  === "confirmed" && (
+            {/* {requestData.status === "CONFIRMED" && (
               <div className="mb-4">
                 <Button onClick={handleInitiateWork}>Initiate Work</Button>
               </div>
-            )}
+            )} */}
 
-            {requestData.status.toLowerCase()  === "initiated" && (
+            {/* {requestData.status === "INITIATED" && (
               <div className="mb-4">
                 <Button onClick={handleCompleteWork}>
                   Complete Work & Request Payment
                 </Button>
               </div>
-            )}
+            )} */}
 
-            {requestData.status.toLowerCase()  === "payment_submitted" && (
+            {/* {requestData.status === "PAYMENT_SUBMITTED" && (
               <div className="mb-4">
                 <Button onClick={handleVerifyPayment}>Verify Payment</Button>
               </div>
-            )}
+            )} */}
           </div>
 
           <div className="space-y-6">
@@ -387,8 +408,8 @@ export default function ServiceRequestManager() {
                   </p>
                   <div className="flex items-start mt-2">
                     <div>
-                      {statusOrder.indexOf(requestData.status.toLowerCase()  as FrontendStatus) >=
-                      statusOrder.indexOf("confirmed") ? (
+                      {statusOrder.indexOf(requestData.status as FrontendStatus) >=
+                      statusOrder.indexOf("SELLER_ACCEPTED") ? (
                         <p className="text-sm sm:text-base">
                           <strong>Address:</strong>
                           {`${requestData.address}, ${requestData.zip}, ${requestData.city}`}{" "}
@@ -407,8 +428,8 @@ export default function ServiceRequestManager() {
                       )}
                     </div>
                   </div>
-                  {statusOrder.indexOf(requestData.status.toLowerCase()  as FrontendStatus) >=
-                    statusOrder.indexOf("confirmed") && (
+                  {statusOrder.indexOf(requestData.status as FrontendStatus) >=
+                    statusOrder.indexOf("SELLER_ACCEPTED") && (
                     <div className="flex items-center mt-2">
                       <p className="text-sm sm:text-base">
                         <strong>Client Email:</strong>{" "}
@@ -417,8 +438,8 @@ export default function ServiceRequestManager() {
                       </p>
                     </div>
                   )}
-                  {statusOrder.indexOf(requestData.status.toLowerCase()  as FrontendStatus) >=
-                    statusOrder.indexOf("completed") && (
+                  {statusOrder.indexOf(requestData.status as FrontendStatus) >=
+                    statusOrder.indexOf("OPEN") && (
                     <p className="text-sm sm:text-base mt-2">
                       <strong>Estimated Revenue:</strong>{" "}
                       {requestData.agreedPrice}

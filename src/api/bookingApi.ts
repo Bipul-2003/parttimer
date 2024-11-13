@@ -73,8 +73,13 @@ class BookingApi {
     return response.data;
   };
 
-  verifyPayment = async (bookingId: string): Promise<BookingAssignmentDTO> => {
-    const response = await this.http.post(`/${bookingId}/verify-payment`);
+  verifyPayment = async (
+    bookingId: string,
+    orgId: string
+  ): Promise<BookingAssignmentDTO> => {
+    const response = await this.http.post(
+      `/${orgId}/bookings/${bookingId}/verify-payment`
+    );
     return response.data;
   };
 
@@ -92,6 +97,5 @@ class BookingApi {
 }
 
 export default BookingApi;
-
 
 export const bookingAPI = new BookingApi();

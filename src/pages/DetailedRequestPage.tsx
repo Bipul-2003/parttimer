@@ -7,21 +7,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+// import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Star, CheckCircle2, Play, Flag } from "lucide-react";
+import { Star, CheckCircle2,  } from "lucide-react";
 
 import {
   ServiceRequest,
-  Status,
-  PaymentSimulation,
+  // Status,
+  // PaymentSimulation,
   fetchServiceRequest,
   selectOrganization,
-  simulatePayment,
+  // simulatePayment,
   submitFeedback,
   confirmServiceRequest,
   initiateServiceRequest,
@@ -30,22 +30,37 @@ import {
 } from "@/api/serviceRequestsApi";
 import { useParams } from "react-router-dom";
 
+// type BackendStatus =
+//   | "POSTED"
+//   | "REQUEST_SENT"
+//   | "CONFIRMED"
+//   | "INITIATED"
+//   | "PAYMENT_PENDING"
+//   | "PAYMENT_SUBMITTED"
+//   | "COMPLETED";
+
 type BackendStatus =
-  | "POSTED"
-  | "REQUEST_SENT"
-  | "CONFIRMED"
-  | "INITIATED"
-  | "PAYMENT_PENDING"
-  | "PAYMENT_SUBMITTED"
-  | "COMPLETED";
-type FrontendStatus =
-  | "posted"
-  | "request sent"
-  | "confirmed"
-  | "initiated"
-  | "payment pending"
-  | "payment submitted"
-  | "completed";
+| "OPEN"
+| "SELLER_SELECTED"
+| "SELLER_ACCEPTED";
+
+// type FrontendStatus =
+//   | "posted"
+//   | "request sent"
+//   | "confirmed"
+//   | "initiated"
+//   | "payment pending"
+//   | "payment submitted"
+//   | "completed";
+
+  type FrontendStatus =
+  | "open"
+  | "seller selected"
+  | "seller accepted"
+  // | "initiated"
+  // | "payment pending"
+  // | "payment submitted"
+  // | "completed";
 export default function DetailedServiceRequestPage() {
   const { requestId } = useParams<{ requestId: string }>();
   const [request, setRequest] = React.useState<ServiceRequest | null>(null);
@@ -63,14 +78,24 @@ export default function DetailedServiceRequestPage() {
     return request.status.toUpperCase() === "POSTED";
   };
 
+  // const statusOrder: FrontendStatus[] = [
+  //   "posted",
+  //   "request sent",
+  //   "confirmed",
+  //   "initiated",
+  //   "payment pending",
+  //   "payment submitted",
+  //   "completed",
+  // ];
+
   const statusOrder: FrontendStatus[] = [
-    "posted",
-    "request sent",
-    "confirmed",
-    "initiated",
-    "payment pending",
-    "payment submitted",
-    "completed",
+    "open",
+    "seller selected",
+    "seller accepted",
+    // "initiated",
+    // "payment pending",
+    // "payment submitted",
+    // "completed",
   ];
   React.useEffect(() => {
     const loadServiceRequest = async () => {
@@ -108,29 +133,29 @@ export default function DetailedServiceRequestPage() {
     }
   };
 
-  const handlePaymentSubmission = async () => {
-    if (!request || !paymentMethod) return;
+  // const handlePaymentSubmission = async () => {
+  //   if (!request || !paymentMethod) return;
 
-    try {
-      setIsLoading(true);
-      const paymentInfo: PaymentSimulation = {
-        paymentMethod,
-        bankDetails:
-          paymentMethod === "bank" ? "Simulated bank details" : undefined,
-      };
-      const updatedRequest = await simulatePayment(request.id, paymentInfo);
-      setRequest(updatedRequest);
-      // if (updatedRequest.paymentStatus === "COMPLETED") {
-      //   await confirmServiceRequest(request.id);
-      // }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to process payment"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     setIsLoading(true);
+  //     const paymentInfo: PaymentSimulation = {
+  //       paymentMethod,
+  //       bankDetails:
+  //         paymentMethod === "bank" ? "Simulated bank details" : undefined,
+  //     };
+  //     const updatedRequest = await simulatePayment(request.id, paymentInfo);
+  //     setRequest(updatedRequest);
+  //     // if (updatedRequest.paymentStatus === "COMPLETED") {
+  //     //   await confirmServiceRequest(request.id);
+  //     // }
+  //   } catch (err) {
+  //     setError(
+  //       err instanceof Error ? err.message : "Failed to process payment"
+  //     );
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const confirmService = async () => {
     if (!request) return;
@@ -165,14 +190,24 @@ export default function DetailedServiceRequestPage() {
       setIsLoading(false);
     }
   };
+  // const statusMapping: Record<BackendStatus, FrontendStatus> = {
+  //   POSTED: "posted",
+  //   REQUEST_SENT: "request sent",
+  //   CONFIRMED: "confirmed",
+  //   INITIATED: "initiated",
+  //   PAYMENT_PENDING: "payment pending",
+  //   PAYMENT_SUBMITTED: "payment submitted",
+  //   COMPLETED: "completed",
+  // };
+
   const statusMapping: Record<BackendStatus, FrontendStatus> = {
-    POSTED: "posted",
-    REQUEST_SENT: "request sent",
-    CONFIRMED: "confirmed",
-    INITIATED: "initiated",
-    PAYMENT_PENDING: "payment pending",
-    PAYMENT_SUBMITTED: "payment submitted",
-    COMPLETED: "completed",
+     OPEN : "open",
+    SELLER_SELECTED: "seller selected",
+    SELLER_ACCEPTED: "seller accepted",
+    // INITIATED: "initiated",
+    // PAYMENT_PENDING: "payment pending",
+    // PAYMENT_SUBMITTED: "payment submitted",
+    // COMPLETED: "completed",
   };
   // Then update your status progression display
   const getDisplayStatus = (status: string): FrontendStatus => {
@@ -183,46 +218,46 @@ export default function DetailedServiceRequestPage() {
   };
 
   //new ones, (20/10/2024)
-  const handleInitiateService = async () => {
-    if (!request) return;
-    try {
-      setIsLoading(true);
-      const updatedRequest = await initiateServiceRequest(request.id);
-      setRequest(updatedRequest);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to initiate service"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // const handleInitiateService = async () => {
+  //   if (!request) return;
+  //   try {
+  //     setIsLoading(true);
+  //     const updatedRequest = await initiateServiceRequest(request.id);
+  //     setRequest(updatedRequest);
+  //   } catch (err) {
+  //     setError(
+  //       err instanceof Error ? err.message : "Failed to initiate service"
+  //     );
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleFinishService = async () => {
-    if (!request) return;
-    try {
-      setIsLoading(true);
-      const updatedRequest = await finishServiceRequest(request.id);
-      setRequest(updatedRequest);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to finish service");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // const handleFinishService = async () => {
+  //   if (!request) return;
+  //   try {
+  //     setIsLoading(true);
+  //     const updatedRequest = await finishServiceRequest(request.id);
+  //     setRequest(updatedRequest);
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "Failed to finish service");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleVerifyPayment = async () => {
-    if (!request) return;
-    try {
-      setIsLoading(true);
-      const updatedRequest = await verifyPayment(request.id);
-      setRequest(updatedRequest);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to verify payment");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // const handleVerifyPayment = async () => {
+  //   if (!request) return;
+  //   try {
+  //     setIsLoading(true);
+  //     const updatedRequest = await verifyPayment(request.id);
+  //     setRequest(updatedRequest);
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "Failed to verify payment");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const ServiceRequestDetails: React.FC<{ request: ServiceRequest }> = ({
     request,
@@ -372,7 +407,7 @@ export default function DetailedServiceRequestPage() {
       </Card>
 
       {/* Organization Proposals */}
-      {request.status.toUpperCase() === "POSTED" &&
+      {request.status.toUpperCase() === "OPEN" &&
         request.availableOrganizations && (
           <Card className="mb-6">
             <CardHeader>
@@ -405,7 +440,7 @@ export default function DetailedServiceRequestPage() {
         )}
 
       {/* Request Sent */}
-      {request.status === "request sent" && (
+      {request.status === "seler selected" && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Request Sent</CardTitle>
@@ -422,7 +457,7 @@ export default function DetailedServiceRequestPage() {
       )}
 
       {/* Associated Organization */}
-      {request.status !== "POSTED" && request.organizationName && (
+      {request.status !== "open" && request.organizationName && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Service Provider</CardTitle>
@@ -470,7 +505,7 @@ export default function DetailedServiceRequestPage() {
       )}
 
       {/* Payment Section */}
-      {request.status.toUpperCase() === "PAYMENT_PENDING" && (
+      {/* {request.status.toUpperCase() === "PAYMENT_PENDING" && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Payment Options</CardTitle>
@@ -512,10 +547,10 @@ export default function DetailedServiceRequestPage() {
             </Button>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Payment Submitted */}
-      {request.status === "payment submitted" && (
+      {/* {request.status === "payment submitted" && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Payment Submitted</CardTitle>
@@ -532,10 +567,10 @@ export default function DetailedServiceRequestPage() {
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Feedback Section */}
-      {request.status === "COMPLETED" && (
+      {request.status === "seler accepted" && new Date(request.date) < new Date() && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Service Feedback</CardTitle>
@@ -581,7 +616,7 @@ export default function DetailedServiceRequestPage() {
       )}
 
       {/* Confirmed Status */}
-      {request.status === "CONFIRMED" && (
+      {/* {request.status === "CONFIRMED" && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Start Service</CardTitle>
@@ -600,10 +635,10 @@ export default function DetailedServiceRequestPage() {
             </Button>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Initiated Status */}
-      {request.status === "INITIATED" && (
+      {/* {request.status === "INITIATED" && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Service In Progress</CardTitle>
@@ -620,9 +655,10 @@ export default function DetailedServiceRequestPage() {
             </Button>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Payment Submitted Status */}
+{/*       
       {request.status === "PAYMENT_SUBMITTED" && (
         <Card className="mb-6">
           <CardHeader>
@@ -631,9 +667,9 @@ export default function DetailedServiceRequestPage() {
           <CardContent>
             <p className="text-center mb-4">
               Payment has been submitted and is awaiting verification.
-            </p>
+            </p> */}
             {/* This button would typically only be shown to organization users */}
-            <Button
+            {/* <Button
               onClick={handleVerifyPayment}
               disabled={isLoading}
               className="w-full"
@@ -642,7 +678,8 @@ export default function DetailedServiceRequestPage() {
             </Button>
           </CardContent>
         </Card>
-      )}
+      )} */}
+      
     </div>
   );
 }

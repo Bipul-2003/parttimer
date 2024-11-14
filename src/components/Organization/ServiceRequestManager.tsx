@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -23,12 +23,11 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
+import { CheckCircle2, DollarSign, ChevronLeft } from "lucide-react";
 import {
-  CheckCircle2,
-  DollarSign,
-  ChevronLeft,
-} from "lucide-react";
-import { BookingDetailsDTO, OrganizationEmployeeDTO } from "@/types/BookingDetailsDTO";
+  BookingDetailsDTO,
+  OrganizationEmployeeDTO,
+} from "@/types/BookingDetailsDTO";
 import { bookingAPI } from "@/api/bookingApi";
 
 // type FrontendStatus =
@@ -40,14 +39,11 @@ import { bookingAPI } from "@/api/bookingApi";
 //   | "PAYMENT_SUBMITTED"
 //   | "COMPLETED";
 
-  type FrontendStatus =
-  | "OPEN"
-  | "SELLER_SELECTED"
-  | "SELLER_ACCEPTED"
-  // | "INITIATED"
-  // | "PAYMENT_PENDING"
-  // | "PAYMENT_SUBMITTED"
-  // | "COMPLETED";
+type FrontendStatus = "OPEN" | "SELLER_SELECTED" | "SELLER_ACCEPTED";
+// | "INITIATED"
+// | "PAYMENT_PENDING"
+// | "PAYMENT_SUBMITTED"
+// | "COMPLETED";
 
 // const statusOrder: FrontendStatus[] = [
 //   "POSTED",
@@ -73,7 +69,8 @@ export default function ServiceRequestManager() {
   const [requestData, setRequestData] = useState<BookingDetailsDTO>();
   const [assignedEmployees, setAssignedEmployees] = useState<number[]>([]);
   const [offeredPrice, setOfferedPrice] = useState("");
-  const [availableEmployees, setAvailableEmployees] = useState<OrganizationEmployeeDTO>();
+  const [availableEmployees, setAvailableEmployees] =
+    useState<OrganizationEmployeeDTO>();
 
   const { requestId, orgId } = useParams();
   const navigate = useNavigate();
@@ -84,9 +81,12 @@ export default function ServiceRequestManager() {
 
   const fetchDetails = async () => {
     try {
-      const data = await bookingAPI.getBookingDetails(orgId as string, requestId as string);
+      const data = await bookingAPI.getBookingDetails(
+        orgId as string,
+        requestId as string
+      );
       setRequestData(data);
-      if (data.status === "request sent") {
+      if (data.status === "SELLER_SELECTED") {
         fetchAvailableEmployees();
       }
     } catch (error) {
@@ -96,7 +96,11 @@ export default function ServiceRequestManager() {
 
   const fetchAvailableEmployees = async () => {
     try {
-      const employees = await bookingAPI.getAvailableEmployees(orgId as string, requestId as string);
+      const employees = await bookingAPI.getAvailableEmployees(
+        orgId as string,
+        requestId as string
+      );
+      console.log(employees);
       setAvailableEmployees(employees);
     } catch (error) {
       console.error("Error fetching available employees:", error);
@@ -118,7 +122,11 @@ export default function ServiceRequestManager() {
   const handleOfferPrice = async () => {
     if (offeredPrice) {
       try {
-        await bookingAPI.offerPrice(orgId as string, requestId as string, Number(offeredPrice));
+        await bookingAPI.offerPrice(
+          orgId as string,
+          requestId as string,
+          Number(offeredPrice)
+        );
         setOfferedPrice("");
         fetchDetails();
       } catch (error) {
@@ -130,13 +138,19 @@ export default function ServiceRequestManager() {
   const handleConfirmRequest = async () => {
     if (assignedEmployees.length > 0) {
       try {
-        await bookingAPI.assignEmployees(orgId as string, requestId as string, assignedEmployees);
+        await bookingAPI.assignEmployees(
+          orgId as string,
+          requestId as string,
+          assignedEmployees
+        );
         fetchDetails();
       } catch (error) {
         console.error("Error confirming request:", error);
       }
     } else {
-      alert("Please assign at least one employee before confirming the request.");
+      alert(
+        "Please assign at least one employee before confirming the request."
+      );
     }
   };
 
@@ -183,7 +197,8 @@ export default function ServiceRequestManager() {
                   onClick={(e) => {
                     e.preventDefault();
                     navigate(-1);
-                  }}>
+                  }}
+                >
                   <ChevronLeft className="mr-2 h-4 w-4 inline" />
                   Back
                 </BreadcrumbLink>
@@ -210,14 +225,20 @@ export default function ServiceRequestManager() {
                   {statusOrder.map((statusItem, index) => (
                     <div
                       key={statusItem}
-                      className="flex flex-col items-center">
+                      className="flex flex-col items-center"
+                    >
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          statusOrder.indexOf(requestData.status as FrontendStatus) >= index
+                          statusOrder.indexOf(
+                            requestData.status as FrontendStatus
+                          ) >= index
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground"
-                        } mb-2`}>
-                        {statusOrder.indexOf(requestData.status as FrontendStatus) > index ? (
+                        } mb-2`}
+                      >
+                        {statusOrder.indexOf(
+                          requestData.status as FrontendStatus
+                        ) > index ? (
                           <CheckCircle2 className="w-5 h-5" />
                         ) : (
                           index + 1
@@ -246,19 +267,20 @@ export default function ServiceRequestManager() {
                   />
                   <Button onClick={handleOfferPrice}>Offer Price</Button>
                 </div>
-                {requestData.pastOfferedPrices && requestData.pastOfferedPrices.length > 0 && (
-                  <div className="mt-2">
-                    <Label>Past Offered Prices:</Label>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {requestData.pastOfferedPrices.map((price, index) => (
-                        <Badge key={index} variant="secondary">
-                          <DollarSign className="w-4 h-4 mr-1" />
-                          {price}
-                        </Badge>
-                      ))}
+                {requestData.pastOfferedPrices &&
+                  requestData.pastOfferedPrices.length > 0 && (
+                    <div className="mt-2">
+                      <Label>Past Offered Prices:</Label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {requestData.pastOfferedPrices.map((price, index) => (
+                          <Badge key={index} variant="secondary">
+                            <DollarSign className="w-4 h-4 mr-1" />
+                            {price}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
 
@@ -285,27 +307,32 @@ export default function ServiceRequestManager() {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {availableEmployees && availableEmployees.employees
-                                .filter((e) => assignedEmployees.includes(e.userId))
-                                .map((employee) => (
-                                  <TableRow key={employee.userId}>
-                                    <TableCell>
-                                      <Checkbox
-                                        id={`assigned-${employee.userId}`}
-                                        checked={true}
-                                        onCheckedChange={() =>
-                                          handleEmployeeToggle(employee.userId)
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                      {employee.fullName}
-                                    </TableCell>
-                                    <TableCell className="hidden sm:table-cell">
-                                      {employee.role}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
+                              {availableEmployees &&
+                                availableEmployees.employees
+                                  .filter((e) =>
+                                    assignedEmployees.includes(e.userId)
+                                  )
+                                  .map((employee) => (
+                                    <TableRow key={employee.userId}>
+                                      <TableCell>
+                                        <Checkbox
+                                          id={`assigned-${employee.userId}`}
+                                          checked={true}
+                                          onCheckedChange={() =>
+                                            handleEmployeeToggle(
+                                              employee.userId
+                                            )
+                                          }
+                                        />
+                                      </TableCell>
+                                      <TableCell className="font-medium">
+                                        {employee.fullName}
+                                      </TableCell>
+                                      <TableCell className="hidden sm:table-cell">
+                                        {employee.role}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
                             </TableBody>
                           </Table>
                         </ScrollArea>
@@ -333,29 +360,32 @@ export default function ServiceRequestManager() {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {availableEmployees && availableEmployees.employees
-                                .filter(
-                                  (e) => !assignedEmployees.includes(e.userId)
-                                )
-                                .map((employee) => (
-                                  <TableRow key={employee.userId}>
-                                    <TableCell>
-                                      <Checkbox
-                                        id={`available-${employee.userId}`}
-                                        checked={false}
-                                        onCheckedChange={() =>
-                                          handleEmployeeToggle(employee.userId)
-                                        }
-                                      />
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                      {employee.fullName}
-                                    </TableCell>
-                                    <TableCell className="hidden sm:table-cell">
-                                      {employee.role}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
+                              {availableEmployees &&
+                                availableEmployees.employees
+                                  .filter(
+                                    (e) => !assignedEmployees.includes(e.userId)
+                                  )
+                                  .map((employee) => (
+                                    <TableRow key={employee.userId}>
+                                      <TableCell>
+                                        <Checkbox
+                                          id={`available-${employee.userId}`}
+                                          checked={false}
+                                          onCheckedChange={() =>
+                                            handleEmployeeToggle(
+                                              employee.userId
+                                            )
+                                          }
+                                        />
+                                      </TableCell>
+                                      <TableCell className="font-medium">
+                                        {employee.fullName}
+                                      </TableCell>
+                                      <TableCell className="hidden sm:table-cell">
+                                        {employee.role}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
                             </TableBody>
                           </Table>
                         </ScrollArea>
@@ -408,8 +438,9 @@ export default function ServiceRequestManager() {
                   </p>
                   <div className="flex items-start mt-2">
                     <div>
-                      {statusOrder.indexOf(requestData.status as FrontendStatus) >=
-                      statusOrder.indexOf("SELLER_ACCEPTED") ? (
+                      {statusOrder.indexOf(
+                        requestData.status as FrontendStatus
+                      ) >= statusOrder.indexOf("SELLER_ACCEPTED") ? (
                         <p className="text-sm sm:text-base">
                           <strong>Address:</strong>
                           {`${requestData.address}, ${requestData.zip}, ${requestData.city}`}{" "}
@@ -432,9 +463,7 @@ export default function ServiceRequestManager() {
                     statusOrder.indexOf("SELLER_ACCEPTED") && (
                     <div className="flex items-center mt-2">
                       <p className="text-sm sm:text-base">
-                        <strong>Client Email:</strong>{" "}
-                        {requestData.clientEmail}
-                      
+                        <strong>Client Email:</strong> {requestData.clientEmail}
                       </p>
                     </div>
                   )}
@@ -449,37 +478,38 @@ export default function ServiceRequestManager() {
               </Card>
             </div>
 
-            {requestData.assignedEmployees && requestData.assignedEmployees.length > 0 && (
-              <div>
-                <Label className="text-base sm:text-lg font-semibold">
-                  Assigned Employees
-                </Label>
-                <Card className="mt-2">
-                  <CardContent className="pt-4 sm:pt-6">
-                    <ScrollArea className="h-[200px] w-full">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Designation</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {requestData.assignedEmployees.map((employee) => (
-                            <TableRow key={employee.userId}>
-                              <TableCell className="font-medium">
-                                {employee.firstName + " " + employee.lastName}
-                              </TableCell>
-                              {/* <TableCell>{employee.role}</TableCell> */}
+            {requestData.assignedEmployees &&
+              requestData.assignedEmployees.length > 0 && (
+                <div>
+                  <Label className="text-base sm:text-lg font-semibold">
+                    Assigned Employees
+                  </Label>
+                  <Card className="mt-2">
+                    <CardContent className="pt-4 sm:pt-6">
+                      <ScrollArea className="h-[200px] w-full">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Name</TableHead>
+                              <TableHead>Designation</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                          </TableHeader>
+                          <TableBody>
+                            {requestData.assignedEmployees.map((employee) => (
+                              <TableRow key={employee.userId}>
+                                <TableCell className="font-medium">
+                                  {employee.firstName + " " + employee.lastName}
+                                </TableCell>
+                                {/* <TableCell>{employee.role}</TableCell> */}
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
           </div>
         </CardContent>
       </Card>

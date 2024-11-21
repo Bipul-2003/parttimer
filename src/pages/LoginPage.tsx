@@ -49,7 +49,7 @@ export default function LoginPage() {
       const data = await login(values.usernameOrEmail, values.password);
       console.log("Login successful:", data);
       setIsLoading(false);
-      navigate("/dashboard"); // Redirect after successful login
+      // navigate("/dashboard"); // Redirect after successful login
     } catch (error: any) {
       setIsLoading(false);
       setErrorMessage(error.message || "Login failed. Please try again.");
@@ -73,7 +73,7 @@ export default function LoginPage() {
                 name="usernameOrEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username or Email</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input placeholder="johndoe@example.com" {...field} />
                     </FormControl>

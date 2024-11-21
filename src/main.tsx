@@ -7,7 +7,6 @@ import "./index.css";
 import ServicesPage from "./pages/ServicesPage.tsx";
 import RequestedServicesPage from "./pages/RequestedServicesPage.tsx";
 import UserProfilePage from "./pages/userProfilePage.tsx";
-// import OrganOrganizationPage from "./pages/OrganizationPage.tsx";
 import ServiceRequestManager from "./components/Organization/ServiceRequestManager.tsx";
 import HomePage from "./pages/HomePage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
@@ -22,6 +21,8 @@ import { RequestService } from "./components/Organization/RequestService.tsx";
 import { PaymentManagement } from "./components/Organization/PaymentManagement.tsx";
 import { OrgTransaction } from "./components/Organization/OrgTransactions.tsx";
 import ServiceSettings from "./components/Organization/ServiceSettings.tsx";
+import { AuthProvider } from "./context/AuthContext.tsx";
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.tsx";
 
 const router = createBrowserRouter([
   {
@@ -34,7 +35,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/requests/:requestId",
-        element: <DetailedServiceRequestPage />,
+        element: (
+          <ProtectedRoute>
+            <DetailedServiceRequestPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/login",
@@ -46,91 +51,126 @@ const router = createBrowserRouter([
       },
       {
         path: "/services",
-        element: <ServicesPage />,
+        element: (
+          <ProtectedRoute>
+            <ServicesPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/requested-services",
-        element: <RequestedServicesPage />,
+        element: (
+          <ProtectedRoute>
+            <RequestedServicesPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/profile",
-        element: <UserProfilePage />,
+        element: (
+          <ProtectedRoute>
+            <UserProfilePage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/organization/:orgId/*",
-        element: <OrganizationPage />,
+        element: (
+          <ProtectedRoute>
+            <OrganizationPage />
+          </ProtectedRoute>
+        ),
         children: [
           {
             path: "dashboard",
-            element: <OrgDashboard />,
+            element: (
+              <ProtectedRoute requiredRole="OWNER">
+                <OrgDashboard />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "people/employees",
-            element: <EmployeeManagement />,
+            element: (
+              <ProtectedRoute requiredRole="OWNER">
+                <EmployeeManagement />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "people/owners",
-            element: <OrgDashboard />,
+            element: (
+              <ProtectedRoute requiredRole="OWNER">
+                <OrgDashboard />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "services/manage",
-            element: <ManageService />,
+            element: (
+              <ProtectedRoute requiredRole="OWNER">
+                <ManageService />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "services/request",
-            element: <RequestService />,
-          },
-          {
-            path: "service-assignment",
-            element: <OrgDashboard />,
-          },
-          {
-            path: "subscription",
-            element: <OrgDashboard />,
-          },
-          {
-            path: "details",
-            element: <OrgDashboard />,
+            element: (
+              <ProtectedRoute requiredRole="CO_OWNER">
+                <RequestService />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "payments/epm",
-            element: <PaymentManagement />,
+            element: (
+              <ProtectedRoute requiredRole="ADMIN">
+                <PaymentManagement />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "payments/manage",
-            element: <OrgTransaction />,
+            element: (
+              <ProtectedRoute requiredRole="OWNER">
+                <OrgTransaction />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "settings/",
-            element: <ServiceSettings />,
-            children: [
-              {
-                path: "service-settings",
-                element: <ServiceSettings />,
-              }
-            ]
-          },
-          {
-            index: true,
-            element: <OrgDashboard />,
+            element: (
+              <ProtectedRoute requiredRole="OWNER">
+                <ServiceSettings />
+              </ProtectedRoute>
+            ),
           },
           {
             path: "service-request-management/:requestId/*",
-            element: <ServiceRequestManager />,
+            element: (
+              <ProtectedRoute requiredRole="CO_OWNER">
+                <ServiceRequestManager />
+              </ProtectedRoute>
+            ),
           },
         ],
       },
       {
         path: "/subscriptions",
-        element: <SubscriptionsPage />,
+        element: (
+          <ProtectedRoute>
+            <SubscriptionsPage />
+          </ProtectedRoute>
+        ),
       },
-      
     ],
   },
 ]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>
 );

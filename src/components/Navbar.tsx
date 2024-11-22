@@ -2,9 +2,13 @@ import { useState } from "react";
 import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { UserNav } from "./user-nav";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const { user, loading,logout } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   return (
@@ -53,7 +57,9 @@ function Navbar() {
             className="text-gray-600 hover:text-blue-600 transition-colors">
             Post a Request
           </a>
-          <Button className="w-full">Sign Up</Button>
+          {user? <UserNav logout={logout} user={user} />:<Button className="w-full">
+            <Link to="/login">Sign In</Link>
+          </Button>}
         </nav>
       )}
     </header>

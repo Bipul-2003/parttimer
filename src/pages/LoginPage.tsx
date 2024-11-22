@@ -49,7 +49,7 @@ export default function LoginPage() {
 
     try {
       const data = await login(values.usernameOrEmail, values.password);
-      console.log("Login successful:", data);
+      console.log("Login successful:");
       setIsLoading(false);
       navigate("/"); // Redirect after successful login
     } catch (error: any) {

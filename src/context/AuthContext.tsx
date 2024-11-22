@@ -44,9 +44,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Fetch user details from the backend
   const fetchUser = async () => {
     try {
-      const response = await getCurrentUser();
-      console.log("current user: " + response);
-      setUser(response.data);
+      const currentUser= await getCurrentUser();
+      console.log(currentUser);
+      setUser(currentUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       setUser(null);

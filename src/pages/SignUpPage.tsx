@@ -95,6 +95,9 @@ export default function SignUpPage() {
   const [states, setStates] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [zipCodes, setZipCodes] = useState<string[]>([]);
+  const [stateInputFocused, setStateInputFocused] = useState(false);
+  const [cityInputFocused, setCityInputFocused] = useState(false);
+  const [zipCodeInputFocused, setZipCodeInputFocused] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -121,6 +124,7 @@ export default function SignUpPage() {
 
   const debouncedFetchStates = useCallback(
     debounce(async (prefix: string) => {
+      if (prefix.length === 0) return;
       try {
         const response = await getState(prefix);
         const data = await response.json();
@@ -135,6 +139,7 @@ export default function SignUpPage() {
 
   const debouncedFetchCities = useCallback(
     debounce(async (state: string, prefix: string = "") => {
+      if (prefix.length === 0) return;
       try {
         const response = await getCity(state, prefix);
         const data = await response.json();
@@ -148,7 +153,8 @@ export default function SignUpPage() {
   );
 
   const debouncedFetchZipCodes = useCallback(
-    debounce(async (state: string, city: string) => {
+    debounce(async (state: string, city: string, prefix: string = "") => {
+      if (prefix.length === 0) return;
       try {
         const response = await getZipcodes(state, city);
         const data = await response.json();
@@ -396,9 +402,12 @@ export default function SignUpPage() {
                               "w-full justify-between",
                               !field.value && "text-muted-foreground"
                             )}
+                            onClick={() => setStateInputFocused(true)}
                           >
                             {field.value
                               ? states.find((state) => state === field.value)
+                              : stateInputFocused
+                              ? "Start writing to get suggestions"
                               : "Select state"}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -408,7 +417,11 @@ export default function SignUpPage() {
                         <Command>
                           <CommandInput
                             placeholder="Search state..."
-                            onValueChange={(search) => debouncedFetchStates(search)}
+                            onValueChange={(search) => {
+                              if (search.length > 0) {
+                                debouncedFetchStates(search);
+                              }
+                            }}
                           />
                           <CommandEmpty>No state found.</CommandEmpty>
                           <CommandGroup>
@@ -419,6 +432,7 @@ export default function SignUpPage() {
                                   key={state}
                                   onSelect={() => {
                                     form.setValue("state", state);
+                                    setStateInputFocused(false);
                                   }}
                                 >
                                   <Check
@@ -433,7 +447,7 @@ export default function SignUpPage() {
                                 </CommandItem>
                               ))
                             ) : (
-                              <CommandItem>Loading states...</CommandItem>
+                              <CommandItem>Start typing to search...</CommandItem>
                             )}
                           </CommandGroup>
                         </Command>
@@ -460,9 +474,12 @@ export default function SignUpPage() {
                               !field.value && "text-muted-foreground"
                             )}
                             disabled={!watchState}
+                            onClick={() => setCityInputFocused(true)}
                           >
                             {field.value
                               ? cities.find((city) => city === field.value)
+                              : cityInputFocused
+                              ? "Start writing to get suggestions"
                               : "Select city"}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -472,9 +489,11 @@ export default function SignUpPage() {
                         <Command>
                           <CommandInput
                             placeholder="Search city..."
-                            onValueChange={(search) =>
-                              debouncedFetchCities(watchState, search)
-                            }
+                            onValueChange={(search) => {
+                              if (search.length > 0) {
+                                debouncedFetchCities(watchState, search);
+                              }
+                            }}
                           />
                           <CommandEmpty>No city found.</CommandEmpty>
                           <CommandGroup>
@@ -485,6 +504,7 @@ export default function SignUpPage() {
                                   key={city}
                                   onSelect={() => {
                                     form.setValue("city", city);
+                                    setCityInputFocused(false);
                                   }}
                                 >
                                   <Check
@@ -499,7 +519,7 @@ export default function SignUpPage() {
                                 </CommandItem>
                               ))
                             ) : (
-                              <CommandItem>Loading cities...</CommandItem>
+                              <CommandItem>Start typing to search...</CommandItem>
                             )}
                           </CommandGroup>
                         </Command>
@@ -526,11 +546,14 @@ export default function SignUpPage() {
                               !field.value && "text-muted-foreground"
                             )}
                             disabled={!watchCity}
+                            onClick={() => setZipCodeInputFocused(true)}
                           >
                             {field.value
                               ? zipCodes.find(
                                   (zipCode) => zipCode === field.value
                                 )
+                              : zipCodeInputFocused
+                              ? "Start writing to get suggestions"
                               : "Select zip code"}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -540,9 +563,11 @@ export default function SignUpPage() {
                         <Command>
                           <CommandInput
                             placeholder="Search zip code..."
-                            onValueChange={() =>
-                              debouncedFetchZipCodes(watchState, watchCity)
-                            }
+                            onValueChange={(search) => {
+                              if (search.length > 0) {
+                                debouncedFetchZipCodes(watchState, watchCity, search);
+                              }
+                            }}
                           />
                           <CommandEmpty>No zip code found.</CommandEmpty>
                           <CommandGroup>
@@ -553,6 +578,7 @@ export default function SignUpPage() {
                                   key={zipCode}
                                   onSelect={() => {
                                     form.setValue("zipCode", zipCode);
+                                    setZipCodeInputFocused(false);
                                   }}
                                 >
                                   <Check
@@ -567,7 +593,7 @@ export default function SignUpPage() {
                                 </CommandItem>
                               ))
                             ) : (
-                              <CommandItem>Loading zip codes...</CommandItem>
+                              <CommandItem>Start typing to search...</CommandItem>
                             )}
                           </CommandGroup>
                         </Command>

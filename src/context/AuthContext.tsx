@@ -35,6 +35,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+
+  console.log(user);
+  
+
   // Fetch user details from the backend
   const fetchUser = async () => {
     try {

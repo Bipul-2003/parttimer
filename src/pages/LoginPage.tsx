@@ -49,7 +49,7 @@ export default function LoginPage() {
       const data = await login(values.usernameOrEmail, values.password);
       console.log("Login successful:", data);
       setIsLoading(false);
-      // navigate("/dashboard"); // Redirect after successful login
+      navigate("/"); // Redirect after successful login
     } catch (error: any) {
       setIsLoading(false);
       setErrorMessage(error.message || "Login failed. Please try again.");

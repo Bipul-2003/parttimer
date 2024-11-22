@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { getCurrentUser, logoutUser as logoutAPI, login as loginAPI } from '@/api/auth';
 
 // Define the types for user data and context
@@ -33,7 +33,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // AuthProvider component to manage user authentication
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Fetch user details from the backend
   const fetchUser = async () => {
@@ -50,32 +50,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (usernameOrEmail: string, password: string) => {
     try {
-      const response = await loginAPI(usernameOrEmail, password);
-      await fetchUser(); // Refetch user after successful login
+      setLoading(true);
+      await loginAPI(usernameOrEmail, password);
+      await fetchUser(); // Only fetch user after successful login
     } catch (error) {
       console.error('Login failed:', error);
       setUser(null);
+      setLoading(false);
       throw error;
     }
   };
 
   const logout = async () => {
     try {
+      setLoading(true);
       await logoutAPI();
       setUser(null); // Clear user data
     } catch (error) {
       console.error('Error logging out:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch user data on mount
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
   return (
     <AuthContext.Provider value={{ user, loading, logout, login }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

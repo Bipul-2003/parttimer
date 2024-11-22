@@ -1,7 +1,7 @@
 import axios from "axios";
 
 interface BookingRequest {
-  serviceId: string; // Changed to string
+  serviceId: string;
   customerName: string;
   email: string;
   location: string;
@@ -14,13 +14,20 @@ interface BookingRequest {
 export const bookService = async (
   bookingRequest: BookingRequest
 ): Promise<any> => {
-  console.log(bookService);
-  const response = await fetch(`http://localhost:8080/api/bookings/book`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(bookingRequest),
-  });
-  return response.json();
+  try {
+    const response = await axios.post(
+      `http://localhost:8080/api/bookings/book`, 
+      bookingRequest,
+      {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Booking error:", error);
+    throw error;
+  }
 };

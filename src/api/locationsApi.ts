@@ -4,7 +4,7 @@ const API_URL = "http://localhost:8080/api/locations";
 
 export const getState = async (prefix: string) => {
   try {
-    const response = await axios.get(`${API_URL}/states?prefix=${prefix}`);
+    const response = await axios.get(`${API_URL}/states?prefix=${prefix}`,{withCredentials: true});
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -17,7 +17,8 @@ export const getState = async (prefix: string) => {
 export const getCity = async (state: string, prefix: string) => {
   try {
     const response = await axios.get(
-      `${API_URL}/cities?state=${state}&prefix=${prefix}`
+      `${API_URL}/cities?state=${state}&prefix=${prefix}`,
+        {withCredentials: true}
     );
     return response.data;
   } catch (error) {
@@ -31,7 +32,8 @@ export const getCity = async (state: string, prefix: string) => {
 export const getZipcodes = async (state: string, city: string) => {
   try {
     const response = await axios.get(
-      `${API_URL}/zipcodes?state=${state}&city=${city}`
+      `${API_URL}/zipcodes?state=${state}&city=${city}`,
+        {withCredentials: true}
     );
     return response.data;
   } catch (error) {

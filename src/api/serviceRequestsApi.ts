@@ -1,3 +1,18 @@
+import axios, { AxiosResponse } from "axios";
+
+// Interfaces
+export interface Organization {
+  id: number;
+  name: string;
+  expectedFee: number;
+}
+
+export interface Employee {
+  id: number;
+  name: string;
+  role: string;
+}
+
 export interface ServiceRequest {
   id: number;
   status: string;
@@ -20,18 +35,6 @@ export interface ServiceRequest {
   organizationCoOwnerNames?: string[];
 }
 
-export interface Organization {
-  id: number;
-  name: string;
-  expectedFee: number;
-}
-
-export interface Employee {
-  id: number;
-  name: string;
-  role: string;
-}
-
 export interface PaymentSimulation {
   paymentMethod: "offline" | "bank";
   bankDetails?: string;
@@ -42,6 +45,7 @@ export interface FeedbackDTO {
   feedback: string;
 }
 
+// Status Type
 export type Status =
   | "posted"
   | "request sent"
@@ -53,138 +57,104 @@ export type Status =
 
 export const statusOrder: readonly Status[] = [
   "posted",
-  "request sent",
+  "request sent", 
   "confirmed",
-  "initiated",
+  "initiated", 
   "payment pending",
-  "payment submitted",
-  "completed",
+  "payment submitted", 
+  "completed"
 ] as const;
 
+// API Configuration
 const API_BASE_URL = "http://localhost:8080/api";
-
-// Fetch service request details
-export const fetchServiceRequest = async (
-  requestId: number
-): Promise<ServiceRequest> => {
-  const response = await fetch(`${API_BASE_URL}/requests/${requestId}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch service request: ${response.statusText}`);
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json"
   }
-  return response.json();
+});
+
+// Service Request API Methods
+export const ServiceRequestAPI = {
+  async fetchServiceRequest(requestId: number): Promise<ServiceRequest> {
+    const response: AxiosResponse<ServiceRequest> = await axiosInstance.get(`/requests/${requestId}`);
+    return response.data;
+  },
+
+  async selectOrganization(requestId: number, organizationId: number): Promise<ServiceRequest> {
+    const response: AxiosResponse<ServiceRequest> = await axiosInstance.post(
+      `/requests/${requestId}/select-organization`, 
+      organizationId
+    );
+    return response.data;
+  },
+
+  async simulatePayment(requestId: number, paymentInfo: PaymentSimulation): Promise<ServiceRequest> {
+    const response: AxiosResponse<ServiceRequest> = await axiosInstance.post(
+      `/requests/${requestId}/payment/simulate`,
+      paymentInfo
+    );
+    return response.data;
+  },
+
+  async submitFeedback(requestId: number, feedback: FeedbackDTO): Promise<ServiceRequest> {
+    const response: AxiosResponse<ServiceRequest> = await axiosInstance.post(
+      `/requests/${requestId}/feedback`,
+      feedback
+    );
+    return response.data;
+  },
+
+  async confirmServiceRequest(requestId: number): Promise<ServiceRequest> {
+    const response: AxiosResponse<ServiceRequest> = await axiosInstance.post(
+      `/requests/${requestId}/confirm`
+    );
+    return response.data;
+  },
+
+  async initiateServiceRequest(requestId: number): Promise<ServiceRequest> {
+    const response: AxiosResponse<ServiceRequest> = await axiosInstance.post(
+      `/requests/${requestId}/initiate`
+    );
+    return response.data;
+  },
+
+  async finishServiceRequest(requestId: number): Promise<ServiceRequest> {
+    const response: AxiosResponse<ServiceRequest> = await axiosInstance.post(
+      `/requests/${requestId}/finish`
+    );
+    return response.data;
+  },
+
+  async verifyPayment(requestId: number): Promise<ServiceRequest> {
+    const response: AxiosResponse<ServiceRequest> = await axiosInstance.post(
+      `/requests/${requestId}/verify`
+    );
+    return response.data;
+  }
 };
 
-export const selectOrganization = async (
-  requestId: number,
-  organizationId: number
-): Promise<ServiceRequest> => {
-  const response = await fetch(
-    `${API_BASE_URL}/requests/${requestId}/select-organization`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // Just send the organizationId as a raw number, not as an object
-      body: JSON.stringify(organizationId), //body: JSON.stringify(organizationId),
+// Optional: Error Handling Utility
+export class ServiceRequestError extends Error {
+  constructor(message: string, public status?: number) {
+    super(message);
+    this.name = "ServiceRequestError";
+  }
+}
+
+// Optional: Interceptors for Global Error Handling
+axiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response) {
+      throw new ServiceRequestError(
+        error.response.data.message || "An error occurred", 
+        error.response.status
+      );
     }
-  );
-  if (!response.ok) {
-    throw new Error(`Failed to select organization: ${response.statusText}`);
+    throw error;
   }
-  return response.json();
-};
+);
 
-export const simulatePayment = async (
-  requestId: number,
-  paymentInfo: PaymentSimulation
-): Promise<ServiceRequest> => {
-  const response = await fetch(
-    `${API_BASE_URL}/requests/${requestId}/payment/simulate`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(paymentInfo),
-    }
-  );
-  if (!response.ok) {
-    throw new Error(`Failed to process payment: ${response.statusText}`);
-  }
-  return response.json();
-};
-
-export const submitFeedback = async (
-  requestId: number,
-  feedback: FeedbackDTO
-): Promise<ServiceRequest> => {
-  const response = await fetch(
-    `${API_BASE_URL}/requests/${requestId}/feedback`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(feedback),
-    }
-  );
-  if (!response.ok) {
-    throw new Error(`Failed to submit feedback: ${response.statusText}`);
-  }
-  return response.json();
-};
-
-export const confirmServiceRequest = async (
-  requestId: number
-): Promise<ServiceRequest> => {
-  const response = await fetch(
-    `${API_BASE_URL}/requests/${requestId}/confirm`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    }
-  );
-  if (!response.ok) {
-    throw new Error(`Failed to confirm service: ${response.statusText}`);
-  }
-  return response.json();
-};
-
-// new endpoints (20/10/2024)
-
-export const initiateServiceRequest = async (
-  requestId: number
-): Promise<ServiceRequest> => {
-  const response = await fetch(
-    `${API_BASE_URL}/requests/${requestId}/initiate`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    }
-  );
-  if (!response.ok) {
-    throw new Error(`Failed to initiate service: ${response.statusText}`);
-  }
-  return response.json();
-};
-
-export const finishServiceRequest = async (
-  requestId: number
-): Promise<ServiceRequest> => {
-  const response = await fetch(`${API_BASE_URL}/requests/${requestId}/finish`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to finish service: ${response.statusText}`);
-  }
-  return response.json();
-};
-
-export const verifyPayment = async (
-  requestId: number
-): Promise<ServiceRequest> => {
-  const response = await fetch(`${API_BASE_URL}/requests/${requestId}/verify`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!response.ok) {
-    throw new Error(`Failed to verify payment: ${response.statusText}`);
-  }
-  return response.json();
-};
+export default ServiceRequestAPI;

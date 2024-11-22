@@ -13,6 +13,7 @@ class BookingApi {
   constructor(baseURL = "http://localhost:8080/api/organizations") {
     this.http = axios.create({
       baseURL,
+      withCredentials: true,
       headers: {
         "Content-Type": "application/json",
       },

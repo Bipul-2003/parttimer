@@ -20,6 +20,7 @@ class DashboardAPI {
   constructor(baseURL = "http://localhost:8080/api") {
     this.api = axios.create({
       baseURL,
+      withCredentials: true,
       headers: {
         "Content-Type": "application/json",
       },

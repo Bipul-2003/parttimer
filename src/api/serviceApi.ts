@@ -13,7 +13,7 @@ export const serviceApi = {
     try {
       const response = await axios.post(
         `${API_BASE_URL}/services`,
-        serviceData
+        serviceData,{withCredentials: true}
       );
       return response.data;
     } catch (error) {

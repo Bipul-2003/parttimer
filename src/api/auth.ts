@@ -2,10 +2,10 @@ import axios, { AxiosError } from "axios";
 
 const API_URL = "http://localhost:8080/api/auth"; // Updated base URL
 
-export const login = async (usernameOrEmail: string, password: string) => {
+export const login = async (email: string, password: string) => {
   try {
     const response = await axios.post(`${API_URL}/login`, {
-      usernameOrEmail,
+      email,
       password,
     }, {
       withCredentials: true

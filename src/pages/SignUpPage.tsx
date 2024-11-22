@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { debounce } from "lodash";
 import { Link, useNavigate } from "react-router-dom";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,10 +78,7 @@ const formSchema = z
     zipCode: z.string().min(5, "Zip code is required"),
     acceptTerms: z
       .boolean()
-      .refine(
-        (val) => val === true,
-        "You must accept the terms and conditions"
-      ),
+      .refine((val) => val === true, "You must accept the terms and conditions"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -120,6 +117,7 @@ export default function SignUpPage() {
 
   const watchState = form.watch("state");
   const watchCity = form.watch("city");
+  const watchEmail = form.watch("email");
 
   const debouncedFetchStates = useCallback(
     debounce(async (prefix: string) => {
@@ -129,6 +127,7 @@ export default function SignUpPage() {
         setStates(data);
       } catch (error) {
         console.error("Error fetching states:", error);
+        setStates([]);
       }
     }, 300),
     []
@@ -142,6 +141,7 @@ export default function SignUpPage() {
         setCities(data);
       } catch (error) {
         console.error("Error fetching cities:", error);
+        setCities([]);
       }
     }, 300),
     []
@@ -155,6 +155,7 @@ export default function SignUpPage() {
         setZipCodes(data);
       } catch (error) {
         console.error("Error fetching zip codes:", error);
+        setZipCodes([]);
       }
     }, 300),
     []
@@ -217,9 +218,7 @@ export default function SignUpPage() {
       // Simulating email verification
       setShowOTPDialog(true);
     } catch (error: any) {
-      setErrorMessage(
-        error.message || "Email verification failed. Please try again."
-      );
+      setErrorMessage(error.message || "Email verification failed. Please try again.");
     }
   }
 
@@ -229,13 +228,13 @@ export default function SignUpPage() {
     setIsEmailVerified(true);
   }
 
+  const isValidEmail = z.string().email().safeParse(watchEmail).success;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 p-4">
       <Card className="w-full max-w-[600px] shadow-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">
-            Create an account
-          </CardTitle>
+          <CardTitle className="text-2xl text-center">Create an account</CardTitle>
           <CardDescription className="text-center">
             Enter your details to sign up for PartTimer
           </CardDescription>
@@ -249,10 +248,7 @@ export default function SignUpPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Title</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a title" />
@@ -289,9 +285,7 @@ export default function SignUpPage() {
                   name="middleName"
                   render={({ field }) => (
                     <FormItem className="flex-1">
-                      <FormLabel>
-                        Middle Name <span className="text-xs">(Optional)</span>
-                      </FormLabel>
+                      <FormLabel>Middle Name <span className="text-xs">(Optional)</span></FormLabel>
                       <FormControl>
                         <Input placeholder="M." {...field} />
                       </FormControl>
@@ -320,11 +314,7 @@ export default function SignUpPage() {
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input
-                        type="tel"
-                        placeholder="+1 (555) 000-0000"
-                        {...field}
-                      />
+                      <Input type="tel" placeholder="+1 (555) 000-0000" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -338,16 +328,13 @@ export default function SignUpPage() {
                     <FormLabel>Email</FormLabel>
                     <div className="flex space-x-2">
                       <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="johndoe@example.com"
-                          {...field}
-                        />
+                        <Input type="email" placeholder="johndoe@example.com" {...field} />
                       </FormControl>
-                      <Button
-                        type="button"
-                        onClick={verifyEmailHandler}
-                        disabled={isEmailVerified}>
+                      <Button 
+                        type="button" 
+                        onClick={verifyEmailHandler} 
+                        disabled={!isValidEmail || isEmailVerified}
+                      >
                         {isEmailVerified ? "Verified" : "Verify Email"}
                       </Button>
                     </div>
@@ -408,7 +395,8 @@ export default function SignUpPage() {
                             className={cn(
                               "w-full justify-between",
                               !field.value && "text-muted-foreground"
-                            )}>
+                            )}
+                          >
                             {field.value
                               ? states.find((state) => state === field.value)
                               : "Select state"}
@@ -420,30 +408,33 @@ export default function SignUpPage() {
                         <Command>
                           <CommandInput
                             placeholder="Search state..."
-                            onValueChange={(search) =>
-                              debouncedFetchStates(search)
-                            }
+                            onValueChange={(search) => debouncedFetchStates(search)}
                           />
                           <CommandEmpty>No state found.</CommandEmpty>
                           <CommandGroup>
-                            {states.map((state) => (
-                              <CommandItem
-                                value={state}
-                                key={state}
-                                onSelect={() => {
-                                  form.setValue("state", state);
-                                }}>
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    state === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {state}
-                              </CommandItem>
-                            ))}
+                            {states.length > 0 ? (
+                              states.map((state) => (
+                                <CommandItem
+                                  value={state}
+                                  key={state}
+                                  onSelect={() => {
+                                    form.setValue("state", state);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      state === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {state}
+                                </CommandItem>
+                              ))
+                            ) : (
+                              <CommandItem>Loading states...</CommandItem>
+                            )}
                           </CommandGroup>
                         </Command>
                       </PopoverContent>
@@ -468,7 +459,8 @@ export default function SignUpPage() {
                               "w-full justify-between",
                               !field.value && "text-muted-foreground"
                             )}
-                            disabled={!watchState}>
+                            disabled={!watchState}
+                          >
                             {field.value
                               ? cities.find((city) => city === field.value)
                               : "Select city"}
@@ -486,24 +478,29 @@ export default function SignUpPage() {
                           />
                           <CommandEmpty>No city found.</CommandEmpty>
                           <CommandGroup>
-                            {cities.map((city) => (
-                              <CommandItem
-                                value={city}
-                                key={city}
-                                onSelect={() => {
-                                  form.setValue("city", city);
-                                }}>
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    city === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {city}
-                              </CommandItem>
-                            ))}
+                            {cities.length > 0 ? (
+                              cities.map((city) => (
+                                <CommandItem
+                                  value={city}
+                                  key={city}
+                                  onSelect={() => {
+                                    form.setValue("city", city);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      city === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {city}
+                                </CommandItem>
+                              ))
+                            ) : (
+                              <CommandItem>Loading cities...</CommandItem>
+                            )}
                           </CommandGroup>
                         </Command>
                       </PopoverContent>
@@ -528,7 +525,8 @@ export default function SignUpPage() {
                               "w-full justify-between",
                               !field.value && "text-muted-foreground"
                             )}
-                            disabled={!watchCity}>
+                            disabled={!watchCity}
+                          >
                             {field.value
                               ? zipCodes.find(
                                   (zipCode) => zipCode === field.value
@@ -548,24 +546,29 @@ export default function SignUpPage() {
                           />
                           <CommandEmpty>No zip code found.</CommandEmpty>
                           <CommandGroup>
-                            {zipCodes.map((zipCode) => (
-                              <CommandItem
-                                value={zipCode}
-                                key={zipCode}
-                                onSelect={() => {
-                                  form.setValue("zipCode", zipCode);
-                                }}>
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    zipCode === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {zipCode}
-                              </CommandItem>
-                            ))}
+                            {zipCodes.length > 0 ? (
+                              zipCodes.map((zipCode) => (
+                                <CommandItem
+                                  value={zipCode}
+                                  key={zipCode}
+                                  onSelect={() => {
+                                    form.setValue("zipCode", zipCode);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      zipCode === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {zipCode}
+                                </CommandItem>
+                              ))
+                            ) : (
+                              <CommandItem>Loading zip codes...</CommandItem>
+                            )}
                           </CommandGroup>
                         </Command>
                       </PopoverContent>
@@ -600,7 +603,8 @@ export default function SignUpPage() {
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={isLoading || !isEmailVerified}>
+                disabled={isLoading || !isEmailVerified}
+              >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -633,7 +637,11 @@ export default function SignUpPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center space-y-4">
-            <InputOTP maxLength={6} value={otp} onChange={setOTP}>
+            <InputOTP
+              maxLength={6}
+              value={otp}
+              onChange={(value) => setOTP(value)}
+            >
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
                 <InputOTPSlot index={1} />
@@ -648,7 +656,8 @@ export default function SignUpPage() {
             </InputOTP>
             <Button
               onClick={verifyOTP}
-              className="w-full bg-blue-600 hover:bg-blue-700">
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
               Verify OTP
             </Button>
           </div>
@@ -657,3 +666,4 @@ export default function SignUpPage() {
     </div>
   );
 }
+

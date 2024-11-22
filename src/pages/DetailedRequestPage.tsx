@@ -15,20 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Star, CheckCircle2,  } from "lucide-react";
 
-import {
-  ServiceRequest,
-  // Status,
-  // PaymentSimulation,
-  fetchServiceRequest,
-  selectOrganization,
-  // simulatePayment,
-  submitFeedback,
-  confirmServiceRequest,
-  initiateServiceRequest,
-  finishServiceRequest,
-  verifyPayment,
-} from "@/api/serviceRequestsApi";
+
 import { useParams } from "react-router-dom";
+import ServiceRequestAPI, { ServiceRequest } from "@/api/serviceRequestsApi";
 
 // type BackendStatus =
 //   | "POSTED"
@@ -102,7 +91,7 @@ export default function DetailedServiceRequestPage() {
       if (!requestId) return;
       try {
         setIsLoading(true);
-        const data = await fetchServiceRequest(parseInt(requestId, 10));
+        const data = await ServiceRequestAPI.fetchServiceRequest(parseInt(requestId, 10));
         // Make sure to handle the status correctly
         setRequest(data);
       } catch (err) {
@@ -122,7 +111,7 @@ export default function DetailedServiceRequestPage() {
     try {
       setIsLoading(true);
       console.log("received data for handleSelectService: ", request);
-      const updatedRequest = await selectOrganization(request.id, orgId);
+      const updatedRequest = await ServiceRequestAPI.selectOrganization(request.id, orgId);
       setRequest(updatedRequest);
     } catch (err) {
       setError(
@@ -161,7 +150,7 @@ export default function DetailedServiceRequestPage() {
     if (!request) return;
     try {
       setIsLoading(true);
-      const updatedRequest = await confirmServiceRequest(request.id); // Call the new API function to employees
+      const updatedRequest = await ServiceRequestAPI.confirmServiceRequest(request.id); // Call the new API function to employees
       setRequest(updatedRequest);
     } catch (err) {
       setError(
@@ -177,7 +166,7 @@ export default function DetailedServiceRequestPage() {
 
     try {
       setIsLoading(true);
-      const updatedRequest = await submitFeedback(request.id, {
+      const updatedRequest = await ServiceRequestAPI.submitFeedback(request.id, {
         rating,
         feedback,
       });

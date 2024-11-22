@@ -1,5 +1,9 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { getCurrentUser, logoutUser as logoutAPI, login as loginAPI } from '@/api/auth';
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import {
+  getCurrentUser,
+  logoutUser as logoutAPI,
+  login as loginAPI,
+} from "@/api/auth";
 
 // Define the types for user data and context
 interface Organization {
@@ -35,17 +39,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-
   console.log(user);
-  
 
   // Fetch user details from the backend
   const fetchUser = async () => {
     try {
       const response = await getCurrentUser();
+      console.log("current user: " + response);
       setUser(response.data);
     } catch (error) {
-      console.error('Error fetching user:', error);
+      console.error("Error fetching user:", error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -54,11 +57,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (usernameOrEmail: string, password: string) => {
     try {
+      console.log(usernameOrEmail, password);
       setLoading(true);
-      await loginAPI(usernameOrEmail, password);
+      const token = await loginAPI(usernameOrEmail, password);
+      console.log("current token: " + token);
       await fetchUser(); // Only fetch user after successful login
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       setUser(null);
       setLoading(false);
       throw error;
@@ -71,7 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await logoutAPI();
       setUser(null); // Clear user data
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error("Error logging out:", error);
     } finally {
       setLoading(false);
     }
@@ -88,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

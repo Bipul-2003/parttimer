@@ -4,14 +4,14 @@ const API_URL = "http://localhost:8080/api/auth"; // Updated base URL
 
 export const login = async (email: string, password: string) => {
   try {
+    // console.log("email: " + email);
+    // console.log("password: " + password);
     const response = await axios.post(`${API_URL}/login`, {
       email,
       password,
-    }, {
-      withCredentials: true
     });
-    
-    return response.data;
+    console.log("token: " + response.data.token);
+    return response.data.token;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Login failed");
@@ -23,7 +23,7 @@ export const login = async (email: string, password: string) => {
 export const signup = async (signupData: any) => {
   try {
     const response = await axios.post(`${API_URL}/register`, signupData, {
-      withCredentials: true
+      withCredentials: true,
     });
     return response.data;
   } catch (error) {
@@ -36,9 +36,13 @@ export const signup = async (signupData: any) => {
 
 export const logoutUser = async () => {
   try {
-    await axios.post(`${API_URL}/logout`, {}, {
-      withCredentials: true
-    });
+    await axios.post(
+      `${API_URL}/logout`,
+      {},
+      {
+        withCredentials: true,
+      }
+    );
   } catch (error) {
     console.error("Logout failed", error);
   }
@@ -47,8 +51,9 @@ export const logoutUser = async () => {
 export const getCurrentUser = async () => {
   try {
     const response = await axios.get(`${API_URL}/current-user`, {
-      withCredentials: true
+      withCredentials: true,
     });
+    console.log("inside getCurrentUser: " + response.data.name);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

@@ -126,9 +126,9 @@ export default function SignUpPage() {
     debounce(async (prefix: string) => {
       if (prefix.length === 0) return;
       try {
-        const response = await getState(prefix);
-        const data = await response.json();
-        setStates(data);
+        const data = await getState(prefix);
+        // const data = await response.json();
+        setStates(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching states:", error);
         setStates([]);
@@ -141,9 +141,9 @@ export default function SignUpPage() {
     debounce(async (state: string, prefix: string = "") => {
       if (prefix.length === 0) return;
       try {
-        const response = await getCity(state, prefix);
-        const data = await response.json();
-        setCities(data);
+        const data = await getCity(state, prefix);
+        // const data = await response.json();
+        setCities(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching cities:", error);
         setCities([]);
@@ -156,9 +156,9 @@ export default function SignUpPage() {
     debounce(async (state: string, city: string, prefix: string = "") => {
       if (prefix.length === 0) return;
       try {
-        const response = await getZipcodes(state, city);
-        const data = await response.json();
-        setZipCodes(data);
+        const data = await getZipcodes(state, city);
+        // const data = await response.json();
+        setZipCodes(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching zip codes:", error);
         setZipCodes([]);
@@ -168,7 +168,7 @@ export default function SignUpPage() {
   );
 
   useEffect(() => {
-    if (watchState) {
+    if (watchState && watchState.length > 0) {
       form.setValue("city", "");
       form.setValue("zipCode", "");
       debouncedFetchCities(watchState);
@@ -176,7 +176,7 @@ export default function SignUpPage() {
   }, [watchState, form, debouncedFetchCities]);
 
   useEffect(() => {
-    if (watchCity) {
+    if (watchCity && watchCity.length > 0 && watchState && watchState.length > 0) {
       form.setValue("zipCode", "");
       debouncedFetchZipCodes(watchState, watchCity);
     }
@@ -425,7 +425,7 @@ export default function SignUpPage() {
                           />
                           <CommandEmpty>No state found.</CommandEmpty>
                           <CommandGroup>
-                            {states.length > 0 ? (
+                            {states && states.length > 0 ? (
                               states.map((state) => (
                                 <CommandItem
                                   value={state}
@@ -497,7 +497,7 @@ export default function SignUpPage() {
                           />
                           <CommandEmpty>No city found.</CommandEmpty>
                           <CommandGroup>
-                            {cities.length > 0 ? (
+                            {cities && cities.length > 0 ? (
                               cities.map((city) => (
                                 <CommandItem
                                   value={city}
@@ -571,7 +571,7 @@ export default function SignUpPage() {
                           />
                           <CommandEmpty>No zip code found.</CommandEmpty>
                           <CommandGroup>
-                            {zipCodes.length > 0 ? (
+                            {zipCodes && zipCodes.length > 0 ? (
                               zipCodes.map((zipCode) => (
                                 <CommandItem
                                   value={zipCode}

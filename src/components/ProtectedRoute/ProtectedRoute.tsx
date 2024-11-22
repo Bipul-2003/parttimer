@@ -22,17 +22,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
-  // Check organization access
-  if (orgId && user.organization.id !== parseInt(orgId)) {
+  if (orgId && user.organization?.id !== parseInt(orgId, 10)) {
     return <Navigate to="/" replace />;
   }
 
-  // Role-based access control
   if (requiredRole) {
     const roleHierarchy = {
-      ADMIN: ['ADMIN'],
-      OWNER: ['ADMIN', 'OWNER'],
-      CO_OWNER: ['ADMIN', 'OWNER', 'CO_OWNER']
+      ADMIN: ["ADMIN"],
+      OWNER: ["ADMIN", "OWNER"],
+      CO_OWNER: ["ADMIN", "OWNER", "CO_OWNER"],
     };
 
     if (!roleHierarchy[requiredRole].includes(user.user_role)) {
@@ -42,5 +40,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   return <>{children}</>;
 };
+
 
 export default ProtectedRoute;

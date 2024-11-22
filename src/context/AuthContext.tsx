@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import {
   getCurrentUser,
   logoutUser as logoutAPI,
@@ -14,7 +14,7 @@ interface Organization {
 interface User {
   user_role: string;
   user_id: number;
-  organization: Organization;
+  organization?: Organization;
   name: string;
   email: string;
 }
@@ -37,15 +37,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // AuthProvider component to manage user authentication
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true); // Default to true to indicate loading on app start
 
-  console.log(user);
-
-  // Fetch user details from the backend
   const fetchUser = async () => {
     try {
-      const currentUser= await getCurrentUser();
-      console.log(currentUser);
+      const currentUser = await getCurrentUser();
       setUser(currentUser);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -55,13 +51,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    fetchUser(); // Automatically fetch user when the app starts
+  }, []);
+
   const login = async (usernameOrEmail: string, password: string) => {
     try {
-      console.log(usernameOrEmail, password);
       setLoading(true);
-      const token = await loginAPI(usernameOrEmail, password);
-      console.log("current token: " + token);
-      await fetchUser(); // Only fetch user after successful login
+      await loginAPI(usernameOrEmail, password);
+      await fetchUser();
     } catch (error) {
       console.error("Login failed:", error);
       setUser(null);
@@ -74,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       await logoutAPI();
-      setUser(null); // Clear user data
+      setUser(null);
     } catch (error) {
       console.error("Error logging out:", error);
     } finally {

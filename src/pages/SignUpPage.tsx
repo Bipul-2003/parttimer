@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { debounce } from "lodash";
 import { Link, useNavigate } from "react-router-dom";
-import { Check, ChevronsUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,26 +40,12 @@ import {
 import {
   InputOTP,
   InputOTPGroup,
-  InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Progress } from "@/components/ui/progress";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
-import { cn } from "@/lib/utils";
 import { signup } from "@/api/auth";
-import { getCity, getState, getZipcodes } from "@/api/locationsApi";
+import { getCountry, getState, getCity, getZipcodes } from "@/api/locationsApi";
 
 const formSchema = z
   .object({
@@ -73,6 +57,7 @@ const formSchema = z
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
+    country: z.string().min(1, "Country is required"),
     state: z.string().min(1, "State is required"),
     city: z.string().min(1, "City is required"),
     zipCode: z.string().min(5, "Zip code is required"),
@@ -95,13 +80,10 @@ export default function SignUpPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [countries, setCountries] = useState<string[]>([]);
   const [states, setStates] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [zipCodes, setZipCodes] = useState<string[]>([]);
-  const [isLoadingStates, setIsLoadingStates] = useState(false);
-  const [isLoadingCities, setIsLoadingCities] = useState(false);
-  const [isLoadingZipCodes, setIsLoadingZipCodes] = useState(false);
-  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -114,6 +96,7 @@ export default function SignUpPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      country: "",
       state: "",
       city: "",
       zipCode: "",
@@ -121,84 +104,70 @@ export default function SignUpPage() {
     },
   });
 
+  const watchCountry = form.watch("country");
   const watchState = form.watch("state");
   const watchCity = form.watch("city");
   const watchEmail = form.watch("email");
 
-  const debouncedFetchStates = useCallback(
-    debounce(async (prefix: string) => {
-      if (!prefix || prefix.length < 2) return;
-
-      setIsLoadingStates(true);
+  useEffect(() => {
+    const fetchCountries = async () => {
       try {
-        const data = await getState(prefix);
-        setStates(data || []);
+        const data = await getCountry();
+        setCountries(data);
       } catch (error) {
-        console.error("Error fetching states:", error);
+        console.error("Error fetching countries:", error);
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    const fetchStates = async () => {
+      if (watchCountry) {
+        try {
+          const data = await getState();
+          setStates(data);
+        } catch (error) {
+          console.error("Error fetching states:", error);
+        }
+      } else {
         setStates([]);
-      } finally {
-        setIsLoadingStates(false);
       }
-    }, 300),
-    []
-  );
+    };
+    fetchStates();
+  }, [watchCountry]);
 
-  const debouncedFetchCities = useCallback(
-    debounce(async (state: string, prefix: string = "") => {
-      if (!state || !prefix || prefix.length < 2) return;
-
-      setIsLoadingCities(true);
-      try {
-        const data = await getCity(state, prefix);
-        setCities(data || []);
-      } catch (error) {
-        console.error("Error fetching cities:", error);
+  useEffect(() => {
+    const fetchCities = async () => {
+      if (watchState) {
+        try {
+          const data = await getCity(watchState);
+          setCities(data);
+        } catch (error) {
+          console.error("Error fetching cities:", error);
+        }
+      } else {
         setCities([]);
-      } finally {
-        setIsLoadingCities(false);
       }
-    }, 300),
-    []
-  );
-
-  const fetchZipCodes = async (state: string, city: string) => {
-    if (!state || !city) return;
-
-    setIsLoadingZipCodes(true);
-    try {
-      const data = await getZipcodes(state, city);
-      setZipCodes(data || []);
-    } catch (error) {
-      console.error("Error fetching zip codes:", error);
-      setZipCodes([]);
-    } finally {
-      setIsLoadingZipCodes(false);
-    }
-  };
+    };
+    fetchCities();
+  }, [watchState]);
 
   useEffect(() => {
-    if (watchState && watchCity) {
-      fetchZipCodes(watchState, watchCity);
-    }
+    const fetchZipCodes = async () => {
+      if (watchState && watchCity) {
+        try {
+          const data = await getZipcodes(watchState, watchCity);
+          setZipCodes(data);
+        } catch (error) {
+          console.error("Error fetching zip codes:", error);
+        }
+      } else {
+        setZipCodes([]);
+      }
+    };
+    fetchZipCodes();
   }, [watchState, watchCity]);
-
-  // Reset dependent fields when state changes
-  useEffect(() => {
-    if (watchState) {
-      form.setValue("city", "");
-      form.setValue("zipCode", "");
-      setCities([]);
-      setZipCodes([]);
-    }
-  }, [watchState, form]);
-
-  // Reset zip code when city changes
-  useEffect(() => {
-    if (watchCity) {
-      form.setValue("zipCode", "");
-      setZipCodes([]);
-    }
-  }, [watchCity, form]);
 
   const calculatePasswordStrength = (password: string) => {
     let strength = 0;
@@ -207,6 +176,22 @@ export default function SignUpPage() {
     if (password.match(/\d/)) strength += 25;
     if (password.match(/[^a-zA-Z\d]/)) strength += 25;
     setPasswordStrength(strength);
+  };
+
+  const getPasswordStrengthLabel = (strength: number) => {
+    if (strength === 0) return "Poor";
+    if (strength <= 25) return "Weak";
+    if (strength <= 50) return "Medium";
+    if (strength <= 75) return "Strong";
+    return "Very Strong";
+  };
+
+  const getPasswordStrengthColor = (strength: number) => {
+    if (strength === 0) return "bg-red-500";
+    if (strength <= 25) return "bg-red-500";
+    if (strength <= 50) return "bg-yellow-500";
+    if (strength <= 75) return "bg-green-500";
+    return "bg-green-700";
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -222,6 +207,7 @@ export default function SignUpPage() {
         phoneNumber: values.phoneNumber,
         email: values.email,
         password: values.password,
+        country: values.country,
         state: values.state,
         city: values.city,
         zipCode: values.zipCode,
@@ -368,63 +354,54 @@ export default function SignUpPage() {
               <div className="space-y-4">
                 <FormField
                   control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {countries.map((country) => (
+                            <SelectItem key={country} value={country}>
+                              {country}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="state"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>State</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "w-full justify-between",
-                                !field.value && "text-muted-foreground"
-                              )}>
-                              {field.value || "Select state"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput
-                              placeholder="Search state..."
-                              onValueChange={(search) => {
-                                if (search.length >= 2) {
-                                  debouncedFetchStates(search);
-                                }
-                              }}
-                            />
-                            <CommandEmpty>
-                              {isLoadingStates
-                                ? "Loading..."
-                                : "No state found"}
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {states.map((state) => (
-                                <CommandItem
-                                  key={state}
-                                  value={state}
-                                  onSelect={() => {
-                                    form.setValue("state", state);
-                                  }}>
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      state === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {state}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={!watchCountry}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select state" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {states.map((state) => (
+                            <SelectItem key={state} value={state}>
+                              {state}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -436,58 +413,23 @@ export default function SignUpPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>City</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "w-full justify-between",
-                                !field.value && "text-muted-foreground"
-                              )}
-                              disabled={!watchState}>
-                              {field.value || "Select city"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput
-                              placeholder="Search city..."
-                              onValueChange={(search) => {
-                                if (search.length >= 2) {
-                                  debouncedFetchCities(watchState, search);
-                                }
-                              }}
-                            />
-                            <CommandEmpty>
-                              {isLoadingCities ? "Loading..." : "No city found"}
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {cities.map((city) => (
-                                <CommandItem
-                                  key={city}
-                                  value={city}
-                                  onSelect={() => {
-                                    form.setValue("city", city);
-                                  }}>
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      city === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {city}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={!watchState}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select city" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {cities.map((city) => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -501,6 +443,7 @@ export default function SignUpPage() {
                       <FormLabel>Zip Code</FormLabel>
                       <Select
                         onValueChange={field.onChange}
+                        defaultValue={field.value}
                         disabled={!watchCity}>
                         <FormControl>
                           <SelectTrigger>
@@ -508,15 +451,11 @@ export default function SignUpPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {isLoadingZipCodes ? (
-                            <SelectItem value="">Loading...</SelectItem>
-                          ) : (
-                            zipCodes.map((zipCode) => (
-                              <SelectItem key={zipCode} value={zipCode}>
-                                {zipCode}
-                              </SelectItem>
-                            ))
-                          )}
+                          {zipCodes.map((zipCode) => (
+                            <SelectItem key={zipCode} value={zipCode}>
+                              {zipCode}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -543,7 +482,15 @@ export default function SignUpPage() {
                           }}
                         />
                       </FormControl>
-                      <Progress value={passwordStrength} className="h-2" />
+                      <Progress
+                        value={passwordStrength}
+                        className={`h-2 ${getPasswordStrengthColor(
+                          passwordStrength
+                        )}`}
+                      />
+                      <div className="text-sm">
+                        Strength: {getPasswordStrengthLabel(passwordStrength)}
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -625,23 +572,17 @@ export default function SignUpPage() {
           <div className="flex flex-col items-center space-y-4">
             <InputOTP
               value={otp}
-              onChange={setOTP}
-              maxLength={6}
-              render={({ slots }) => (
-                <InputOTPGroup className="gap-2">
-                  {slots.map((slot, index) => (
-                    <React.Fragment key={index}>
-                      <InputOTPSlot
-                        className="rounded-md border"
-                        {...slot}
-                        index={index}
-                      />
-                      {index !== slots.length - 1 && <InputOTPSeparator />}
-                    </React.Fragment>
-                  ))}
-                </InputOTPGroup>
-              )}
-            />
+              onChange={(value) => setOTP(value)}
+              maxLength={6}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
 
             <Button onClick={verifyOTP} className="w-full">
               Verify

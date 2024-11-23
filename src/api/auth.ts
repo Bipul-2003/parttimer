@@ -1,17 +1,25 @@
-import axios, { AxiosError } from "axios";
+// auth.ts
 
-const API_URL = "http://localhost:8080/api/auth"; // Updated base URL
+import axios from "axios";
+
+const API_URL = "http://localhost:8080/api/auth";
+
+// Create an axios instance with default config
+const authAPI = axios.create({
+  baseURL: API_URL,
+  withCredentials: true, // Crucial for sending/receiving cookies
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
 export const login = async (email: string, password: string) => {
   try {
-    // console.log("email: " + email);
-    // console.log("password: " + password);
-    const response = await axios.post(`${API_URL}/login`, {
+    const response = await authAPI.post('/login', {
       email,
       password,
     });
-    console.log("token: " + response.data.token);
-    return response.data.token;
+    return response.data; // The cookie will be automatically handled by the browser
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Login failed");
@@ -22,9 +30,7 @@ export const login = async (email: string, password: string) => {
 
 export const signup = async (signupData: any) => {
   try {
-    const response = await axios.post(`${API_URL}/register`, signupData, {
-      withCredentials: true,
-    });
+    const response = await authAPI.post('/register', signupData);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -36,29 +42,23 @@ export const signup = async (signupData: any) => {
 
 export const logoutUser = async () => {
   try {
-    await axios.post(
-      `${API_URL}/logout`,
-      {},
-      {
-        withCredentials: true,
-      }
-    );
+    await authAPI.post('/logout');
   } catch (error) {
     console.error("Logout failed", error);
+    throw error;
   }
 };
 
 export const getCurrentUser = async () => {
   try {
-    const response = await axios.get(`${API_URL}/current-user`, {
-      withCredentials: true,
-    });
-    console.log("inside getCurrentUser: " + response.data.name);
+    const response = await authAPI.get('/current-user');
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      // If no user is authenticated, the backend should return a 401 or similar
-      throw new Error(error.response?.data?.message || "No authenticated user");
+      if (error.response?.status === 401 || error.response?.status === 404) {
+        return null;
+      }
+      throw new Error(error.response?.data?.message || "Error fetching user");
     }
     throw new Error("An unexpected error occurred");
   }

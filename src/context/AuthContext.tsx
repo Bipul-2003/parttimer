@@ -1,3 +1,5 @@
+// AuthContext.tsx
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import {
   getCurrentUser,
@@ -5,7 +7,6 @@ import {
   login as loginAPI,
 } from "@/api/auth";
 
-// Define the types for user data and context
 interface Organization {
   id: number;
   name: string;
@@ -24,49 +25,55 @@ interface AuthContextType {
   loading: boolean;
   logout: () => Promise<void>;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
+  isAuthenticated: boolean;
 }
 
-// Define the type for the AuthProvider props, including children
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Create Context with default values
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// AuthProvider component to manage user authentication
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true); // Default to true to indicate loading on app start
-  const [token, setToken] = useState<string>(''); // Default to true to indicate loading on app start
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   const fetchUser = async () => {
     try {
       const currentUser = await getCurrentUser();
-      setUser(currentUser);
+      if (currentUser) {
+        setUser(currentUser);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     } catch (error) {
       console.error("Error fetching user:", error);
       setUser(null);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUser(); // Automatically fetch user when the app starts
+    fetchUser();
   }, []);
 
   const login = async (usernameOrEmail: string, password: string) => {
     try {
       setLoading(true);
-      const token = await loginAPI(usernameOrEmail, password);
-      setToken(token);
-      await fetchUser();
+      await loginAPI(usernameOrEmail, password);
+      await fetchUser(); // Fetch user details after successful login
     } catch (error) {
       console.error("Login failed:", error);
       setUser(null);
-      setLoading(false);
+      setIsAuthenticated(false);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,21 +82,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       await logoutAPI();
       setUser(null);
+      setIsAuthenticated(false);
     } catch (error) {
       console.error("Error logging out:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, login }}>
+    <AuthContext.Provider value={{ user, loading, logout, login, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook to use AuthContext
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {

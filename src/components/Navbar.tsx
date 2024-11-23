@@ -8,7 +8,7 @@ import { UserNav } from "./user-nav";
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const { user, loading,logout } = useAuth();
+  const { user, loading, logout } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   return (
@@ -34,7 +34,16 @@ function Navbar() {
             Post a Request
           </a>
         </nav>
-        <Button className="hidden md:inline-flex">Sign Up</Button>
+        {/* <Button className="hidden md:inline-flex">Sign Up</Button> */}
+        <div className="hidden md:inline-flex">
+          {user ? (
+            <UserNav logout={logout} user={user} />
+          ) : (
+            <Button className="w-full">
+              <Link to="/login">Sign In</Link>
+            </Button>
+          )}
+        </div>
         <button onClick={toggleMenu} className="md:hidden">
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -57,9 +66,13 @@ function Navbar() {
             className="text-gray-600 hover:text-blue-600 transition-colors">
             Post a Request
           </a>
-          {user? <UserNav logout={logout} user={user} />:<Button className="w-full">
-            <Link to="/login">Sign In</Link>
-          </Button>}
+          {user ? (
+            <UserNav logout={logout} user={user} />
+          ) : (
+            <Button className="w-full">
+              <Link to="/login">Sign In</Link>
+            </Button>
+          )}
         </nav>
       )}
     </header>

@@ -38,6 +38,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true); // Default to true to indicate loading on app start
+  const [token, setToken] = useState<string>(''); // Default to true to indicate loading on app start
 
   const fetchUser = async () => {
     try {
@@ -58,7 +59,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (usernameOrEmail: string, password: string) => {
     try {
       setLoading(true);
-      await loginAPI(usernameOrEmail, password);
+      const token = await loginAPI(usernameOrEmail, password);
+      setToken(token);
       await fetchUser();
     } catch (error) {
       console.error("Login failed:", error);

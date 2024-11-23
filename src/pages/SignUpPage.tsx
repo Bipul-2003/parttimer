@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { debounce } from "lodash";
 import { Link, useNavigate } from "react-router-dom";
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,7 +78,10 @@ const formSchema = z
     zipCode: z.string().min(5, "Zip code is required"),
     acceptTerms: z
       .boolean()
-      .refine((val) => val === true, "You must accept the terms and conditions"),
+      .refine(
+        (val) => val === true,
+        "You must accept the terms and conditions"
+      ),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -95,9 +98,9 @@ export default function SignUpPage() {
   const [states, setStates] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [zipCodes, setZipCodes] = useState<string[]>([]);
-  const [stateInputFocused, setStateInputFocused] = useState(false);
-  const [cityInputFocused, setCityInputFocused] = useState(false);
-  const [zipCodeInputFocused, setZipCodeInputFocused] = useState(false);
+  const [isLoadingStates, setIsLoadingStates] = useState(false);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const [isLoadingZipCodes, setIsLoadingZipCodes] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -124,14 +127,17 @@ export default function SignUpPage() {
 
   const debouncedFetchStates = useCallback(
     debounce(async (prefix: string) => {
-      if (prefix.length === 0) return;
+      if (!prefix || prefix.length < 2) return;
+
+      setIsLoadingStates(true);
       try {
         const data = await getState(prefix);
-        // const data = await response.json();
-        setStates(Array.isArray(data) ? data : []);
+        setStates(data || []);
       } catch (error) {
         console.error("Error fetching states:", error);
         setStates([]);
+      } finally {
+        setIsLoadingStates(false);
       }
     }, 300),
     []
@@ -139,48 +145,60 @@ export default function SignUpPage() {
 
   const debouncedFetchCities = useCallback(
     debounce(async (state: string, prefix: string = "") => {
-      if (prefix.length === 0) return;
+      if (!state || !prefix || prefix.length < 2) return;
+
+      setIsLoadingCities(true);
       try {
         const data = await getCity(state, prefix);
-        // const data = await response.json();
-        setCities(Array.isArray(data) ? data : []);
+        setCities(data || []);
       } catch (error) {
         console.error("Error fetching cities:", error);
         setCities([]);
+      } finally {
+        setIsLoadingCities(false);
       }
     }, 300),
     []
   );
 
-  const debouncedFetchZipCodes = useCallback(
-    debounce(async (state: string, city: string, prefix: string = "") => {
-      if (prefix.length === 0) return;
-      try {
-        const data = await getZipcodes(state, city);
-        // const data = await response.json();
-        setZipCodes(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Error fetching zip codes:", error);
-        setZipCodes([]);
-      }
-    }, 300),
-    []
-  );
+  const fetchZipCodes = async (state: string, city: string) => {
+    if (!state || !city) return;
+
+    setIsLoadingZipCodes(true);
+    try {
+      const data = await getZipcodes(state, city);
+      setZipCodes(data || []);
+    } catch (error) {
+      console.error("Error fetching zip codes:", error);
+      setZipCodes([]);
+    } finally {
+      setIsLoadingZipCodes(false);
+    }
+  };
 
   useEffect(() => {
-    if (watchState && watchState.length > 0) {
+    if (watchState && watchCity) {
+      fetchZipCodes(watchState, watchCity);
+    }
+  }, [watchState, watchCity]);
+
+  // Reset dependent fields when state changes
+  useEffect(() => {
+    if (watchState) {
       form.setValue("city", "");
       form.setValue("zipCode", "");
-      debouncedFetchCities(watchState);
+      setCities([]);
+      setZipCodes([]);
     }
-  }, [watchState, form, debouncedFetchCities]);
+  }, [watchState, form]);
 
+  // Reset zip code when city changes
   useEffect(() => {
-    if (watchCity && watchCity.length > 0 && watchState && watchState.length > 0) {
+    if (watchCity) {
       form.setValue("zipCode", "");
-      debouncedFetchZipCodes(watchState, watchCity);
+      setZipCodes([]);
     }
-  }, [watchCity, form, watchState, debouncedFetchZipCodes]);
+  }, [watchCity, form]);
 
   const calculatePasswordStrength = (password: string) => {
     let strength = 0;
@@ -210,7 +228,6 @@ export default function SignUpPage() {
       };
 
       const data = await signup(signupData);
-      console.log("Signup successful:", data);
       setIsLoading(false);
       setShowOTPDialog(true);
     } catch (error: any) {
@@ -219,28 +236,24 @@ export default function SignUpPage() {
     }
   }
 
-  async function verifyEmailHandler() {
-    try {
-      // Simulating email verification
-      setShowOTPDialog(true);
-    } catch (error: any) {
-      setErrorMessage(error.message || "Email verification failed. Please try again.");
-    }
-  }
+  const verifyEmailHandler = () => {
+    setShowOTPDialog(true);
+  };
 
-  function verifyOTP() {
-    console.log("OTP verified:", otp);
+  const verifyOTP = () => {
     setShowOTPDialog(false);
     setIsEmailVerified(true);
-  }
+  };
 
   const isValidEmail = z.string().email().safeParse(watchEmail).success;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 p-4">
-      <Card className="w-full max-w-[600px] shadow-lg">
+      <Card className="w-full max-w-4xl shadow-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Create an account</CardTitle>
+          <CardTitle className="text-2xl text-center">
+            Create an account
+          </CardTitle>
           <CardDescription className="text-center">
             Enter your details to sign up for PartTimer
           </CardDescription>
@@ -248,36 +261,39 @@ export default function SignUpPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="namePrefix"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a title" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Mr">Mr</SelectItem>
-                        <SelectItem value="Ms">Ms</SelectItem>
-                        <SelectItem value="Mrs">Mrs</SelectItem>
-                        <SelectItem value="Dr">Dr</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="md:flex gap-4">
+              {/* Name Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="namePrefix"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a title" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Mr">Mr</SelectItem>
+                          <SelectItem value="Ms">Ms</SelectItem>
+                          <SelectItem value="Mrs">Mrs</SelectItem>
+                          <SelectItem value="Dr">Dr</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="firstName"
                   render={({ field }) => (
-                    <FormItem className="flex-1">
+                    <FormItem>
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
                         <Input placeholder="John" {...field} />
@@ -288,22 +304,9 @@ export default function SignUpPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="middleName"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Middle Name <span className="text-xs">(Optional)</span></FormLabel>
-                      <FormControl>
-                        <Input placeholder="M." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="lastName"
                   render={({ field }) => (
-                    <FormItem className="flex-1">
+                    <FormItem>
                       <FormLabel>Last Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Doe" {...field} />
@@ -313,128 +316,100 @@ export default function SignUpPage() {
                   )}
                 />
               </div>
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input type="tel" placeholder="+1 (555) 000-0000" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <div className="flex space-x-2">
-                      <FormControl>
-                        <Input type="email" placeholder="johndoe@example.com" {...field} />
-                      </FormControl>
-                      <Button 
-                        type="button" 
-                        onClick={verifyEmailHandler} 
-                        disabled={!isValidEmail || isEmailVerified}
-                      >
-                        {isEmailVerified ? "Verified" : "Verify Email"}
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {isEmailVerified && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
+
+              {/* Contact Fields */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <div className="flex space-x-2">
                         <FormControl>
                           <Input
-                            type="password"
+                            type="email"
+                            placeholder="johndoe@example.com"
                             {...field}
-                            onChange={(e) => {
-                              field.onChange(e);
-                              calculatePasswordStrength(e.target.value);
-                            }}
                           />
                         </FormControl>
-                        <Progress value={passwordStrength} className="w-full" />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-              <FormField
-                control={form.control}
-                name="state"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>State</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                            onClick={() => setStateInputFocused(true)}
-                          >
-                            {field.value
-                              ? states.find((state) => state === field.value)
-                              : stateInputFocused
-                              ? "Start writing to get suggestions"
-                              : "Select state"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search state..."
-                            onValueChange={(search) => {
-                              if (search.length > 0) {
-                                debouncedFetchStates(search);
-                              }
-                            }}
-                          />
-                          <CommandEmpty>No state found.</CommandEmpty>
-                          <CommandGroup>
-                            {states && states.length > 0 ? (
-                              states.map((state) => (
+                        <Button
+                          type="button"
+                          onClick={verifyEmailHandler}
+                          disabled={!isValidEmail || isEmailVerified}>
+                          {isEmailVerified ? "Verified" : "Verify Email"}
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="tel"
+                          placeholder="+1 (555) 000-0000"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Location Fields */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>State</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "w-full justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}>
+                              {field.value || "Select state"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search state..."
+                              onValueChange={(search) => {
+                                if (search.length >= 2) {
+                                  debouncedFetchStates(search);
+                                }
+                              }}
+                            />
+                            <CommandEmpty>
+                              {isLoadingStates
+                                ? "Loading..."
+                                : "No state found"}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {states.map((state) => (
                                 <CommandItem
-                                  value={state}
                                   key={state}
+                                  value={state}
                                   onSelect={() => {
                                     form.setValue("state", state);
-                                    setStateInputFocused(false);
-                                  }}
-                                >
+                                  }}>
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
@@ -445,68 +420,59 @@ export default function SignUpPage() {
                                   />
                                   {state}
                                 </CommandItem>
-                              ))
-                            ) : (
-                              <CommandItem>Start typing to search...</CommandItem>
-                            )}
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>City</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                            disabled={!watchState}
-                            onClick={() => setCityInputFocused(true)}
-                          >
-                            {field.value
-                              ? cities.find((city) => city === field.value)
-                              : cityInputFocused
-                              ? "Start writing to get suggestions"
-                              : "Select city"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search city..."
-                            onValueChange={(search) => {
-                              if (search.length > 0) {
-                                debouncedFetchCities(watchState, search);
-                              }
-                            }}
-                          />
-                          <CommandEmpty>No city found.</CommandEmpty>
-                          <CommandGroup>
-                            {cities && cities.length > 0 ? (
-                              cities.map((city) => (
+                              ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "w-full justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
+                              disabled={!watchState}>
+                              {field.value || "Select city"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search city..."
+                              onValueChange={(search) => {
+                                if (search.length >= 2) {
+                                  debouncedFetchCities(watchState, search);
+                                }
+                              }}
+                            />
+                            <CommandEmpty>
+                              {isLoadingCities ? "Loading..." : "No city found"}
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {cities.map((city) => (
                                 <CommandItem
-                                  value={city}
                                   key={city}
+                                  value={city}
                                   onSelect={() => {
                                     form.setValue("city", city);
-                                    setCityInputFocused(false);
-                                  }}
-                                >
+                                  }}>
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
@@ -517,92 +483,88 @@ export default function SignUpPage() {
                                   />
                                   {city}
                                 </CommandItem>
-                              ))
-                            ) : (
-                              <CommandItem>Start typing to search...</CommandItem>
-                            )}
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="zipCode"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Zip Code</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
+                              ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="zipCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Zip Code</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        disabled={!watchCity}>
                         <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                            disabled={!watchCity}
-                            onClick={() => setZipCodeInputFocused(true)}
-                          >
-                            {field.value
-                              ? zipCodes.find(
-                                  (zipCode) => zipCode === field.value
-                                )
-                              : zipCodeInputFocused
-                              ? "Start writing to get suggestions"
-                              : "Select zip code"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select zip code" />
+                          </SelectTrigger>
                         </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder="Search zip code..."
-                            onValueChange={(search) => {
-                              if (search.length > 0) {
-                                debouncedFetchZipCodes(watchState, watchCity, search);
-                              }
-                            }}
-                          />
-                          <CommandEmpty>No zip code found.</CommandEmpty>
-                          <CommandGroup>
-                            {zipCodes && zipCodes.length > 0 ? (
-                              zipCodes.map((zipCode) => (
-                                <CommandItem
-                                  value={zipCode}
-                                  key={zipCode}
-                                  onSelect={() => {
-                                    form.setValue("zipCode", zipCode);
-                                    setZipCodeInputFocused(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      zipCode === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {zipCode}
-                                </CommandItem>
-                              ))
-                            ) : (
-                              <CommandItem>Start typing to search...</CommandItem>
-                            )}
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        <SelectContent>
+                          {isLoadingZipCodes ? (
+                            <SelectItem value="">Loading...</SelectItem>
+                          ) : (
+                            zipCodes.map((zipCode) => (
+                              <SelectItem key={zipCode} value={zipCode}>
+                                {zipCode}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Password Fields */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            calculatePasswordStrength(e.target.value);
+                          }}
+                        />
+                      </FormControl>
+                      <Progress value={passwordStrength} className="h-2" />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Terms and Conditions */}
               <FormField
                 control={form.control}
                 name="acceptTerms"
@@ -617,28 +579,27 @@ export default function SignUpPage() {
                     <div className="space-y-1 leading-none">
                       <FormLabel>
                         I accept the{" "}
-                        <a href="#" className="text-blue-600 hover:underline">
+                        <Link
+                          to="/terms"
+                          className="text-primary hover:underline">
                           terms and conditions
-                        </a>
+                        </Link>
                       </FormLabel>
                       <FormMessage />
                     </div>
                   </FormItem>
                 )}
               />
+
+              {errorMessage && (
+                <div className="text-red-500 text-sm">{errorMessage}</div>
+              )}
+
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={isLoading || !isEmailVerified}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Signing up...
-                  </div>
-                ) : (
-                  "Sign up"
-                )}
+                className="w-full"
+                disabled={isLoading || !isEmailVerified}>
+                {isLoading ? "Creating account..." : "Create account"}
               </Button>
             </form>
           </Form>
@@ -646,45 +607,44 @@ export default function SignUpPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600">
             Already have an account?{" "}
-            <Link to="/login" className="text-blue-600 hover:underline">
-              Log in
+            <Link to="/login" className="text-primary hover:underline">
+              Sign in
             </Link>
           </p>
         </CardFooter>
       </Card>
 
       <Dialog open={showOTPDialog} onOpenChange={setShowOTPDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enter OTP</DialogTitle>
+            <DialogTitle>Verify your email</DialogTitle>
             <DialogDescription>
-              We've sent a one-time password to your email. Please enter it
-              below to verify your account.
+              Enter the verification code sent to your email
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center space-y-4">
             <InputOTP
-              maxLength={6}
               value={otp}
-              onChange={(value) => setOTP(value)}
-            >
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-              </InputOTPGroup>
-              <InputOTPSeparator />
-              <InputOTPGroup>
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
-            <Button
-              onClick={verifyOTP}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-            >
-              Verify OTP
+              onChange={setOTP}
+              maxLength={6}
+              render={({ slots }) => (
+                <InputOTPGroup className="gap-2">
+                  {slots.map((slot, index) => (
+                    <React.Fragment key={index}>
+                      <InputOTPSlot
+                        className="rounded-md border"
+                        {...slot}
+                        index={index}
+                      />
+                      {index !== slots.length - 1 && <InputOTPSeparator />}
+                    </React.Fragment>
+                  ))}
+                </InputOTPGroup>
+              )}
+            />
+
+            <Button onClick={verifyOTP} className="w-full">
+              Verify
             </Button>
           </div>
         </DialogContent>
@@ -692,4 +652,3 @@ export default function SignUpPage() {
     </div>
   );
 }
-

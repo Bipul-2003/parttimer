@@ -48,9 +48,9 @@ import { signup } from "@/api/auth";
 import { getCountry, getState, getCity, getZipcodes } from "@/api/locationsApi";
 import { sendOtp, verifyOtp } from "@/api/emailApi";
 
-const formSchema = z
+export const formSchema = z
   .object({
-    namePrefix: z.enum(["Mr", "Ms", "Mrs", "Dr", "Other"]),
+    namePrefix: z.enum(["Mr", "Ms", "Mrs", "Dr", "Other"]).optional(),
     firstName: z.string().min(1, "First name is required"),
     middleName: z.string().optional(),
     lastName: z.string().min(1, "Last name is required"),
@@ -91,7 +91,7 @@ export default function SignUpPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      namePrefix: "Mr",
+      namePrefix: undefined, // Changed from "Mr" to undefined
       firstName: "",
       middleName: "",
       lastName: "",
@@ -212,10 +212,10 @@ export default function SignUpPage() {
         country: values.country,
         state: values.state,
         city: values.city,
-        zipCode: values.zipCode,
+        zipcode: values.zipCode,
       };
 
-      const data = await signup(signupData);
+      await signup(signupData);
       navigate("/login");
       setIsLoading(false);
       setShowOTPDialog(true);
@@ -268,7 +268,7 @@ export default function SignUpPage() {
                   name="namePrefix"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Title</FormLabel>
+                      <FormLabel>Title (Optional)</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}>
@@ -297,6 +297,19 @@ export default function SignUpPage() {
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
                         <Input placeholder="John" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="middleName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Middle Name (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Middle Name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

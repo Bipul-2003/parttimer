@@ -46,6 +46,7 @@ import { Progress } from "@/components/ui/progress";
 
 import { signup } from "@/api/auth";
 import { getCountry, getState, getCity, getZipcodes } from "@/api/locationsApi";
+import { sendOtp, verifyOtp } from "@/api/emailApi";
 
 const formSchema = z
   .object({
@@ -84,6 +85,8 @@ export default function SignUpPage() {
   const [states, setStates] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [zipCodes, setZipCodes] = useState<string[]>([]);
+
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -125,7 +128,7 @@ export default function SignUpPage() {
     const fetchStates = async () => {
       if (watchCountry) {
         try {
-          const data = await getState();
+          const data = await getState(watchCountry);
           setStates(data);
         } catch (error) {
           console.error("Error fetching states:", error);
@@ -139,9 +142,9 @@ export default function SignUpPage() {
 
   useEffect(() => {
     const fetchCities = async () => {
-      if (watchState) {
+      if (watchCountry && watchState) {
         try {
-          const data = await getCity(watchState);
+          const data = await getCity(watchCountry, watchState);
           setCities(data);
         } catch (error) {
           console.error("Error fetching cities:", error);
@@ -151,13 +154,13 @@ export default function SignUpPage() {
       }
     };
     fetchCities();
-  }, [watchState]);
+  }, [watchCountry, watchState]);
 
   useEffect(() => {
     const fetchZipCodes = async () => {
-      if (watchState && watchCity) {
+      if (watchCountry && watchState && watchCity) {
         try {
-          const data = await getZipcodes(watchState, watchCity);
+          const data = await getZipcodes(watchCountry, watchState, watchCity);
           setZipCodes(data);
         } catch (error) {
           console.error("Error fetching zip codes:", error);
@@ -167,8 +170,7 @@ export default function SignUpPage() {
       }
     };
     fetchZipCodes();
-  }, [watchState, watchCity]);
-
+  }, [watchCountry, watchState, watchCity]);
   const calculatePasswordStrength = (password: string) => {
     let strength = 0;
     if (password.length >= 8) strength += 25;
@@ -214,6 +216,7 @@ export default function SignUpPage() {
       };
 
       const data = await signup(signupData);
+      navigate("/login");
       setIsLoading(false);
       setShowOTPDialog(true);
     } catch (error: any) {
@@ -222,15 +225,26 @@ export default function SignUpPage() {
     }
   }
 
-  const verifyEmailHandler = () => {
-    setShowOTPDialog(true);
+  const verifyEmailHandler = async () => {
+    try {
+      await sendOtp(watchEmail);
+      setShowOTPDialog(true);
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      setErrorMessage("Failed to send verification code. Please try again.");
+    }
   };
 
-  const verifyOTP = () => {
-    setShowOTPDialog(false);
-    setIsEmailVerified(true);
+  const verifyOTP = async () => {
+    try {
+      await verifyOtp(watchEmail, otp);
+      setShowOTPDialog(false);
+      setIsEmailVerified(true);
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      setErrorMessage("Invalid verification code. Please try again.");
+    }
   };
-
   const isValidEmail = z.string().email().safeParse(watchEmail).success;
 
   return (

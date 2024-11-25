@@ -23,6 +23,7 @@ import { OrgTransaction } from "./components/Organization/OrgTransactions.tsx";
 import ServiceSettings from "./components/Organization/ServiceSettings.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.tsx";
+import SignupPage1 from "./pages/SignUpPage1.tsx";
 
 const router = createBrowserRouter([
   {
@@ -47,7 +48,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/sign-up",
-        element: <SignUpPage />,
+        element: <SignupPage1 />,
       },
       {
         path: "/services",

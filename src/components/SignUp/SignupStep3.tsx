@@ -14,8 +14,10 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { SignupData } from '../../lib/validations/signup'
+import { SignupData } from '@/lib/validations/signup'
 import { Loader2 } from 'lucide-react'
+import axios from 'axios'
+import { useToast } from '@/hooks/use-toast'
 
 type SignupStep3Props = {
   formData: Partial<SignupData>
@@ -37,10 +39,17 @@ const step3Schema = z.object({
     )
 });
 
+type VerificationResponse = {
+  name_verified: boolean;
+  city_verified: boolean;
+  zipcode_verified: boolean;
+}
+
 export function SignupStep3({ formData, updateFormData, prevStep, completeSignup }: SignupStep3Props) {
   const [fileError, setFileError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const { toast } = useToast()
 
   const form = useForm<z.infer<typeof step3Schema>>({
     resolver: zodResolver(step3Schema),
@@ -63,10 +72,63 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
 
   const handleVerify = async () => {
     setIsVerifying(true);
-    // Simulated verification process
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsVerifying(false);
-    setIsVerified(true);
+    const file = form.getValues('document');
+    if (!file) {
+      setFileError('No file selected');
+      setIsVerifying(false);
+      return;
+    }
+
+    const verificationFormData = new FormData();
+    const name = `${formData.firstName || ''}${formData.middleName ? ' ' + formData.middleName : ''}${formData.lastName ? ' ' + formData.lastName : ''}`.trim();
+    verificationFormData.append('name', name);
+    verificationFormData.append('city', formData.city || '');
+    verificationFormData.append('zipcode', formData.zipCode || '');
+    verificationFormData.append('verifyfile', file);
+
+    try {
+      const response = await axios.post<VerificationResponse>('https://python-ocr-verification.onrender.com/verify', verificationFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const { name_verified, city_verified, zipcode_verified } = response.data;
+
+      if (name_verified && city_verified && zipcode_verified) {
+        setIsVerified(true);
+        updateFormData({ docsVerified: true });
+        toast({
+          title: "Verification Successful",
+          description: "Your document has been verified successfully.",
+          variant: "default",
+        })
+      } else {
+        const failedFields = [];
+        if (!name_verified) failedFields.push('name');
+        if (!city_verified) failedFields.push('city');
+        if (!zipcode_verified) failedFields.push('zipcode');
+
+        toast({
+          title: "Verification Failed",
+          description: `The following information could not be verified: ${failedFields.join(', ')}. Please try again.`,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setFileError(error.response?.data?.message || 'Document verification failed');
+      } else {
+        setFileError('An unexpected error occurred');
+      }
+      toast({
+        title: "Verification Error",
+        description: "An error occurred during verification. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const onSubmit = async (values: z.infer<typeof step3Schema>) => {

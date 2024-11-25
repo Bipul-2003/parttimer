@@ -1,14 +1,17 @@
+'use client'
 
 import { SignupStep1 } from '@/components/SignUp/SignupStep1'
 import { SignupStep2 } from '@/components/SignUp/SignupStep2'
 import { SignupStep3 } from '@/components/SignUp/SignupStep3'
 import { SignupData } from '@/lib/validations/signup'
 import { useState } from 'react'
-
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from '@/hooks/use-toast'
 
 export default function SignupPage1() {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<Partial<SignupData> & { document?: File }>({})
+  const { toast } = useToast()
 
   const updateFormData = (data: Partial<SignupData> & { document?: File }) => {
     setFormData((prev) => ({ ...prev, ...data }))
@@ -44,6 +47,7 @@ export default function SignupPage1() {
           {step === 3 && <SignupStep3 formData={formData} updateFormData={updateFormData} prevStep={prevStep} completeSignup={completeSignup} />}
         </div>
       </div>
+      <Toaster />
     </div>
   )
 }

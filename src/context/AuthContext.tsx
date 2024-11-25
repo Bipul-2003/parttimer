@@ -6,6 +6,7 @@ import {
   logoutUser as logoutAPI,
   login as loginAPI,
 } from "@/api/auth";
+import { signInwithGoogle } from "@/api/oAuthApi";
 
 interface Organization {
   id: number;
@@ -25,6 +26,7 @@ interface AuthContextType {
   loading: boolean;
   logout: () => Promise<void>;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
+  googleSignIn: () => Promise<any>;
   isAuthenticated: boolean;
 }
 
@@ -77,6 +79,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const googleSignIn = async () => {
+    try {
+      setLoading(true);
+      const response = await signInwithGoogle();
+      await fetchUser(); // Fetch user details after successful login
+      return response;
+    } catch (error) {
+      console.error("Google login failed:", error);
+      setUser(null);
+      setIsAuthenticated(false);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const logout = async () => {
     try {
       setLoading(true);
@@ -92,7 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, login, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, loading, logout, login, isAuthenticated, googleSignIn }}>
       {children}
     </AuthContext.Provider>
   );

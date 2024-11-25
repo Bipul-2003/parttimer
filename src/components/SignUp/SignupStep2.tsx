@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { signupSchema, SignupData } from '../../lib/validations/signup'
+import { getCountry, getState, getCity, getZipcodes } from '@/api/locationsApi'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 type SignupStep2Props = {
   formData: Partial<SignupData>
@@ -41,6 +43,8 @@ export function SignupStep2({ formData, updateFormData, nextStep, prevStep }: Si
   const [states, setStates] = useState<string[]>([])
   const [cities, setCities] = useState<string[]>([])
   const [zipCodes, setZipCodes] = useState<string[]>([])
+  const location = useLocation()
+  const navigate = useNavigate()
 
   const form = useForm<z.infer<typeof step2Schema>>({
     resolver: zodResolver(step2Schema),
@@ -48,31 +52,55 @@ export function SignupStep2({ formData, updateFormData, nextStep, prevStep }: Si
   })
 
   useEffect(() => {
-    // Simulated API calls to fetch location data
-    setCountries(['USA', 'Canada', 'UK'])
+    // Check if we have data from Google Sign-In
+    if (location.state) {
+      const { firstName, lastName, email } = location.state
+      updateFormData({ firstName, lastName, email })
+    }
+    
+    getCountry().then(setCountries).catch((error) => {
+      console.error("Failed to fetch countries:", error)
+    })
   }, [])
 
   useEffect(() => {
     if (form.watch('country')) {
-      setStates(['State 1', 'State 2', 'State 3'])
+      getState(form.watch('country'))
+        .then(setStates)
+        .catch((error) => {
+          console.error("Failed to fetch states:", error)
+        })
     }
   }, [form.watch('country')])
 
   useEffect(() => {
-    if (form.watch('state')) {
-      setCities(['City 1', 'City 2', 'City 3'])
+    if (form.watch('country') && form.watch('state')) {
+      getCity(form.watch('country'), form.watch('state'))
+        .then(setCities)
+        .catch((error) => {
+          console.error("Failed to fetch cities:", error)
+        })
     }
-  }, [form.watch('state')])
+  }, [form.watch('country'), form.watch('state')])
 
   useEffect(() => {
-    if (form.watch('city')) {
-      setZipCodes(['12345', '67890', '54321'])
+    if (form.watch('country') && form.watch('state') && form.watch('city')) {
+      getZipcodes(form.watch('country'), form.watch('state'), form.watch('city'))
+        .then(setZipCodes)
+        .catch((error) => {
+          console.error("Failed to fetch zip codes:", error)
+        })
     }
-  }, [form.watch('city')])
+  }, [form.watch('country'), form.watch('state'), form.watch('city')])
 
   function onSubmit(values: z.infer<typeof step2Schema>) {
     updateFormData(values)
-    nextStep()
+    if (location.state) {
+      // If we came from Google Sign-In, go to Step 3
+      navigate('/signup/step3')
+    } else {
+      nextStep()
+    }
   }
 
   return (
@@ -169,8 +197,7 @@ export function SignupStep2({ formData, updateFormData, nextStep, prevStep }: Si
                 <SelectContent>
                   {zipCodes.map((zipCode) => (
                     <SelectItem key={zipCode} value={zipCode}>
-                      {
-zipCode}
+                      {zipCode}
                     </SelectItem>
                   ))}
                 </SelectContent>

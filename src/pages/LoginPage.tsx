@@ -24,6 +24,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
 import { Separator } from "@/components/ui/separator";
+import { signInwithGoogle } from "@/api/oAuthApi";
 
 const formSchema = z.object({
   usernameOrEmail: z.string().min(1, "Username or email is required"),
@@ -60,33 +61,31 @@ export default function LoginPage() {
     }
   }
 
-  async function handleGoogleSignIn() {
-    setIsLoading(true);
-    setErrorMessage("");
+ async function handleGoogleSignIn() {
+  setIsLoading(true);
+  setErrorMessage("");
 
-    try {
-      const response = await googleSignIn();
-      const { data } = await axios.post("/api/check-user", { email: response.email });
-      
-      if (data.exists) {
-        // User exists, proceed with login
-        navigate("/");
-      } else {
-        // User doesn't exist, redirect to SignupStep2
-        navigate("/signup/step2", { 
-          state: { 
-            firstName: response.given_name,
-            lastName: response.family_name,
-            email: response.email,
-            // Add any other relevant data from Google response
-          } 
-        });
-      }
-    } catch (error: any) {
-      setIsLoading(false);
-      setErrorMessage(error.message || "Google Sign-In failed. Please try again.");
+  try {
+    // Use the signInwithGoogle function to initiate OAuth
+    const data = await signInwithGoogle();
+    
+    // Check user existence or redirect
+    const { email, given_name, family_name } = data;
+    const response = await axios.post("/api/check-user", { email });
+    
+    if (response.data.exists) {
+      navigate("/"); // User exists
+    } else {
+      navigate("/signup/step2", {
+        state: { firstName: given_name, lastName: family_name, email },
+      });
     }
+  } catch (error: any) {
+    console.error("Google Sign-In Error:", error);
+    setIsLoading(false);
+    setErrorMessage(error.message || "Google Sign-In failed. Please try again.");
   }
+}
 
   return (
     <div className="py-32 flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">

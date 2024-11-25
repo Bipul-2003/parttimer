@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
 
-const API_URL = "http://localhost:8080/oauth2/authorize";
+const API_URL = "/oauth2/authorize";
 
 export const signInwithGoogle = async () => {
     try {
@@ -13,3 +13,5 @@ export const signInwithGoogle = async () => {
         throw new Error("An unexpected error occurred");
     }
     }
+
+    

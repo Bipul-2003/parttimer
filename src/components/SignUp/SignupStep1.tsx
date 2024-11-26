@@ -22,6 +22,10 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { SignupData, signupSchema } from "@/lib/validations/signup"
+import { useState } from "react"
+import { useAuth } from "@/context/AuthContext"
+import { useToast } from "@/hooks/use-toast"
+import { useNavigate } from "react-router-dom"
 
 type SignupStep1Props = {
   formData: Partial<SignupData>
@@ -40,6 +44,11 @@ const step1Schema = signupSchema.pick({
 })
 
 export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1Props) {
+  const [isLoading, setIsLoading] = useState(false)
+  const { googleSignIn } = useAuth()
+  const { toast } = useToast()
+  const navigate = useNavigate()
+
   const form = useForm<z.infer<typeof step1Schema>>({
     resolver: zodResolver(step1Schema),
     defaultValues: formData,
@@ -52,27 +61,40 @@ export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1P
 
   async function handleGoogleSignup() {
     try {
-      // Simulating Google OAuth response
-      const response = {
-        firstname: "BORAGAPH",
-        phonenumber: null,
-        middlename: null,
-        message: "OAuth2 login successful",
-        email: "boragaphkeertiraj@gmail.com",
-        lastname: "KEERTIRAJ",
-        token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJib3JhZ2FwaGtlZXJ0aXJhakBnbWFpbC5jb20iLCJpYXQiOjE3MzI1MzU1NDIsImV4cCI6MTczMjYyMTk0Mn0.ucoGG_yiACP1V3xoq32ZFCjdBOC3uJe-_QHMjAANXgU"
+      setIsLoading(true)
+      const response = await googleSignIn()
+      
+      if (response && response.user) {
+        const { displayName, email } = response.user
+        const names = displayName ? displayName.split(' ') : []
+        
+        updateFormData({
+          firstName: names[0] || '',
+          lastName: names[names.length - 1] || '',
+          middleName: names.length > 2 ? names.slice(1, -1).join(' ') : '',
+          email: email || '',
+        })
+        
+        navigate("/signup/step2", { 
+          state: { 
+            firstName: names[0] || '',
+            lastName: names[names.length - 1] || '',
+            middleName: names.length > 2 ? names.slice(1, -1).join(' ') : '',
+            email: email || '',
+          } 
+        })
+      } else {
+        throw new Error("Failed to get user data from Google Sign-In")
       }
-
-      updateFormData({
-        firstName: response.firstname,
-        middleName: response.middlename || undefined,
-        lastName: response.lastname,
-        email: response.email,
-        phoneNumber: response.phonenumber || undefined,
-      })
-      nextStep()
     } catch (error) {
       console.error("Google signup failed:", error)
+      toast({
+        title: "Google Sign-Up Failed",
+        description: "An error occurred during Google sign-up. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -198,11 +220,20 @@ export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1P
           <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
         </div>
       </div>
-      <Button variant="outline" className="w-full" onClick={handleGoogleSignup}>
-        <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-          <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-        </svg>
-        Sign up with Google
+      <Button variant="outline" className="w-full" onClick={handleGoogleSignup} disabled={isLoading}>
+        {isLoading ? (
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+            Signing up...
+          </div>
+        ) : (
+          <>
+            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+              <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+            </svg>
+            Sign up with Google
+          </>
+        )}
       </Button>
     </div>
   )

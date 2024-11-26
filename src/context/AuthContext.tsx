@@ -1,5 +1,3 @@
-// AuthContext.tsx
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import {
   getCurrentUser,
@@ -7,6 +5,7 @@ import {
   login as loginAPI,
 } from "@/api/auth";
 import { signInwithGoogle } from "@/api/oAuthApi";
+import { checkUser as checkUserProfile } from "@/api/checkUser";
 
 interface Organization {
   id: number;
@@ -25,6 +24,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
+  checkUser: (email: string) => Promise<{ profileComplete: boolean }>;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<any>;
   isAuthenticated: boolean;
@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       await loginAPI(usernameOrEmail, password);
-      await fetchUser(); // Fetch user details after successful login
+      await fetchUser();
     } catch (error) {
       console.error("Login failed:", error);
       setUser(null);
@@ -79,11 +79,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const checkUser = async (email: string) => {
+    try {
+      setLoading(true);
+      const data = await checkUserProfile(email);
+      return data;
+    } catch (error) {
+      console.error("Check user failed:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const googleSignIn = async () => {
     try {
       setLoading(true);
       const response = await signInwithGoogle();
-      await fetchUser(); // Fetch user details after successful login
+      await fetchUser();
       return response;
     } catch (error) {
       console.error("Google login failed:", error);
@@ -93,7 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const logout = async () => {
     try {
@@ -110,7 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, login, isAuthenticated, googleSignIn }}>
+    <AuthContext.Provider value={{ user, loading, logout, login, isAuthenticated, googleSignIn, checkUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -123,3 +136,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+

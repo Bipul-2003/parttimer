@@ -7,11 +7,14 @@ import { SignupData } from '@/lib/validations/signup'
 import { useState } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from '@/hooks/use-toast'
+import { signup } from '@/api/auth'
+import { useNavigate } from 'react-router-dom'
 
 export default function SignupPage1() {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<Partial<SignupData> & { document?: File }>({})
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   const updateFormData = (data: Partial<SignupData> & { document?: File }) => {
     setFormData((prev) => ({ ...prev, ...data }))
@@ -20,10 +23,41 @@ export default function SignupPage1() {
   const nextStep = () => setStep((prev) => prev + 1)
   const prevStep = () => setStep((prev) => prev - 1)
 
-  const completeSignup = () => {
-    // Here you would typically send the form data to your backend
-    console.log('Signup complete:', formData)
-    alert('Signup process completed successfully!')
+  const completeSignup = async () => {
+    try {
+      const signupData = {
+        namePrefix: formData.title,
+        firstName: formData.firstName,
+        middleName: formData.middleName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phoneNumber,
+        country: formData.country,
+        state: formData.state,
+        city: formData.city,
+        zipcode: formData.zipCode,
+        docsVerified: formData.docsVerified || false,
+      }
+
+      const response = await signup(signupData)
+      
+      toast({
+        title: "Signup Successful",
+        description: "Your account has been created successfully.",
+        variant: "default",
+      })
+
+      // Redirect to login page or dashboard
+      navigate('/login')
+    } catch (error) {
+      console.error('Signup failed:', error)
+      toast({
+        title: "Signup Failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -34,7 +68,7 @@ export default function SignupPage1() {
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <a href="#" className="font-medium text-primary hover:text-primary-dark">
+          <a href="/login" className="font-medium text-primary hover:text-primary-dark">
             Sign in
           </a>
         </p>

@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 function App() {
   const location = useLocation();
-  const hideNavbar = ["/login", "/sign-up"].includes(location.pathname);
+  const hideNavbar = ["/login", "/signup"].includes(location.pathname);
 
   const { checkUser, user } = useAuth();
   const navigate = useNavigate();

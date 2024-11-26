@@ -20,7 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Separator } from "@/components/ui/separator";
 
@@ -33,8 +33,9 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const { login, googleSignIn, isAuthenticated, checkUser } = useAuth();
+  const { login, googleSignIn, isAuthenticated } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,11 +45,36 @@ export default function LoginPage() {
     },
   });
 
+  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
+
+  // Handle OAuth callback
+  // useEffect(() => {
+  //   const handleOAuthCallback = async () => {
+  //     try {
+  //       // Assuming the backend redirects with a token in the URL
+  //       const queryParams = new URLSearchParams(location.search);
+  //       const oauthToken = queryParams.get("token");
+
+  //       if (oauthToken) {
+  //         // Clear the token from URL to prevent re-processing
+  //         window.history.replaceState({}, document.title, location.pathname);
+
+  //         // Use googleSignIn to handle the OAuth flow
+  //         await googleSignIn();
+  //         navigate("/");
+  //       }
+  //     } catch (error: any) {
+  //       setErrorMessage(error.message || "OAuth login failed");
+  //     }
+  //   };
+
+  //   handleOAuthCallback();
+  // }, [location, googleSignIn, navigate]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -56,16 +82,7 @@ export default function LoginPage() {
 
     try {
       await login(values.usernameOrEmail, values.password);
-      const profileStatus = await checkUser(values.usernameOrEmail);
-      if (!profileStatus.profileComplete) {
-        navigate("/signup/step2", {
-          state: {
-            email: values.usernameOrEmail,
-          }
-        });
-      } else {
-        navigate("/");
-      }
+      navigate("/"); // Redirect after successful login
     } catch (error: any) {
       setErrorMessage(error.message || "Login failed. Please try again.");
     } finally {
@@ -77,21 +94,9 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
       setErrorMessage("");
-      const response = await googleSignIn();
-      if (response && response.user) {
-        const profileStatus = await checkUser(response.user.email);
-        if (!profileStatus.profileComplete) {
-          navigate("/signup/step2", {
-            state: {
-              firstName: response.user.displayName.split(' ')[0],
-              lastName: response.user.displayName.split(' ').slice(-1)[0],
-              email: response.user.email,
-            }
-          });
-        } else {
-          navigate("/");
-        }
-      }
+
+      // Redirect to Google OAuth endpoint
+      await googleSignIn();
     } catch (error: any) {
       setErrorMessage(
         error.message || "Google Sign-In failed. Please try again."
@@ -209,4 +214,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

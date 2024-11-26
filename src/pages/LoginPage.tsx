@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -20,11 +20,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import axios from "axios";
 import { Separator } from "@/components/ui/separator";
-import { signInwithGoogle } from "@/api/oAuthApi";
 
 const formSchema = z.object({
   usernameOrEmail: z.string().min(1, "Username or email is required"),
@@ -35,8 +33,9 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const { login, googleSignIn } = useAuth();
+  const { login, googleSignIn, isAuthenticated } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,46 +45,66 @@ export default function LoginPage() {
     },
   });
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      try {
+        // Assuming the backend redirects with a token in the URL
+        const queryParams = new URLSearchParams(location.search);
+        const oauthToken = queryParams.get("token");
+
+        if (oauthToken) {
+          // Clear the token from URL to prevent re-processing
+          window.history.replaceState({}, document.title, location.pathname);
+
+          // Use googleSignIn to handle the OAuth flow
+          await googleSignIn();
+          navigate("/");
+        }
+      } catch (error: any) {
+        setErrorMessage(error.message || "OAuth login failed");
+      }
+    };
+
+    handleOAuthCallback();
+  }, [location, googleSignIn, navigate]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const data = await login(values.usernameOrEmail, values.password);
-      console.log("Login successful:");
-      setIsLoading(false);
+      await login(values.usernameOrEmail, values.password);
       navigate("/"); // Redirect after successful login
     } catch (error: any) {
-      setIsLoading(false);
       setErrorMessage(error.message || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
- async function handleGoogleSignIn() {
-  setIsLoading(true);
-  setErrorMessage("");
+  async function handleGoogleSignIn() {
+    try {
+      setIsLoading(true);
+      setErrorMessage("");
 
-  try {
-    // Use the signInwithGoogle function to initiate OAuth
-    const data = await signInwithGoogle();
-    
-    // Check user existence or redirect
-    const { email, given_name, family_name } = data;
-    const response = await axios.post("/api/check-user", { email });
-    
-    if (response.data.exists) {
-      navigate("/"); // User exists
-    } else {
-      navigate("/signup/step2", {
-        state: { firstName: given_name, lastName: family_name, email },
-      });
+      // Redirect to Google OAuth endpoint
+      await googleSignIn();
+    } catch (error: any) {
+      setErrorMessage(
+        error.message || "Google Sign-In failed. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error: any) {
-    console.error("Google Sign-In Error:", error);
-    setIsLoading(false);
-    setErrorMessage(error.message || "Google Sign-In failed. Please try again.");
   }
-}
 
   return (
     <div className="py-32 flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
@@ -150,7 +169,9 @@ export default function LoginPage() {
               <Separator className="w-full" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
           <Button
@@ -160,8 +181,20 @@ export default function LoginPage() {
             onClick={handleGoogleSignIn}
             disabled={isLoading}
           >
-            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-              <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+            <svg
+              className="mr-2 h-4 w-4"
+              aria-hidden="true"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="google"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 488 512"
+            >
+              <path
+                fill="currentColor"
+                d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
+              ></path>
             </svg>
             Sign in with Google
           </Button>
@@ -181,4 +214,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

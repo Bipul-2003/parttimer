@@ -18,7 +18,7 @@
 
 import axios from "axios";
 
-const API_URL = "/oauth2/authorize/google"; // Update this to the exact endpoint
+const API_URL = "http://localhost:8080/oauth2/authorize/google"; // Update this to the exact endpoint
 
 export const signInwithGoogle = async () => {
   try {

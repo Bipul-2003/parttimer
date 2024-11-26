@@ -45,7 +45,7 @@ const step1Schema = signupSchema.pick({
 
 export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1Props) {
   const [isLoading, setIsLoading] = useState(false)
-  const { googleSignIn } = useAuth()
+  const { googleSignIn , user} = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
 
@@ -62,27 +62,20 @@ export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1P
   async function handleGoogleSignup() {
     try {
       setIsLoading(true)
-      const response = await googleSignIn()
+       await googleSignIn()
       
-      if (response && response.user) {
-        const { displayName, email } = response.user
-        const names = displayName ? displayName.split(' ') : []
+      if (user) {
+        const { name,email } = user
+        const splitname = name ? name.split(' ') : []
         
         updateFormData({
-          firstName: names[0] || '',
-          lastName: names[names.length - 1] || '',
-          middleName: names.length > 2 ? names.slice(1, -1).join(' ') : '',
+          firstName: splitname[0] || '',
+          lastName: splitname[splitname.length - 1] || '',
+          middleName: splitname.length > 2 ? splitname.slice(1, -1).join(' ') : '',
           email: email || '',
         })
         
-        navigate("/signup/step2", { 
-          state: { 
-            firstName: names[0] || '',
-            lastName: names[names.length - 1] || '',
-            middleName: names.length > 2 ? names.slice(1, -1).join(' ') : '',
-            email: email || '',
-          } 
-        })
+        nextStep()
       } else {
         throw new Error("Failed to get user data from Google Sign-In")
       }

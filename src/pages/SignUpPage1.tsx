@@ -4,17 +4,43 @@ import { SignupStep1 } from '@/components/SignUp/SignupStep1'
 import { SignupStep2 } from '@/components/SignUp/SignupStep2'
 import { SignupStep3 } from '@/components/SignUp/SignupStep3'
 import { SignupData } from '@/lib/validations/signup'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from '@/hooks/use-toast'
 import { signup } from '@/api/auth'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 export default function SignupPage1() {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<Partial<SignupData> & { document?: File }>({})
   const { toast } = useToast()
   const navigate = useNavigate()
+  const location = useLocation();
+
+
+  useEffect(() => {
+    if (location.state) {
+      const { firstName, lastName, middleName, email } = location.state;
+
+      // Prepare update data
+      const updateData: Partial<SignupData> = {
+        firstName,
+        lastName,
+        email,
+      };
+
+      // Only add middleName if it exists and is not an empty string
+      if (middleName) {
+        updateData.middleName = middleName;
+      }
+
+
+      updateFormData(updateData);
+
+      setStep(2);
+    }
+  }, [location]);
+  
 
   const updateFormData = (data: Partial<SignupData> & { document?: File }) => {
     setFormData((prev) => ({ ...prev, ...data }))

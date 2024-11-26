@@ -48,8 +48,8 @@ export function SignupStep2({
   const [states, setStates] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [zipCodes, setZipCodes] = useState<string[]>([]);
-  const location = useLocation();
-  const navigate = useNavigate();
+  // const location = useLocation();
+  // const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof step2Schema>>({
     resolver: zodResolver(step2Schema),
@@ -58,23 +58,7 @@ export function SignupStep2({
 
   useEffect(() => {
     // Check if we have data from Google Sign-In
-    if (location.state) {
-      const { firstName, lastName, middleName, email } = location.state;
-
-      // Prepare update data
-      const updateData: Partial<SignupData> = {
-        firstName,
-        lastName,
-        email,
-      };
-
-      // Only add middleName if it exists and is not an empty string
-      if (middleName) {
-        updateData.middleName = middleName;
-      }
-
-      updateFormData(updateData);
-    }
+   
     getCountry()
       .then(setCountries)
       .catch((error) => {
@@ -118,12 +102,12 @@ export function SignupStep2({
 
   function onSubmit(values: z.infer<typeof step2Schema>) {
     updateFormData(values);
-    if (location.state) {
-      // If we came from Google Sign-In, go to Step 3
-      navigate("/signup/step3");
-    } else {
+    // if (location.state) {
+    //   // If we came from Google Sign-In, go to Step 3
+    //   navigate("/signup/step3");
+    // } else {
       nextStep();
-    }
+    // }
   }
 
   return (

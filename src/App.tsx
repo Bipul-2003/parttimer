@@ -23,7 +23,7 @@ function App() {
           const middleName =
             nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : "";
 
-          navigate("/signup/step2", {
+          navigate("/signup", {
             state: {
               firstName,
               middleName,

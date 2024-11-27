@@ -11,7 +11,7 @@ import { signup } from '@/api/auth'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 export default function SignupPage1() {
-  const [step, setStep] = useState(3)
+  const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<Partial<SignupData> & { document?: File }>({})
   const { toast } = useToast()
   const navigate = useNavigate()

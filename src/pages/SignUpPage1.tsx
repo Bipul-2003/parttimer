@@ -90,7 +90,7 @@ export default function SignupPage1() {
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {step==1?`Create your account`:`Please completed your profile`}
+          {step==1&&`Create your account`}
         </h2>
         {step==1&&<p className="mt-2 text-center text-sm text-gray-600">
           Already have an account?{" "}

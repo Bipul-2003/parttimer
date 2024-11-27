@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -40,11 +38,19 @@ const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/jpg", "application/pdf"];
 const step3Schema = z.object({
   typeOfVerificationFile: z.enum(["passport", "driverLicense", "nationalId"]),
   document: z
-    .instanceof(File)
-    .refine((file) => file.size <= MAX_FILE_SIZE, `File size should be less than 1MB`)
+    .any()
+    .refine((file) => file instanceof File || (file && file.name), "A file is required")
     .refine(
-      (file) => ACCEPTED_FILE_TYPES.includes(file.type),
+      (file) => {
+        if (!file) return false;
+        const fileType = file instanceof File ? file.type : file.name.split('.').pop()?.toLowerCase();
+        return fileType === 'pdf' || ACCEPTED_FILE_TYPES.includes(file.type);
+      },
       "Only JPG, JPEG, or PDF files are allowed"
+    )
+    .refine(
+      (file) => !file || file.size <= MAX_FILE_SIZE,
+      `File size should be less than 1MB`
     ),
   consentAccepted: z.boolean().refine((val) => val === true, "You must accept the terms and conditions"),
 });
@@ -72,15 +78,8 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      try {
-        step3Schema.parse({ document: file });
-        form.setValue('document', file);
-        setFileError(null);
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          setFileError(error.errors[0].message);
-        }
-      }
+      form.setValue('document', file, { shouldValidate: true });
+      setFileError(null);
     }
   };
 

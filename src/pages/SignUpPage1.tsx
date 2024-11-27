@@ -17,30 +17,25 @@ export default function SignupPage1() {
   const navigate = useNavigate()
   const location = useLocation();
 
-
   useEffect(() => {
     if (location.state) {
       const { firstName, lastName, middleName, email } = location.state;
 
-      // Prepare update data
       const updateData: Partial<SignupData> = {
         firstName,
         lastName,
         email,
       };
 
-      // Only add middleName if it exists and is not an empty string
       if (middleName) {
         updateData.middleName = middleName;
       }
-
 
       updateFormData(updateData);
 
       setStep(2);
     }
   }, [location]);
-  
 
   const updateFormData = (data: Partial<SignupData> & { document?: File }) => {
     setFormData((prev) => ({ ...prev, ...data }))
@@ -64,6 +59,7 @@ export default function SignupPage1() {
         city: formData.city,
         zipcode: formData.zipCode,
         docsVerified: formData.docsVerified || false,
+        typeOfVerificationFile: formData.typeOfVerificationFile,
       }
 
       const response = await signup(signupData)
@@ -74,7 +70,6 @@ export default function SignupPage1() {
         variant: "default",
       })
 
-      // Redirect to login page or dashboard
       navigate('/login')
     } catch (error) {
       console.error('Signup failed:', error)
@@ -90,9 +85,9 @@ export default function SignupPage1() {
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {step==1&&`Create your account`}
+          {step === 1 && `Create your account`}
         </h2>
-        {step==1&&<p className="mt-2 text-center text-sm text-gray-600">
+        {step === 1 && <p className="mt-2 text-center text-sm text-gray-600">
           Already have an account?{" "}
           <a href="/login" className="font-medium text-primary hover:text-primary-dark">
             Sign in

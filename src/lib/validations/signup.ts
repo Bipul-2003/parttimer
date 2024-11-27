@@ -13,7 +13,8 @@ export const signupSchema = z.object({
   city: z.string().min(1, "City is required"),
   zipCode: z.string().min(1, "Zip code is required"),
   docsVerified: z.boolean().optional(),
+  typeOfVerificationFile: z.enum(["passport", "driverLicense", "nationalId"]).optional(),
+  consentAccepted: z.boolean().default(false),
 })
 
 export type SignupData = z.infer<typeof signupSchema>
-

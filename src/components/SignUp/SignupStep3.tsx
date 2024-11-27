@@ -14,6 +14,14 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { SignupData } from '@/lib/validations/signup'
 import { Loader2 } from 'lucide-react'
 import axios from 'axios'
@@ -30,13 +38,15 @@ const MAX_FILE_SIZE = 1024 * 1024; // 1MB
 const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/jpg", "application/pdf"];
 
 const step3Schema = z.object({
+  typeOfVerificationFile: z.enum(["passport", "driverLicense", "nationalId"]),
   document: z
     .instanceof(File)
     .refine((file) => file.size <= MAX_FILE_SIZE, `File size should be less than 1MB`)
     .refine(
       (file) => ACCEPTED_FILE_TYPES.includes(file.type),
       "Only JPG, JPEG, or PDF files are allowed"
-    )
+    ),
+  consentAccepted: z.boolean().refine((val) => val === true, "You must accept the terms and conditions"),
 });
 
 type VerificationResponse = {
@@ -53,6 +63,10 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
 
   const form = useForm<z.infer<typeof step3Schema>>({
     resolver: zodResolver(step3Schema),
+    defaultValues: {
+      typeOfVerificationFile: formData.typeOfVerificationFile,
+      consentAccepted: false,
+    },
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,7 +146,11 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
   };
 
   const onSubmit = async (values: z.infer<typeof step3Schema>) => {
-    updateFormData({ document: values.document });
+    updateFormData({ 
+      document: values.document,
+      typeOfVerificationFile: values.typeOfVerificationFile,
+      consentAccepted: values.consentAccepted,
+    });
     await handleVerify();
   };
 
@@ -145,6 +163,29 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
             Please upload a valid document to verify your community membership.
           </p>
         </div>
+        
+        <FormField
+          control={form.control}
+          name="typeOfVerificationFile"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Type of Verification Document</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select document type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="passport">Passport</SelectItem>
+                  <SelectItem value="driverLicense">Driver's License</SelectItem>
+                  <SelectItem value="nationalId">National ID</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <FormField
           control={form.control}
@@ -173,11 +214,34 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
           </p>
         )}
         
+        <FormField
+          control={form.control}
+          name="consentAccepted"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  I accept the terms and conditions
+                </FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  By uploading the document, you are accepting our terms and conditions. We are not storing your personal data.
+                </p>
+              </div>
+            </FormItem>
+          )}
+        />
+        
         {!isVerified ? (
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={!form.watch('document') || isVerifying}
+            disabled={!form.watch('document') || isVerifying || !form.watch('consentAccepted')}
           >
             {isVerifying ? (
               <>

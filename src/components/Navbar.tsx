@@ -4,13 +4,26 @@ import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { UserNav } from "./user-nav";
+import { Badge } from "@/components/ui/badge";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { user, loading, logout } = useAuth();
+  // Assuming we have a currency amount in the user object or from a separate hook
+  const currencyAmount = user?.points || 0;
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const CurrencyBadge = () => (
+    <Link to="/points">
+      <Badge variant="secondary" className="ml-2">
+        <span className="mr-1">⚜️</span>
+        {currencyAmount}
+      </Badge>
+    </Link>
+  );
+
   return (
     <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -34,10 +47,12 @@ function Navbar() {
             Post a Request
           </a>
         </nav>
-        {/* <Button className="hidden md:inline-flex">Sign Up</Button> */}
-        <div className="hidden md:inline-flex">
+        <div className="hidden md:flex items-center">
           {user ? (
-            <UserNav logout={logout} user={user} />
+            <>
+              <CurrencyBadge />
+              <UserNav logout={logout} user={user} />
+            </>
           ) : (
             <Button className="w-full">
               <Link to="/login">Sign In</Link>
@@ -67,7 +82,10 @@ function Navbar() {
             Post a Request
           </a>
           {user ? (
-            <UserNav logout={logout} user={user} />
+            <div className="flex items-center justify-between">
+              <UserNav logout={logout} user={user} />
+              <CurrencyBadge />
+            </div>
           ) : (
             <Button className="w-full">
               <Link to="/login">Sign In</Link>

@@ -26,6 +26,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const CustomIcon = ({
   Icon,
@@ -102,9 +103,10 @@ const sidebarItems = [
 export default function OrganizationPage() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState("Dashboard");
-  const { orgId } = useParams<{ orgId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { user } = useAuth();
 
   useEffect(() => {
     const path = location.pathname.split("/").pop();
@@ -120,8 +122,12 @@ export default function OrganizationPage() {
 
   const handleNavigation = (path: string, label: string) => {
     setActiveItem(label);
-    navigate(`/organization/${orgId}/${path}`);
+    navigate(`/organization/${path}`);
   };
+
+  if (!user?.organization) {
+    return <div>You are not associated with any organization.</div>;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">

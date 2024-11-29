@@ -25,6 +25,8 @@ import { AuthProvider } from "./context/AuthContext.tsx";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.tsx";
 import SignupPage1 from "./pages/SignUpPage1.tsx";
 import { Toaster } from "./components/ui/toaster.tsx";
+import OrgSettingsPage from "./components/Organization/OrganizationSettings.tsx";
+import PointsManagement from "./pages/PointsManagementPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -60,6 +62,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/points",
+        element: (
+          // <ProtectedRoute>
+            <PointsManagement />
+          // </ProtectedRoute>
+        ),
+      },
+      {
         path: "/requested-services",
         element: (
           <ProtectedRoute>
@@ -76,7 +86,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/organization/:orgId/*",
+        path: "/organization/*",
         element: (
           <ProtectedRoute>
             <OrganizationPage />
@@ -88,6 +98,14 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute requiredRole="OWNER">
                 <OrgDashboard />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path:"settings",
+            element: (
+              <ProtectedRoute requiredRole="OWNER">
+                <OrgSettingsPage />
               </ProtectedRoute>
             ),
           },
@@ -118,7 +136,7 @@ const router = createBrowserRouter([
           {
             path: "services/request",
             element: (
-              <ProtectedRoute requiredRole="CO_OWNER">
+              <ProtectedRoute requiredRole="OWNER">
                 <RequestService />
               </ProtectedRoute>
             ),
@@ -160,9 +178,9 @@ const router = createBrowserRouter([
       {
         path: "/subscriptions",
         element: (
-          <ProtectedRoute>
+          // <ProtectedRoute>
             <SubscriptionsPage />
-          </ProtectedRoute>
+          // </ProtectedRoute>
         ),
       },
     ],

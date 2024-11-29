@@ -18,6 +18,7 @@ interface User {
   organization?: Organization;
   name: string;
   email: string;
+  points: number;
 }
 
 interface AuthContextType {

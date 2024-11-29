@@ -29,6 +29,7 @@ import {
   OrganizationEmployeeDTO,
 } from "@/types/BookingDetailsDTO";
 import { bookingAPI } from "@/api/bookingApi";
+import { useAuth } from "@/context/AuthContext";
 
 // type FrontendStatus =
 //   | "POSTED"
@@ -72,17 +73,24 @@ export default function ServiceRequestManager() {
   const [availableEmployees, setAvailableEmployees] =
     useState<OrganizationEmployeeDTO>();
 
-  const { requestId, orgId } = useParams();
+  const { requestId} = useParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchDetails();
-  }, []);
+  const { user } = useAuth();
 
+
+  useEffect(() => {
+    if (user?.organization) {
+      fetchDetails();
+    }
+  }, [user]);
+
+  
   const fetchDetails = async () => {
+    if (!user?.organization) return;
     try {
       const data = await bookingAPI.getBookingDetails(
-        orgId as string,
+        user.organization.id.toString(),
         requestId as string
       );
       setRequestData(data);
@@ -94,10 +102,13 @@ export default function ServiceRequestManager() {
     }
   };
 
+
+ 
   const fetchAvailableEmployees = async () => {
+    if (!user?.organization) return;
     try {
       const employees = await bookingAPI.getAvailableEmployees(
-        orgId as string,
+        user.organization.id.toString(),
         requestId as string
       );
       console.log(employees);
@@ -106,7 +117,7 @@ export default function ServiceRequestManager() {
       console.error("Error fetching available employees:", error);
     }
   };
-
+ 
   const handleEmployeeToggle = (employeeId: number) => {
     setAssignedEmployees((prev) =>
       prev.includes(employeeId)
@@ -120,10 +131,11 @@ export default function ServiceRequestManager() {
   };
 
   const handleOfferPrice = async () => {
+    if (!user?.organization) return;
     if (offeredPrice) {
       try {
         await bookingAPI.offerPrice(
-          orgId as string,
+          user.organization.id.toString(),
           requestId as string,
           Number(offeredPrice)
         );
@@ -135,11 +147,13 @@ export default function ServiceRequestManager() {
     }
   };
 
+ 
   const handleConfirmRequest = async () => {
+    if (!user?.organization) return;
     if (assignedEmployees.length > 0) {
       try {
         await bookingAPI.assignEmployees(
-          orgId as string,
+          user.organization.id.toString(),
           requestId as string,
           assignedEmployees
         );
@@ -180,6 +194,9 @@ export default function ServiceRequestManager() {
   //     console.error("Error verifying payment:", error);
   //   }
   // };
+  if (!user?.organization) {
+    return <div>You are not associated with any organization.</div>;
+  }
 
   if (!requestData) {
     return <div>Loading...</div>;

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -23,7 +24,14 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -40,6 +48,7 @@ import ServiceRequestManagement from "./ServiceRequestManagement";
 import { Link, useParams } from "react-router-dom";
 import { dashboardAPI } from "@/api/dashboard";
 import { fetchOrganizationServices } from "@/types/dashboardTypes";
+import { useAuth } from "@/context/AuthContext";
 
 type Service = {
   id: number;
@@ -50,35 +59,43 @@ type Service = {
   completedCount: number;
   ongoingCount: number;
   revenue: number;
+  isEnabled: boolean;
 };
 
 export function ManageService() {
-  const [services, setServices] = useState<fetchOrganizationServices[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [isAddServiceOpen, setIsAddServiceOpen] = useState(false);
+  const [newService, setNewService] = useState({
+    name: "",
+    category: "",
+    subcategory: "",
+  });
 
-  const { orgId } = useParams<{ orgId: string }>();
+  const { user } = useAuth();
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        //const response = await axios.get<Service[]>('/api/services');
-
+        if (!user?.organization) return;
         const response = await dashboardAPI.fetchOrganizationServices(
-          orgId as string
+          user.organization?.id.toString()
         );
         const transformedData = response.map(
-          (service): fetchOrganizationServices => ({
+          (service): Service => ({
             id: service.id,
             name: service.name,
             category: service.category,
-            subcategory: service.subcategory ?? "", // Nullish coalescing
+            subcategory: service.subcategory ?? "",
             pendingCount: service.pendingCount ?? 0,
             completedCount: service.completedCount ?? 0,
             ongoingCount: service.ongoingCount ?? 0,
             revenue: service.revenue ?? 0,
+            isEnabled: true, // Assuming all fetched services are enabled by default
           })
         );
         setServices(transformedData);
@@ -88,9 +105,9 @@ export function ManageService() {
     };
 
     fetchServices();
-  }, [orgId]);
+  }, [user?.organization]);
 
-  const columns: ColumnDef<fetchOrganizationServices>[] = [
+  const columns: ColumnDef<Service>[] = [
     {
       accessorKey: "name",
       header: "Service Name",
@@ -136,6 +153,16 @@ export function ManageService() {
       },
     },
     {
+      id: "isEnabled",
+      header: "Enabled",
+      cell: ({ row }) => (
+        <Switch
+          checked={row.original.isEnabled}
+          onCheckedChange={(checked) => handleServiceToggle(row.original.id, checked)}
+        />
+      ),
+    },
+    {
       id: "actions",
       cell: ({ row }) => (
         <Button
@@ -171,6 +198,43 @@ export function ManageService() {
     setSelectedService(service);
   };
 
+  const handleServiceToggle = async (serviceId: number, isEnabled: boolean) => {
+    try {
+      // Call API to update service status
+      // await dashboardAPI.updateServiceStatus(serviceId, isEnabled);
+      
+      // Update local state
+      setServices(services.map(service => 
+        service.id === serviceId ? { ...service, isEnabled } : service
+      ));
+    } catch (error) {
+      console.error("Error updating service status:", error);
+      // Revert the switch if the API call fails
+    }
+  };
+
+  const handleAddService = async () => {
+    try {
+      // Call API to add the new service
+      // const addedService = await dashboardAPI.addService(user.organization?.id.toString(), newService);
+      
+      // Update local state
+      // setServices([...services, { ...addedService, isEnabled: true }]);
+      
+      // Close the dialog
+      setIsAddServiceOpen(false);
+      
+      // Reset the form
+      setNewService({ name: "", category: "", subcategory: "" });
+    } catch (error) {
+      console.error("Error adding new service:", error);
+    }
+  };
+
+  if (!user?.organization) {
+    return <div>You are not associated with any organization.</div>;
+  }
+
   return (
     <div className="space-y-4">
       <Card>
@@ -181,9 +245,7 @@ export function ManageService() {
           <div className="mb-4 flex flex-col sm:flex-row gap-4">
             <Input
               placeholder="Search services..."
-              value={
-                (table.getColumn("name")?.getFilterValue() as string) ?? ""
-              }
+              value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
               onChange={(event) =>
                 table.getColumn("name")?.setFilterValue(event.target.value)
               }
@@ -244,6 +306,56 @@ export function ManageService() {
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
+            <Dialog open={isAddServiceOpen} onOpenChange={setIsAddServiceOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" /> Add Existing Service
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Existing Service</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <Select
+                    onValueChange={(value) => setNewService({ ...newService, name: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {/* Populate with existing services */}
+                      <SelectItem value="service1">Service 1</SelectItem>
+                      <SelectItem value="service2">Service 2</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    onValueChange={(value) => setNewService({ ...newService, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Automotive">Automotive</SelectItem>
+                      <SelectItem value="Home">Home</SelectItem>
+                      <SelectItem value="Gardening">Gardening</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    onValueChange={(value) => setNewService({ ...newService, subcategory: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select subcategory" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cleaning">Cleaning</SelectItem>
+                      <SelectItem value="Maintenance">Maintenance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={handleAddService}>Add to Organization</Button>
+              </DialogContent>
+            </Dialog>
           </div>
           <div className="rounded-md border">
             <Table>
@@ -327,6 +439,16 @@ export function ManageService() {
           onClose={() => setSelectedService(null)}
         />
       )}
+      <div className="text-center mt-4">
+        <p>
+          If you want to request a new service to add, please visit the{" "}
+          <Link to="/request-service" className="text-blue-600 hover:underline">
+            Request to Add a Service
+          </Link>{" "}
+          section.
+        </p>
+      </div>
     </div>
   );
 }
+

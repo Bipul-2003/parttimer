@@ -40,6 +40,7 @@ import { BarChart3, Users, Package, Clock, MoreHorizontal } from "lucide-react";
 import axios from "axios";
 import { dashboardAPI } from "@/api/dashboard";
 import { Booking, DashboardStats } from "@/types/dashboardTypes";
+import { useAuth } from "@/context/AuthContext";
 
 // type ServiceRequest = {
 //   bookingId: number;
@@ -66,30 +67,22 @@ export default function OrgDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [offerPrice, setOfferPrice] = useState<string>("");
+  const { user } = useAuth();
+
+
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!user?.organization) return;
+
       try {
         setLoading(true);
         setError(null);
 
         const [statsResponse, latestBookingsResponse] = await Promise.all([
-          dashboardAPI.getDashboardStats(orgId as string), //
-          //dashboardAPI.getBookings(orgId as string),
-          dashboardAPI.getLatestBookings(orgId as string),
+          dashboardAPI.getDashboardStats(user.organization.id.toString()),
+          dashboardAPI.getLatestBookings(user.organization.id.toString()),
         ]);
-
-        console.log(statsResponse);
-        //console.log(bookingsResponse);
-
-        // Ensure the response data matches our expected structure
-        // const dashboardStats: DashboardStats = {
-        //   totalEmployees: statsResponse.totalEmployees || 0,
-        //   totalServices: statsResponse.totalServices || 0,
-        //   totalBookings: statsResponse.totalBookings || 0,
-        //   completedBookings: statsResponse.completedBookings || 0,
-        //   pendingBookings: statsResponse.pendingBookings || 0,
-        // };
 
         setStats(statsResponse);
         setRecentBookings(latestBookingsResponse);
@@ -102,7 +95,46 @@ export default function OrgDashboard() {
     };
 
     fetchDashboardData();
-  }, [orgId]);
+  }, [user?.organization]);
+
+
+
+  // useEffect(() => {
+  //   const fetchDashboardData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       setError(null);
+
+  //       const [statsResponse, latestBookingsResponse] = await Promise.all([
+  //         dashboardAPI.getDashboardStats(orgId as string), //
+  //         //dashboardAPI.getBookings(orgId as string),
+  //         dashboardAPI.getLatestBookings(orgId as string),
+  //       ]);
+
+  //       console.log(statsResponse);
+  //       //console.log(bookingsResponse);
+
+  //       // Ensure the response data matches our expected structure
+  //       // const dashboardStats: DashboardStats = {
+  //       //   totalEmployees: statsResponse.totalEmployees || 0,
+  //       //   totalServices: statsResponse.totalServices || 0,
+  //       //   totalBookings: statsResponse.totalBookings || 0,
+  //       //   completedBookings: statsResponse.completedBookings || 0,
+  //       //   pendingBookings: statsResponse.pendingBookings || 0,
+  //       // };
+
+  //       setStats(statsResponse);
+  //       setRecentBookings(latestBookingsResponse);
+  //     } catch (err) {
+  //       setError("Failed to fetch dashboard data. Please try again later.");
+  //       console.error("Error fetching dashboard data:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchDashboardData();
+  // }, [orgId]);
 
   const handleOfferPrice = async (bookingId: number, newPrice: number) => {
     try {

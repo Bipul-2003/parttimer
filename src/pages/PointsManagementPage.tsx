@@ -194,7 +194,7 @@ export default function PointsManagement() {
                         <Input
                           value={referralLink}
                           readOnly
-                          className="flex-grow"
+                          className="flex-grow bg-muted"
                         />
                         <Button
                           onClick={copyToClipboard}

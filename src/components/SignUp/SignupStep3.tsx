@@ -159,7 +159,7 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-center">Document Upload & Verification</h2>
           <p className="text-sm text-muted-foreground text-center">
-            Please upload a valid document to verify your community membership.
+            Please upload a valid document to verify you .
           </p>
         </div>
         

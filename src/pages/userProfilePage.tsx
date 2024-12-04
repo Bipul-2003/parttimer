@@ -7,6 +7,7 @@ import UserOrganization from '@/components/UserOrganization'
 import UserHistory from '@/components/UserHistory'
 import UserSettings from '@/components/UserSettings'
 import Sidebar from '@/components/Sidebar'
+import UserSubscription from '@/components/UserSubscrions'
 
 const mockUser = {
   name: "Alice Johnson",
@@ -47,6 +48,7 @@ export default function UserProfilePage() {
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="organization">Organization</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="subscription">Subscriptions</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
 
@@ -68,6 +70,9 @@ export default function UserProfilePage() {
 
             <TabsContent value="settings">
               <UserSettings />
+            </TabsContent>
+            <TabsContent value="subscription">
+              <UserSubscription />
             </TabsContent>
           </Tabs>
         </motion.div>

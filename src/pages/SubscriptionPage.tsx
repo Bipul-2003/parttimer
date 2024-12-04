@@ -1,15 +1,14 @@
+"use client"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { Check, DollarSign, Gem, Users } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Check, Gem, Users } from 'lucide-react'
 
 type SubscriptionTier = {
   name: string
-  price: {
-    dollar: number
-    gems: number
-  }
+  price: number
   description: string
   features: string[]
   icon: React.ReactNode
@@ -18,10 +17,7 @@ type SubscriptionTier = {
 const subscriptionTiers: SubscriptionTier[] = [
   {
     name: "User",
-    price: {
-      dollar: 5,
-      gems: 1000,
-    },
+    price: 1000,
     description: "For individuals seeking services",
     features: [
       "Access to all services",
@@ -33,10 +29,7 @@ const subscriptionTiers: SubscriptionTier[] = [
   },
   {
     name: "Seller",
-    price: {
-      dollar: 10,
-      gems: 2000,
-    },
+    price: 2000,
     description: "For professionals offering services",
     features: [
       "All User features",
@@ -50,21 +43,23 @@ const subscriptionTiers: SubscriptionTier[] = [
 ]
 
 export default function SubscriptionsPage() {
-  const [useGems, setUseGems] = useState(true)
+  const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  const handleSelectPlan = (tier: SubscriptionTier) => {
+    setSelectedTier(tier)
+    setIsDialogOpen(true)
+  }
+
+  const handleConfirmSubscription = () => {
+    // Here you would implement the actual subscription logic
+    console.log(`Subscribing to ${selectedTier?.name} plan`)
+    setIsDialogOpen(false)
+  }
 
   return (
     <div className="container mx-auto py-12 px-4 bg-gradient-to-b from-purple-50 to-indigo-100 min-h-screen">
       <h1 className="text-4xl font-bold text-center mb-8 text-indigo-800">Choose Your Subscription Plan</h1>
-      <div className="flex justify-center items-center mb-8 space-x-2">
-        <DollarSign className={`h-5 w-5 ${useGems ? 'text-gray-400' : 'text-indigo-600'}`} />
-        <Switch
-          checked={useGems}
-          onCheckedChange={setUseGems}
-          className="data-[state=checked]:bg-indigo-600"
-        />
-        <Gem className={`h-5 w-5 ${useGems ? 'text-indigo-600' : 'text-gray-400'}`} />
-        <span className="text-sm font-medium text-indigo-800">Pay with Gems</span>
-      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         {subscriptionTiers.map((tier, index) => (
           <Card key={tier.name} className="flex flex-col overflow-hidden transform transition-all hover:scale-105 shadow-xl">
@@ -78,15 +73,7 @@ export default function SubscriptionsPage() {
             </CardHeader>
             <CardContent className="flex-grow pt-6 bg-white">
               <p className="text-4xl font-bold mb-4 text-indigo-800">
-                {useGems ? (
-                  <>
-                    {tier.price.gems} <span className="text-xl">⚜️</span>
-                  </>
-                ) : (
-                  <>
-                    ${tier.price.dollar}
-                  </>
-                )}
+                {tier.price} <span className="text-xl">⚜️</span>
                 <span className="text-sm font-normal text-indigo-600">/month</span>
               </p>
               <ul className="space-y-2">
@@ -99,13 +86,39 @@ export default function SubscriptionsPage() {
               </ul>
             </CardContent>
             <CardFooter className="bg-gray-50 border-t border-gray-100">
-              <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white transition-colors">
+              <Button 
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+                onClick={() => handleSelectPlan(tier)}
+              >
                 Select {tier.name} Plan
               </Button>
             </CardFooter>
           </Card>
         ))}
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Subscription</DialogTitle>
+            <DialogDescription>
+              You are about to subscribe to the {selectedTier?.name} plan for {selectedTier?.price} ⚜️ per month.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-500">
+              By confirming, you agree that this subscription will automatically renew each month on this date. You can cancel the renewal at any time.
+            </p>
+            <p className="mt-2 text-sm font-semibold text-indigo-600">
+              Note: You can stop the subscription renewal at any point of time.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleConfirmSubscription}>Start Subscription</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

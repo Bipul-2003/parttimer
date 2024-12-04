@@ -6,6 +6,7 @@ const sidebarItems = [
   { icon: BriefcaseIcon, label: "Organization", value: "organization" },
   { icon: ClockIcon, label: "History", value: "history" },
   { icon: Settings, label: "Settings", value: "settings" },
+  { icon: Settings, label: "Subcriptions", value: "subscription" },
 ]
 
 interface SidebarProps {

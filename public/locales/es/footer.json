@@ -1,0 +1,18 @@
+{
+    "title": "PartTimer",
+    "description": "Conectando profesionales cualificados con quienes necesitan sus servicios.",
+    "quickLinks": {
+      "title": "Enlaces Rápidos",
+      "aboutUs": "Sobre Nosotros",
+      "faq": "Preguntas Frecuentes",
+      "termsOfService": "Términos del Servicio",
+      "privacyPolicy": "Política de Privacidad"
+    },
+    "contactUs": {
+      "title": "Contáctenos",
+      "email": "Correo: info@taskmaster.com",
+      "phone": "Teléfono: (123) 456-7890"
+    },
+    "copyright": " 2023 PartTimer. Todos los derechos reservados."
+  }
+  

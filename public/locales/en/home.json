@@ -1,0 +1,73 @@
+{
+    "hero": {
+      "title": "Find Skilled Part-Time Workers for Any Task",
+      "subtitle": "Connect with reliable personnel for car wash, gardening, and more!",
+      "cta": "Get Started"
+    },
+    "services": {
+      "title": "Our Services",
+      "carWash": {
+        "title": "Car Wash",
+        "description": "Car cleaning services at your doorstep."
+      },
+      "gardening": {
+        "title": "Gardening",
+        "description": "Gardeners to maintain and beautify your outdoor spaces."
+      },
+      "other": {
+        "title": "Other Services",
+        "description": "From home repairs to pet sitting, find help for any task."
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Post a Request",
+        "description": "Describe your task and set your budget."
+      },
+      "step2": {
+        "title": "Get Offers",
+        "description": "Receive responses from Hubs."
+      },
+      "step3": {
+        "title": "Get It Done",
+        "description": "Choose an offer and get your task completed."
+      }
+    },
+    "qualityGuarantee": {
+      "title": "Our Quality Guarantee",
+      "satisfaction": {
+        "title": "Satisfaction Guaranteed",
+        "description": "If you're not happy with the service, we'll make it right or refund your money."
+      },
+      "qualityAssurance": {
+        "title": "Quality Assurance",
+        "description": "Our team regularly checks the quality of work to ensure high standards."
+      },
+      "topRated": {
+        "title": "Top-Rated Personnel",
+        "description": "We only work with the best-rated service providers in each category."
+      },
+      "secureTransactions": {
+        "title": "Secure Transactions",
+        "description": "Your payments are secure and only released when you're satisfied with the work."
+      }
+    },
+    "features": {
+      "title": "Unique Features",
+      "verifiedPersonnel": {
+        "title": "Verified Personnel",
+        "description": "All our service providers undergo thorough background checks."
+      },
+      "flexibleScheduling": {
+        "title": "Flexible Scheduling",
+        "description": "Book services at your convenience, even on short notice."
+      },
+      "transparentPricing": {
+        "title": "Transparent Pricing",
+        "description": "No hidden fees. See exact costs before booking."
+      }
+    }
+  }
+  
+  

@@ -1,16 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X } from 'lucide-react';
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { UserNav } from "./user-nav";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/context/LanguageContext';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import FlagIcon from "./FlagIcon";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t, i18n } = useTranslation(['navbar', 'common']);
+  const { language, setLanguage } = useLanguage();
 
   const { user, loading, logout } = useAuth();
-  // Assuming we have a currency amount in the user object or from a separate hook
   const currencyAmount = user?.points || 0;
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -24,6 +35,19 @@ function Navbar() {
     </Link>
   );
 
+  const handleLanguageChange = (value: string) => {
+    setLanguage(value);
+  };
+
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, [language, i18n]);
+
+  const languageOptions = [
+    { value: 'en', label: t('english', { ns: 'common' }) },
+    { value: 'es', label: t('spanish', { ns: 'common' }) },
+  ];
+
   return (
     <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -34,32 +58,57 @@ function Navbar() {
           <Link
             to={`services`}
             className="text-gray-600 hover:text-blue-600 transition-colors">
-            Services
+            {t('services', { ns: 'navbar' })}
           </Link>
           <a
             href="#how-it-works"
             className="text-gray-600 hover:text-blue-600 transition-colors">
-            How It Works
+            {t('howItWorks', { ns: 'navbar' })}
           </a>
           <a
             href="#post-request"
             className="text-gray-600 hover:text-blue-600 transition-colors">
-            Post a Request
+            {t('postRequest', { ns: 'navbar' })}
           </a>
+          <Link
+            to={`bookLaborers`}
+            className="text-gray-600 hover:text-blue-600 transition-colors">
+            {t('bookLaborers', { ns: 'navbar' })}
+          </Link>
         </nav>
-        <div className="hidden md:flex items-center">
+        <div className="hidden md:flex items-center gap-3">
+          <Select onValueChange={handleLanguageChange} value={language}>
+            <SelectTrigger className="w-[116px] h-9">
+              <SelectValue placeholder={t('languageSelector', { ns: 'common' })}>
+                <div className="flex items-center">
+                  <FlagIcon country={language} className="mr-2" />
+                  {languageOptions.find(opt => opt.value === language)?.label}
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {languageOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  <div className="flex items-center">
+                    <FlagIcon country={option.value} className="mr-2" />
+                    {option.label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {user ? (
             <>
               <CurrencyBadge />
               <UserNav logout={logout} user={user} />
             </>
           ) : (
-            <Button className="w-full">
-              <Link to="/login">Sign In</Link>
+            <Button size="sm" variant="default" className="h-9">
+              <Link to="/login">{t('signIn', { ns: 'navbar' })}</Link>
             </Button>
           )}
         </div>
-        <button onClick={toggleMenu} className="md:hidden">
+        <button onClick={toggleMenu} className="md:hidden flex items-center justify-center h-9 w-9 rounded-md hover:bg-gray-100">
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -69,26 +118,46 @@ function Navbar() {
           <a
             href="#services"
             className="text-gray-600 hover:text-blue-600 transition-colors">
-            Services
+            {t('services', { ns: 'navbar' })}
           </a>
           <a
             href="#how-it-works"
             className="text-gray-600 hover:text-blue-600 transition-colors">
-            How It Works
+            {t('howItWorks', { ns: 'navbar' })}
           </a>
           <a
             href="#post-request"
             className="text-gray-600 hover:text-blue-600 transition-colors">
-            Post a Request
+            {t('postRequest', { ns: 'navbar' })}
           </a>
+          <Select onValueChange={handleLanguageChange} value={language}>
+            <SelectTrigger className="w-full h-9">
+              <SelectValue placeholder={t('languageSelector', { ns: 'common' })}>
+                <div className="flex items-center">
+                  <FlagIcon country={language} className="mr-2" />
+                  {languageOptions.find(opt => opt.value === language)?.label}
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {languageOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  <div className="flex items-center">
+                    <FlagIcon country={option.value} className="mr-2" />
+                    {option.label}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {user ? (
             <div className="flex items-center justify-between">
               <UserNav logout={logout} user={user} />
               <CurrencyBadge />
             </div>
           ) : (
-            <Button className="w-full">
-              <Link to="/login">Sign In</Link>
+            <Button size="sm" variant="default" className="w-full h-9">
+              <Link to="/login">{t('signIn', { ns: 'navbar' })}</Link>
             </Button>
           )}
         </nav>
@@ -98,3 +167,4 @@ function Navbar() {
 }
 
 export default Navbar;
+

@@ -71,6 +71,7 @@ export default function UserProfilePage() {
             <TabsContent value="settings">
               <UserSettings />
             </TabsContent>
+            
             <TabsContent value="subscription">
               <UserSubscription />
             </TabsContent>

@@ -1,0 +1,73 @@
+{
+    "hero": {
+      "title": "Encuentra Trabajadores Cualificados a Tiempo Parcial para Cualquier Tarea",
+      "subtitle": "¡Conéctate con personal confiable para lavado de autos, jardinería y más!",
+      "cta": "Comenzar"
+    },
+    "services": {
+      "title": "Nuestros Servicios",
+      "carWash": {
+        "title": "Lavado de Autos",
+        "description": "Servicios de limpieza de autos en tu puerta."
+      },
+      "gardening": {
+        "title": "Jardinería",
+        "description": "Jardineros para mantener y embellecer tus espacios exteriores."
+      },
+      "other": {
+        "title": "Otros Servicios",
+        "description": "Desde reparaciones del hogar hasta cuidado de mascotas, encuentra ayuda para cualquier tarea."
+      }
+    },
+    "howItWorks": {
+      "title": "Cómo Funciona",
+      "step1": {
+        "title": "Publica una Solicitud",
+        "description": "Describe tu tarea y establece tu presupuesto."
+      },
+      "step2": {
+        "title": "Recibe Ofertas",
+        "description": "Recibe respuestas de los Hubs."
+      },
+      "step3": {
+        "title": "Completa la Tarea",
+        "description": "Elige una oferta y completa tu tarea."
+      }
+    },
+    "qualityGuarantee": {
+      "title": "Nuestra Garantía de Calidad",
+      "satisfaction": {
+        "title": "Satisfacción Garantizada",
+        "description": "Si no estás satisfecho con el servicio, lo arreglaremos o te devolveremos tu dinero."
+      },
+      "qualityAssurance": {
+        "title": "Aseguramiento de Calidad",
+        "description": "Nuestro equipo verifica regularmente la calidad del trabajo para garantizar altos estándares."
+      },
+      "topRated": {
+        "title": "Personal Mejor Calificado",
+        "description": "Solo trabajamos con los proveedores de servicios mejor calificados en cada categoría."
+      },
+      "secureTransactions": {
+        "title": "Transacciones Seguras",
+        "description": "Tus pagos son seguros y solo se liberan cuando estás satisfecho con el trabajo."
+      }
+    },
+    "features": {
+      "title": "Características Únicas",
+      "verifiedPersonnel": {
+        "title": "Personal Verificado",
+        "description": "Todos nuestros proveedores de servicios pasan por exhaustivas verificaciones de antecedentes."
+      },
+      "flexibleScheduling": {
+        "title": "Programación Flexible",
+        "description": "Reserva servicios a tu conveniencia, incluso con poca antelación."
+      },
+      "transparentPricing": {
+        "title": "Precios Transparentes",
+        "description": "Sin cargos ocultos. Ve los costos exactos antes de reservar."
+      }
+    }
+  }
+  
+  

@@ -1,6 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 
 import App from "./App.tsx";
 import "./index.css";
@@ -27,7 +31,10 @@ import SignupPage1 from "./pages/SignUpPage1.tsx";
 import { Toaster } from "./components/ui/toaster.tsx";
 import OrgSettingsPage from "./components/Organization/OrganizationSettings.tsx";
 import PointsManagement from "./pages/PointsManagementPage.tsx";
-
+import { LanguageProvider } from "./context/LanguageContext.tsx";
+import { I18nextProvider } from "react-i18next";
+import i18n from "./i18n.ts";
+import { LaborBookingForm } from "./pages/BookLaborersPage.tsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -54,6 +61,10 @@ const router = createBrowserRouter([
         element: <SignupPage1 />,
       },
       {
+        path: "/bookLaborers",
+        element:<LaborBookingForm/>
+      },
+      {
         path: "/services",
         element: (
           <ProtectedRoute>
@@ -65,7 +76,7 @@ const router = createBrowserRouter([
         path: "/points",
         element: (
           // <ProtectedRoute>
-            <PointsManagement />
+          <PointsManagement />
           // </ProtectedRoute>
         ),
       },
@@ -106,7 +117,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path:"settings",
+            path: "settings",
             element: (
               <ProtectedRoute requiredRole="OWNER">
                 <OrgSettingsPage />
@@ -183,7 +194,7 @@ const router = createBrowserRouter([
         path: "/subscriptions",
         element: (
           // <ProtectedRoute>
-            <SubscriptionsPage />
+          <SubscriptionsPage />
           // </ProtectedRoute>
         ),
       },
@@ -193,10 +204,13 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-      <Toaster />
-    </AuthProvider>
+    <I18nextProvider i18n={i18n}>
+      <LanguageProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </AuthProvider>
+      </LanguageProvider>
+    </I18nextProvider>
   </StrictMode>
 );
-

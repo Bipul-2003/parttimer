@@ -1,4 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import { loadStripe } from '@stripe/stripe-js';
+import { useLocation, Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -10,25 +12,61 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sparkles,
-  CreditCard,
-  Gift,
-  ShoppingCart,
-  Users,
-  Copy,
-  Check,
-} from "lucide-react";
+import { Sparkles, CreditCard, Gift, ShoppingCart, Users, Copy, Check } from 'lucide-react';
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import { useToast } from "../hooks/use-toast";
+
+const stripePromise = loadStripe('your_stripe_publishable_key');
 
 export default function PointsManagement() {
   const [gemCount, setGemCount] = useState(500);
   const [referralLink, setReferralLink] = useState("");
   const [isCopied, setIsCopied] = useState(false);
 
+  const location = useLocation();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const status = params.get('status');
+    const amount = params.get('amount');
+
+    if (status === 'success' && amount) {
+      toast({
+        title: "Purchase Successful",
+        description: `${amount} gems have been added to your account!`,
+      });
+      // Fetch updated gem count from the server
+      fetchGemCount();
+    } else if (status === 'error') {
+      toast({
+        title: "Purchase Failed",
+        description: "There was an error processing your payment. Please try again.",
+      });
+    }
+  }, [location, toast]);
+
+  const fetchGemCount = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/user/gems');
+      if (!response.ok) {
+        throw new Error('Failed to fetch gem count');
+      }
+      const data = await response.json();
+      setGemCount(data.gemCount);
+    } catch (error) {
+      console.error('Error fetching gem count:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update gem count. Please refresh the page.",
+      });
+    }
+  };
+
+  useEffect(() => {
+    // Fetch the user's current gem count from the backend
+    fetchGemCount();
+  }, []);
 
   const addGems = (amount: number) => {
     setGemCount((prevCount) => prevCount + amount);
@@ -49,7 +87,7 @@ export default function PointsManagement() {
       });
       setTimeout(() => setIsCopied(false), 2000);
     });
-  }, [referralLink]);
+  }, [referralLink, toast]);
 
   return (
     <div className="container mx-auto p-4 bg-gradient-to-b from-purple-50 to-indigo-100 min-h-screen">
@@ -100,38 +138,32 @@ export default function PointsManagement() {
                   amount={500}
                   price={2.99}
                   discount={0}
-                  onClick={() => addGems(500)}
                 />
                 <GemPackage
                   amount={1000}
                   price={5.99}
                   discount={0}
-                  onClick={() => addGems(1000)}
                 />
                 <GemPackage
                   amount={2000}
                   price={9.99}
                   discount={17}
-                  onClick={() => addGems(2000)}
                 />
                 <GemPackage
                   amount={5000}
                   price={24.99}
                   discount={20}
-                  onClick={() => addGems(5000)}
                 />
                 <GemPackage
                   amount={10000}
                   price={49.99}
                   discount={25}
-                  onClick={() => addGems(10000)}
                 />
                 <GemPackage
                   amount={20000}
                   price={99.99}
                   discount={30}
                   special={true}
-                  onClick={() => addGems(20000)}
                 />
               </div>
             </TabsContent>
@@ -234,7 +266,6 @@ interface GemPackageProps {
   price: number;
   discount: number;
   special?: boolean;
-  onClick: () => void;
 }
 
 function GemPackage({
@@ -242,8 +273,47 @@ function GemPackage({
   price,
   discount,
   special = false,
-  onClick,
 }: GemPackageProps) {
+  const { toast } = useToast();
+  const handlePurchase = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount, price }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const session = await response.json();
+      const stripe = await stripePromise;
+      
+      if (stripe) {
+        const { error } = await stripe.redirectToCheckout({
+          sessionId: session.id,
+        });
+
+        if (error) {
+          console.error('Stripe Error:', error);
+          toast({
+            title: "Error",
+            description: "There was a problem initiating the payment. Please try again.",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem processing your request. Please try again.",
+      });
+    }
+  };
+
   return (
     <Card
       className={`relative overflow-hidden transition-all duration-300 ${
@@ -277,7 +347,7 @@ function GemPackage({
       </CardHeader>
       <CardFooter className="p-4 pt-0">
         <Button
-          onClick={onClick}
+          onClick={handlePurchase}
           className={`w-full ${
             special ? "bg-amber-500 hover:bg-amber-600" : ""
           }`}>
@@ -288,3 +358,4 @@ function GemPackage({
     </Card>
   );
 }
+

@@ -14,7 +14,6 @@ import UserProfilePage from "./pages/userProfilePage.tsx";
 import ServiceRequestManager from "./components/Organization/ServiceRequestManager.tsx";
 import HomePage from "./pages/HomePage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
-import SignUpPage from "./pages/SignUpPage.tsx";
 import SubscriptionsPage from "./pages/SubscriptionPage.tsx";
 import DetailedServiceRequestPage from "./pages/DetailedRequestPage.tsx";
 import OrganizationPage from "./pages/OrganizationPage.tsx";

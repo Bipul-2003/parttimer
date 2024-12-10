@@ -23,15 +23,18 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "../hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const stripePromise = loadStripe(
   "pk_test_51QRCSY2KrknwI1uDyRSnqfdAtXtXA4kSYLluzjV0WJ1Qqp3DHoh77RqBfE0sYFJ5RpJaVRhXuUbN2ejSyC5Kv6t200BA6PxhXr"
 );
 
 export default function PointsManagement() {
-  const [gemCount, setGemCount] = useState(500);
   const [referralLink, setReferralLink] = useState("");
   const [isCopied, setIsCopied] = useState(false);
+  const { user, fetchUser } = useAuth();
+
+  const gemCount = user?.points || 0;
 
   const location = useLocation();
   const { toast } = useToast();
@@ -47,7 +50,7 @@ export default function PointsManagement() {
         description: `${amount} gems have been added to your account!`,
       });
       // Fetch updated gem count from the server
-      fetchGemCount();
+      fetchUser();
     } else if (status === "error") {
       toast({
         title: "Purchase Failed",
@@ -57,31 +60,27 @@ export default function PointsManagement() {
     }
   }, [location, toast]);
 
-  const fetchGemCount = async () => {
-    try {
-      const response = await fetch("http://localhost:8080/stripe/user/gems");
-      if (!response.ok) {
-        throw new Error("Failed to fetch gem count");
-      }
-      const data = await response.json();
-      setGemCount(data.gemCount);
-    } catch (error) {
-      console.error("Error fetching gem count:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update gem count. Please refresh the page.",
-      });
-    }
-  };
+  // const fetchGemCount = async () => {
+  //   try {
+  //     const response = await fetch("http://localhost:8080/stripe/user/gems");
+  //     if (!response.ok) {
+  //       throw new Error("Failed to fetch gem count");
+  //     }
+  //     const data = await response.json();
+  //     setGemCount(data.gemCount);
+  //   } catch (error) {
+  //     console.error("Error fetching gem count:", error);
+  //     toast({
+  //       title: "Error",
+  //       description: "Failed to update gem count. Please refresh the page.",
+  //     });
+  //   }
+  // };
 
-  useEffect(() => {
-    // Fetch the user's current gem count from the backend
-    fetchGemCount();
-  }, []);
-
-  const addGems = (amount: number) => {
-    setGemCount((prevCount) => prevCount + amount);
-  };
+  // useEffect(() => {
+  //   // Fetch the user's current gem count from the backend
+  //   fetchGemCount();
+  // }, []);
 
   const generateReferralLink = useCallback(() => {
     const uniqueCode = Math.random().toString(36).substring(2, 8);
@@ -126,22 +125,19 @@ export default function PointsManagement() {
             <TabsList className="grid w-full grid-cols-3 mb-6 p-1 bg-muted h-14">
               <TabsTrigger
                 value="add"
-                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full"
-              >
+                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full">
                 <Sparkles className="h-5 w-5" />
                 Add Gems
               </TabsTrigger>
               <TabsTrigger
                 value="use"
-                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full"
-              >
+                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full">
                 <ShoppingCart className="h-5 w-5" />
                 Use Gems
               </TabsTrigger>
               <TabsTrigger
                 value="refer"
-                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full"
-              >
+                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full">
                 <Users className="h-5 w-5" />
                 Refer & Earn
               </TabsTrigger>
@@ -175,8 +171,7 @@ export default function PointsManagement() {
                 <CardFooter>
                   <Button
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
-                    asChild
-                  >
+                    asChild>
                     <Link to="/subscriptions">
                       View All Subscription Options
                     </Link>
@@ -215,8 +210,7 @@ export default function PointsManagement() {
                   <div className="space-y-2">
                     <Button
                       onClick={generateReferralLink}
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                    >
+                      className="w-full bg-blue-600 hover:bg-blue-700">
                       Generate Referral Link
                     </Button>
                     {referralLink && (
@@ -228,8 +222,7 @@ export default function PointsManagement() {
                         />
                         <Button
                           onClick={copyToClipboard}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
+                          className="bg-blue-600 hover:bg-blue-700">
                           {isCopied ? (
                             <Check className="h-4 w-4" />
                           ) : (
@@ -329,8 +322,7 @@ function GemPackage({
         special
           ? "bg-gradient-to-r from-yellow-100 to-amber-100 shadow-amber-200/50"
           : "hover:shadow-lg"
-      }`}
-    >
+      }`}>
       {discount > 0 && (
         <Badge className="absolute top-2 right-2 bg-red-500">
           {discount}% OFF
@@ -345,15 +337,13 @@ function GemPackage({
         <CardTitle
           className={`text-xl sm:text-2xl ${
             special ? "text-amber-800" : "text-gray-800"
-          }`}
-        >
+          }`}>
           {amount.toLocaleString()} Gems
         </CardTitle>
         <CardDescription
           className={`text-base sm:text-lg font-semibold ${
             special ? "text-amber-700" : "text-gray-600"
-          }`}
-        >
+          }`}>
           ${price.toFixed(2)}
         </CardDescription>
       </CardHeader>
@@ -362,8 +352,7 @@ function GemPackage({
           onClick={handlePurchase}
           className={`w-full ${
             special ? "bg-amber-500 hover:bg-amber-600" : ""
-          }`}
-        >
+          }`}>
           <CreditCard className="mr-2 h-4 w-4" />
           Purchase
         </Button>

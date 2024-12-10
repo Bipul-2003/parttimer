@@ -28,6 +28,7 @@ interface AuthContextType {
   checkUser: (email: string) => Promise<{ profileComplete: boolean }>;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<any>;
+  fetchUser: () => Promise<any>;
   isAuthenticated: boolean;
 }
 
@@ -124,7 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, login, isAuthenticated, googleSignIn, checkUser }}>
+    <AuthContext.Provider value={{ user, loading, logout, login, isAuthenticated, googleSignIn, checkUser, fetchUser}}>
       {children}
     </AuthContext.Provider>
   );

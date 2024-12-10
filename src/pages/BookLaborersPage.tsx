@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
-import * as z from "zod";
-import { format } from "date-fns";
+import { useState, useEffect } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm, useFieldArray } from "react-hook-form"
+import * as z from "zod"
+import { format } from "date-fns"
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Form,
   FormControl,
@@ -14,24 +14,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
+} from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
+} from "@/components/ui/popover"
+import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
+import { CalendarIcon } from 'lucide-react'
+import { Textarea } from "@/components/ui/textarea"
 
 const formSchema = z.object({
   address: z.string().min(1, "Address is required"),
@@ -40,22 +41,25 @@ const formSchema = z.object({
   numberOfLabors: z.enum(["1", "2", "3", "4"]),
   sameDateForAll: z.boolean().default(false),
   sameTimeSlotForAll: z.boolean().default(false),
+  sameNoteForAll: z.boolean().default(false),
+  sharedNote: z.string().optional(),
   laborDetails: z.array(
     z.object({
       date: z.date({ required_error: "Date is required" }),
-      timeSlot: z.enum(
-        ["8:30 AM - 11:30 AM", "12:30 PM - 5:30 PM", "Full Day"],
-        { required_error: "Time slot is required" }
-      ),
+      timeSlot: z.enum(["8:30 AM - 11:30 AM", "12:30 PM - 5:30 PM", "Full Day"], {
+        required_error: "Time slot is required",
+      }),
+      note: z.string().optional(),
     })
   ),
-});
+})
+
+type FormValues = z.infer<typeof formSchema>
 
 export function LaborBookingForm() {
-  const [sameDateForAll, setSameDateForAll] = useState(false);
-  const [sameTimeSlotForAll, setSameTimeSlotForAll] = useState(false);
+  const [sharedNote, setSharedNote] = useState("")
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       address: "",
@@ -64,32 +68,60 @@ export function LaborBookingForm() {
       numberOfLabors: "1",
       sameDateForAll: false,
       sameTimeSlotForAll: false,
-      laborDetails: [{ date: new Date(), timeSlot: "8:30 AM - 11:30 AM" }],
+      sameNoteForAll: false,
+      sharedNote: "",
+      laborDetails: [{ date: new Date(), timeSlot: "8:30 AM - 11:30 AM", note: "" }],
     },
-  });
+  })
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "laborDetails",
-  });
+  })
 
-  const numberOfLabors = parseInt(form.watch("numberOfLabors"));
+  const numberOfLabors = parseInt(form.watch("numberOfLabors"))
 
   useEffect(() => {
-    const currentLength = fields.length;
+    const currentLength = fields.length
     if (numberOfLabors > currentLength) {
       for (let i = currentLength; i < numberOfLabors; i++) {
-        append({ date: new Date(), timeSlot: "8:30 AM - 11:30 AM" });
+        append({ date: new Date(), timeSlot: "8:30 AM - 11:30 AM", note: "" })
       }
     } else if (numberOfLabors < currentLength) {
       for (let i = currentLength; i > numberOfLabors; i--) {
-        remove(i - 1);
+        remove(i - 1)
       }
     }
-  }, [numberOfLabors, fields.length, append, remove]);
+  }, [numberOfLabors, fields.length, append, remove])
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  const handleDateChange = (date: Date | undefined, index: number) => {
+    if (date) {
+      if (form.getValues("sameDateForAll")) {
+        form.setValue("laborDetails", fields.map(f => ({ ...f, date })))
+      } else {
+        form.setValue(`laborDetails.${index}.date`, date)
+      }
+    }
+  }
+
+  const handleTimeSlotChange = (timeSlot: FormValues['laborDetails'][number]['timeSlot'], index: number) => {
+    if (form.getValues("sameTimeSlotForAll")) {
+      form.setValue("laborDetails", fields.map(f => ({ ...f, timeSlot })))
+    } else {
+      form.setValue(`laborDetails.${index}.timeSlot`, timeSlot)
+    }
+  }
+
+  function onSubmit(values: FormValues) {
+    const formattedValues = {
+      ...values,
+      laborDetails: values.laborDetails.map(detail => ({
+        ...detail,
+        note: values.sameNoteForAll ? sharedNote : detail.note
+      }))
+    }
+    console.log(formattedValues)
+    // TODO: Implement API call to submit booking
   }
 
   return (
@@ -174,7 +206,7 @@ export function LaborBookingForm() {
 
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Scheduling Options</h2>
-                <div className="flex space-x-4 ">
+                <div className="flex space-x-4">
                   <FormField
                     control={form.control}
                     name="sameDateForAll"
@@ -183,10 +215,7 @@ export function LaborBookingForm() {
                         <FormControl>
                           <Checkbox
                             checked={field.value}
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              setSameDateForAll(checked as boolean);
-                            }}
+                            onCheckedChange={field.onChange}
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
@@ -203,10 +232,7 @@ export function LaborBookingForm() {
                         <FormControl>
                           <Checkbox
                             checked={field.value}
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              setSameTimeSlotForAll(checked as boolean);
-                            }}
+                            onCheckedChange={field.onChange}
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
@@ -215,7 +241,51 @@ export function LaborBookingForm() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="sameNoteForAll"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Same note for all</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
                 </div>
+                {form.watch("sameNoteForAll") && (
+                  <FormField
+                    control={form.control}
+                    name="sharedNote"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Shared Note</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Add a note for all laborers"
+                            className="resize-none"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e)
+                              setSharedNote(e.target.value)
+                              form.setValue("laborDetails", form.getValues("laborDetails").map(detail => ({
+                                ...detail,
+                                note: e.target.value
+                              })))
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
 
               <div className="space-y-6">
@@ -256,17 +326,7 @@ export function LaborBookingForm() {
                                   <Calendar
                                     mode="single"
                                     selected={field.value}
-                                    onSelect={(date) => {
-                                      if (date) {
-                                        field.onChange(date);
-                                        if (sameDateForAll) {
-                                          form.setValue(
-                                            "laborDetails",
-                                            fields.map((f) => ({ ...f, date }))
-                                          );
-                                        }
-                                      }
-                                    }}
+                                    onSelect={(date) => handleDateChange(date, index)}
                                     disabled={(date) =>
                                       date < new Date() ||
                                       date < new Date("1900-01-01")
@@ -286,27 +346,8 @@ export function LaborBookingForm() {
                             <FormItem>
                               <FormLabel>Time Slot</FormLabel>
                               <Select
-                                onValueChange={(value) => {
-                                  field.onChange(
-                                    value as
-                                      | "8:30 AM - 11:30 AM"
-                                      | "12:30 PM - 5:30 PM"
-                                      | "Full Day"
-                                  );
-                                  if (sameTimeSlotForAll) {
-                                    form.setValue(
-                                      "laborDetails",
-                                      fields.map((f) => ({
-                                        ...f,
-                                        timeSlot: value as
-                                          | "8:30 AM - 11:30 AM"
-                                          | "12:30 PM - 5:30 PM"
-                                          | "Full Day",
-                                      }))
-                                    );
-                                  }
-                                }}
-                                defaultValue={field.value}>
+                                onValueChange={(value: FormValues['laborDetails'][number]['timeSlot']) => handleTimeSlotChange(value, index)}
+                                value={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select time slot" />
@@ -329,6 +370,29 @@ export function LaborBookingForm() {
                           )}
                         />
                       </div>
+                      <FormField
+                        control={form.control}
+                        name={`laborDetails.${index}.note`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Note</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Add any additional notes for this laborer"
+                                className="resize-none"
+                                disabled={form.watch("sameNoteForAll")}
+                                value={form.watch("sameNoteForAll") ? sharedNote : field.value}
+                                onChange={(e) => {
+                                  if (!form.watch("sameNoteForAll")) {
+                                    field.onChange(e)
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </CardContent>
                   </Card>
                 ))}
@@ -342,5 +406,6 @@ export function LaborBookingForm() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
+

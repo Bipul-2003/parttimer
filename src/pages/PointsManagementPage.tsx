@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from "@stripe/stripe-js";
 import { useLocation, Link } from "react-router-dom";
 import {
   Card,
@@ -12,11 +12,21 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, CreditCard, Gift, ShoppingCart, Users, Copy, Check } from 'lucide-react';
+import {
+  Sparkles,
+  CreditCard,
+  Gift,
+  ShoppingCart,
+  Users,
+  Copy,
+  Check,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "../hooks/use-toast";
 
-const stripePromise = loadStripe('your_stripe_publishable_key');
+const stripePromise = loadStripe(
+  "pk_test_51QRCSY2KrknwI1uDyRSnqfdAtXtXA4kSYLluzjV0WJ1Qqp3DHoh77RqBfE0sYFJ5RpJaVRhXuUbN2ejSyC5Kv6t200BA6PxhXr"
+);
 
 export default function PointsManagement() {
   const [gemCount, setGemCount] = useState(500);
@@ -28,34 +38,35 @@ export default function PointsManagement() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const status = params.get('status');
-    const amount = params.get('amount');
+    const status = params.get("status");
+    const amount = params.get("amount");
 
-    if (status === 'success' && amount) {
+    if (status === "success" && amount) {
       toast({
         title: "Purchase Successful",
         description: `${amount} gems have been added to your account!`,
       });
       // Fetch updated gem count from the server
       fetchGemCount();
-    } else if (status === 'error') {
+    } else if (status === "error") {
       toast({
         title: "Purchase Failed",
-        description: "There was an error processing your payment. Please try again.",
+        description:
+          "There was an error processing your payment. Please try again.",
       });
     }
   }, [location, toast]);
 
   const fetchGemCount = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/user/gems');
+      const response = await fetch("http://localhost:8080/stripe/user/gems");
       if (!response.ok) {
-        throw new Error('Failed to fetch gem count');
+        throw new Error("Failed to fetch gem count");
       }
       const data = await response.json();
       setGemCount(data.gemCount);
     } catch (error) {
-      console.error('Error fetching gem count:', error);
+      console.error("Error fetching gem count:", error);
       toast({
         title: "Error",
         description: "Failed to update gem count. Please refresh the page.",
@@ -115,50 +126,33 @@ export default function PointsManagement() {
             <TabsList className="grid w-full grid-cols-3 mb-6 p-1 bg-muted h-14">
               <TabsTrigger
                 value="add"
-                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full">
+                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full"
+              >
                 <Sparkles className="h-5 w-5" />
                 Add Gems
               </TabsTrigger>
               <TabsTrigger
                 value="use"
-                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full">
+                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full"
+              >
                 <ShoppingCart className="h-5 w-5" />
                 Use Gems
               </TabsTrigger>
               <TabsTrigger
                 value="refer"
-                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full">
+                className="text-base sm:text-lg data-[state=active]:bg-background data-[state=active]:text-primary transition-all duration-200 flex items-center justify-center gap-2 h-full"
+              >
                 <Users className="h-5 w-5" />
                 Refer & Earn
               </TabsTrigger>
             </TabsList>
             <TabsContent value="add">
               <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <GemPackage
-                  amount={500}
-                  price={2.99}
-                  discount={0}
-                />
-                <GemPackage
-                  amount={1000}
-                  price={5.99}
-                  discount={0}
-                />
-                <GemPackage
-                  amount={2000}
-                  price={9.99}
-                  discount={17}
-                />
-                <GemPackage
-                  amount={5000}
-                  price={24.99}
-                  discount={20}
-                />
-                <GemPackage
-                  amount={10000}
-                  price={49.99}
-                  discount={25}
-                />
+                <GemPackage amount={500} price={2.99} discount={0} />
+                <GemPackage amount={1000} price={5.99} discount={0} />
+                <GemPackage amount={2000} price={9.99} discount={17} />
+                <GemPackage amount={5000} price={24.99} discount={20} />
+                <GemPackage amount={10000} price={49.99} discount={25} />
                 <GemPackage
                   amount={20000}
                   price={99.99}
@@ -179,9 +173,12 @@ export default function PointsManagement() {
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700" asChild>
+                  <Button
+                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    asChild
+                  >
                     <Link to="/subscriptions">
-                    View All Subscription Options
+                      View All Subscription Options
                     </Link>
                   </Button>
                 </CardFooter>
@@ -218,7 +215,8 @@ export default function PointsManagement() {
                   <div className="space-y-2">
                     <Button
                       onClick={generateReferralLink}
-                      className="w-full bg-blue-600 hover:bg-blue-700">
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
                       Generate Referral Link
                     </Button>
                     {referralLink && (
@@ -230,7 +228,8 @@ export default function PointsManagement() {
                         />
                         <Button
                           onClick={copyToClipboard}
-                          className="bg-blue-600 hover:bg-blue-700">
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
                           {isCopied ? (
                             <Check className="h-4 w-4" />
                           ) : (
@@ -277,39 +276,49 @@ function GemPackage({
   const { toast } = useToast();
   const handlePurchase = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ amount, price }),
-      });
+      console.log("price: " + price);
+      const response = await fetch(
+        "http://localhost:8080/stripe/product/v1/checkout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            gems: amount,
+            price: Math.round(price * 100),
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error("Network response was not ok");
       }
 
       const session = await response.json();
       const stripe = await stripePromise;
-      
+
       if (stripe) {
         const { error } = await stripe.redirectToCheckout({
-          sessionId: session.id,
+          sessionId: session.sessionId,
         });
 
         if (error) {
-          console.error('Stripe Error:', error);
+          console.error("Stripe Redirect Error:", error);
           toast({
             title: "Error",
-            description: "There was a problem initiating the payment. Please try again.",
+            description:
+              "There was a problem initiating the payment. Please try again.",
           });
         }
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       toast({
         title: "Error",
-        description: "There was a problem processing your request. Please try again.",
+        description:
+          "There was a problem processing your request. Please try again.",
       });
     }
   };
@@ -320,7 +329,8 @@ function GemPackage({
         special
           ? "bg-gradient-to-r from-yellow-100 to-amber-100 shadow-amber-200/50"
           : "hover:shadow-lg"
-      }`}>
+      }`}
+    >
       {discount > 0 && (
         <Badge className="absolute top-2 right-2 bg-red-500">
           {discount}% OFF
@@ -335,13 +345,15 @@ function GemPackage({
         <CardTitle
           className={`text-xl sm:text-2xl ${
             special ? "text-amber-800" : "text-gray-800"
-          }`}>
+          }`}
+        >
           {amount.toLocaleString()} Gems
         </CardTitle>
         <CardDescription
           className={`text-base sm:text-lg font-semibold ${
             special ? "text-amber-700" : "text-gray-600"
-          }`}>
+          }`}
+        >
           ${price.toFixed(2)}
         </CardDescription>
       </CardHeader>
@@ -350,7 +362,8 @@ function GemPackage({
           onClick={handlePurchase}
           className={`w-full ${
             special ? "bg-amber-500 hover:bg-amber-600" : ""
-          }`}>
+          }`}
+        >
           <CreditCard className="mr-2 h-4 w-4" />
           Purchase
         </Button>
@@ -358,4 +371,3 @@ function GemPackage({
     </Card>
   );
 }
-

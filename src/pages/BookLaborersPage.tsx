@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray } from "react-hook-form"
 import * as z from "zod"
 import { format } from "date-fns"
+import axios from "axios"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -33,6 +34,7 @@ import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from 'lucide-react'
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
   address: z.string().min(1, "Address is required"),
@@ -58,6 +60,7 @@ type FormValues = z.infer<typeof formSchema>
 
 export function LaborBookingForm() {
   const [sharedNote, setSharedNote] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -112,7 +115,8 @@ export function LaborBookingForm() {
     }
   }
 
-  function onSubmit(values: FormValues) {
+  async function onSubmit(values: FormValues) {
+    setIsSubmitting(true)
     const formattedValues = {
       ...values,
       laborDetails: values.laborDetails.map(detail => ({
@@ -120,8 +124,24 @@ export function LaborBookingForm() {
         note: values.sameNoteForAll ? sharedNote : detail.note
       }))
     }
-    console.log(formattedValues)
-    // TODO: Implement API call to submit booking
+    
+    try {
+      const response = await axios.post('/api/book-labor', formattedValues)
+      console.log(response.data)
+      toast({
+        title: "Booking Successful",
+        description: "Your labor booking has been submitted successfully.",
+      })
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: "Booking Failed",
+        description: "There was an error submitting your booking. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -398,8 +418,8 @@ export function LaborBookingForm() {
                 ))}
               </div>
 
-              <Button type="submit" className="w-full">
-                Book Laborers
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Book Laborers"}
               </Button>
             </form>
           </Form>

@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, useFieldArray } from "react-hook-form"
-import * as z from "zod"
-import { format } from "date-fns"
-import axios from "axios"
+import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useFieldArray } from "react-hook-form";
+import * as z from "zod";
+import { format } from "date-fns";
+import axios from "axios";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -15,26 +15,26 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
-import { CalendarIcon } from 'lucide-react'
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/hooks/use-toast"
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   address: z.string().min(1, "Address is required"),
@@ -48,19 +48,22 @@ const formSchema = z.object({
   laborDetails: z.array(
     z.object({
       date: z.date({ required_error: "Date is required" }),
-      timeSlot: z.enum(["8:30 AM - 11:30 AM", "12:30 PM - 5:30 PM", "Full Day"], {
-        required_error: "Time slot is required",
-      }),
+      timeSlot: z.enum(
+        ["8:30 AM - 11:30 AM", "12:30 PM - 5:30 PM", "Full Day"],
+        {
+          required_error: "Time slot is required",
+        }
+      ),
       note: z.string().optional(),
     })
   ),
-})
+});
 
-type FormValues = z.infer<typeof formSchema>
+type FormValues = z.infer<typeof formSchema>;
 
 export function LaborBookingForm() {
-  const [sharedNote, setSharedNote] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [sharedNote, setSharedNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,74 +76,88 @@ export function LaborBookingForm() {
       sameTimeSlotForAll: false,
       sameNoteForAll: false,
       sharedNote: "",
-      laborDetails: [{ date: new Date(), timeSlot: "8:30 AM - 11:30 AM", note: "" }],
+      laborDetails: [
+        { date: new Date(), timeSlot: "8:30 AM - 11:30 AM", note: "" },
+      ],
     },
-  })
+  });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "laborDetails",
-  })
+  });
 
-  const numberOfLabors = parseInt(form.watch("numberOfLabors"))
+  const numberOfLabors = parseInt(form.watch("numberOfLabors"));
 
   useEffect(() => {
-    const currentLength = fields.length
+    const currentLength = fields.length;
     if (numberOfLabors > currentLength) {
       for (let i = currentLength; i < numberOfLabors; i++) {
-        append({ date: new Date(), timeSlot: "8:30 AM - 11:30 AM", note: "" })
+        append({ date: new Date(), timeSlot: "8:30 AM - 11:30 AM", note: "" });
       }
     } else if (numberOfLabors < currentLength) {
       for (let i = currentLength; i > numberOfLabors; i--) {
-        remove(i - 1)
+        remove(i - 1);
       }
     }
-  }, [numberOfLabors, fields.length, append, remove])
+  }, [numberOfLabors, fields.length, append, remove]);
 
   const handleDateChange = (date: Date | undefined, index: number) => {
     if (date) {
       if (form.getValues("sameDateForAll")) {
-        form.setValue("laborDetails", fields.map(f => ({ ...f, date })))
+        form.setValue(
+          "laborDetails",
+          fields.map((f) => ({ ...f, date }))
+        );
       } else {
-        form.setValue(`laborDetails.${index}.date`, date)
+        form.setValue(`laborDetails.${index}.date`, date);
       }
     }
-  }
+  };
 
-  const handleTimeSlotChange = (timeSlot: FormValues['laborDetails'][number]['timeSlot'], index: number) => {
+  const handleTimeSlotChange = (
+    timeSlot: FormValues["laborDetails"][number]["timeSlot"],
+    index: number
+  ) => {
     if (form.getValues("sameTimeSlotForAll")) {
-      form.setValue("laborDetails", fields.map(f => ({ ...f, timeSlot })))
+      form.setValue(
+        "laborDetails",
+        fields.map((f) => ({ ...f, timeSlot }))
+      );
     } else {
-      form.setValue(`laborDetails.${index}.timeSlot`, timeSlot)
+      form.setValue(`laborDetails.${index}.timeSlot`, timeSlot);
     }
-  }
+  };
 
   async function onSubmit(values: FormValues) {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     const formattedValues = {
       ...values,
-      laborDetails: values.laborDetails.map(detail => ({
+      laborDetails: values.laborDetails.map((detail) => ({
         ...detail,
-        note: values.sameNoteForAll ? sharedNote : detail.note
-      }))
-    }
-    
+        note: values.sameNoteForAll ? sharedNote : detail.note,
+      })),
+    };
+
     try {
-      const response = await axios.post('/api/book-labor', formattedValues)
-      console.log(response.data)
+      const response = await axios.post("/api/book-labor", formattedValues, {
+        withCredentials: true,
+      });
+      console.log(response.data);
       toast({
         title: "Booking Successful",
         description: "Your labor booking has been submitted successfully.",
-      })
+      });
     } catch (error) {
-      console.error(error)
+      console.error(error);
       toast({
         title: "Booking Failed",
-        description: "There was an error submitting your booking. Please try again.",
+        description:
+          "There was an error submitting your booking. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
@@ -292,12 +309,17 @@ export function LaborBookingForm() {
                             className="resize-none"
                             {...field}
                             onChange={(e) => {
-                              field.onChange(e)
-                              setSharedNote(e.target.value)
-                              form.setValue("laborDetails", form.getValues("laborDetails").map(detail => ({
-                                ...detail,
-                                note: e.target.value
-                              })))
+                              field.onChange(e);
+                              setSharedNote(e.target.value);
+                              form.setValue(
+                                "laborDetails",
+                                form
+                                  .getValues("laborDetails")
+                                  .map((detail) => ({
+                                    ...detail,
+                                    note: e.target.value,
+                                  }))
+                              );
                             }}
                           />
                         </FormControl>
@@ -346,7 +368,9 @@ export function LaborBookingForm() {
                                   <Calendar
                                     mode="single"
                                     selected={field.value}
-                                    onSelect={(date) => handleDateChange(date, index)}
+                                    onSelect={(date) =>
+                                      handleDateChange(date, index)
+                                    }
                                     disabled={(date) =>
                                       date < new Date() ||
                                       date < new Date("1900-01-01")
@@ -366,7 +390,9 @@ export function LaborBookingForm() {
                             <FormItem>
                               <FormLabel>Time Slot</FormLabel>
                               <Select
-                                onValueChange={(value: FormValues['laborDetails'][number]['timeSlot']) => handleTimeSlotChange(value, index)}
+                                onValueChange={(
+                                  value: FormValues["laborDetails"][number]["timeSlot"]
+                                ) => handleTimeSlotChange(value, index)}
                                 value={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
@@ -401,10 +427,14 @@ export function LaborBookingForm() {
                                 placeholder="Add any additional notes for this laborer"
                                 className="resize-none"
                                 disabled={form.watch("sameNoteForAll")}
-                                value={form.watch("sameNoteForAll") ? sharedNote : field.value}
+                                value={
+                                  form.watch("sameNoteForAll")
+                                    ? sharedNote
+                                    : field.value
+                                }
                                 onChange={(e) => {
                                   if (!form.watch("sameNoteForAll")) {
-                                    field.onChange(e)
+                                    field.onChange(e);
                                   }
                                 }}
                               />
@@ -426,6 +456,5 @@ export function LaborBookingForm() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

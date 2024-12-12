@@ -34,6 +34,9 @@ import { LanguageProvider } from "./context/LanguageContext.tsx";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n.ts";
 import { LaborBookingForm } from "./pages/BookLaborersPage.tsx";
+import { WorkerDashboard } from "./components/Workers/WorkersDashbord.tsx";
+import WorkersPage from "./pages/WorkersPage.tsx";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -190,6 +193,24 @@ const router = createBrowserRouter([
         ],
       },
       {
+        path: "/worker",
+        element: (
+          <ProtectedRoute requiredRole="OWNER">
+            <WorkersPage />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <Navigate to="dashboard" replace />,
+          },
+          {
+            path: "dashboard",
+            element: <WorkerDashboard />,
+          },
+        ],
+      },
+      {
         path: "/subscriptions",
         element: (
           // <ProtectedRoute>
@@ -213,3 +234,4 @@ createRoot(document.getElementById("root")!).render(
     </I18nextProvider>
   </StrictMode>
 );
+

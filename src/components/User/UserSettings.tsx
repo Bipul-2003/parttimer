@@ -5,14 +5,38 @@ import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 
+interface Organization {
+  id: number;
+  name: string;
+}
+
+interface User {
+  user_role: string;
+  user_id: number;
+  organization?: Organization;
+  name: string;
+  email: string;
+  points: number;
+}
+
+const demoUser: User = {
+  user_role: "User",
+  user_id: 1,
+  organization: { id: 1, name: "Demo Corp" },
+  name: "John Doe",
+  email: "john.doe@example.com",
+  points: 1000
+};
+
 export default function UserSettings() {
   const [notifications, setNotifications] = useState(true)
   const [twoFactor, setTwoFactor] = useState(false)
+  const user = demoUser;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Account Settings</CardTitle>
+        <CardTitle className="text-2xl font-bold">Account Settings for {user.name}</CardTitle>
         <CardDescription>Manage your account preferences</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -52,3 +76,4 @@ export default function UserSettings() {
     </Card>
   )
 }
+

@@ -2,6 +2,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
+interface Organization {
+  id: number;
+  name: string;
+}
+
+interface User {
+  user_role: string;
+  user_id: number;
+  organization?: Organization;
+  name: string;
+  email: string;
+  points: number;
+}
+
+const demoUser: User = {
+  user_role: "User",
+  user_id: 1,
+  organization: { id: 1, name: "Demo Corp" },
+  name: "John Doe",
+  email: "john.doe@example.com",
+  points: 1000
+};
+
 const mockServices = [
   {
     id: 1,
@@ -24,10 +47,12 @@ const mockServices = [
 ]
 
 export default function UserHistory() {
+  const user = demoUser;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Service History</CardTitle>
+        <CardTitle className="text-2xl font-bold">Service History for {user.name}</CardTitle>
         <CardDescription>Your recent service requests and their status</CardDescription>
       </CardHeader>
       <CardContent>
@@ -59,3 +84,4 @@ export default function UserHistory() {
     </Card>
   )
 }
+

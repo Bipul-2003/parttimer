@@ -36,6 +36,18 @@ import i18n from "./i18n.ts";
 import { LaborBookingForm } from "./pages/BookLaborersPage.tsx";
 import { WorkerDashboard } from "./components/Workers/WorkersDashbord.tsx";
 import WorkersPage from "./pages/WorkersPage.tsx";
+import UserDashboard from "./components/User/UserDashboard.tsx";
+import UserProfile from "./components/User/UserProfile.tsx";
+import UserOrganization from "./components/User/UserOrganization.tsx";
+import UserHistory from "./components/User/UserHistory.tsx";
+import UserSubscription from "./components/User/UserSubscrions.tsx";
+import UserSettings from "./components/User/UserSettings.tsx";
+// import UserDashboard from "./components/User/UserDashboard.tsx";
+// import UserProfile from "./components/User/UserProfile.tsx";
+// import UserOrganization from "./components/User/UserOrganization.tsx";
+// import UserHistory from "./components/User/UserHistory.tsx";
+// import UserSubscription from "./components/User/UserSubscription.tsx";
+// import UserSettings from "./components/User/UserSettings.tsx";
 
 const router = createBrowserRouter([
   {
@@ -93,10 +105,40 @@ const router = createBrowserRouter([
       {
         path: "/profile",
         element: (
-          <ProtectedRoute>
+          // <ProtectedRoute>
             <UserProfilePage />
-          </ProtectedRoute>
+          // </ProtectedRoute>
         ),
+        children: [
+          {
+            index: true,
+            element: <Navigate to="dashboard" replace />,
+          },
+          {
+            path: "dashboard",
+            element: <UserDashboard />,
+          },
+          {
+            path: "profile",
+            element: <UserProfile />,
+          },
+          {
+            path: "organization",
+            element: <UserOrganization />,
+          },
+          {
+            path: "history",
+            element: <UserHistory />,
+          },
+          {
+            path: "subscription",
+            element: <UserSubscription />,
+          },
+          {
+            path: "settings",
+            element: <UserSettings />,
+          },
+        ],
       },
       {
         path: "/organization",

@@ -1,83 +1,57 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import UserDashboard from '@/components/UserDashboard'
-import UserProfile from '@/components/UserProfile'
-import UserOrganization from '@/components/UserOrganization'
-import UserHistory from '@/components/UserHistory'
-import UserSettings from '@/components/UserSettings'
-import Sidebar from '@/components/Sidebar'
-import UserSubscription from '@/components/UserSubscrions'
+import { Outlet } from 'react-router-dom'
+import { HomeIcon, UserIcon, BriefcaseIcon, ClockIcon, Settings, CreditCard } from 'lucide-react'
+import { Sidebar, SidebarItem } from '@/components/Sidebar/Sidebar';
 
-const mockUser = {
-  name: "Alice Johnson",
-  email: "alice@example.com",
-  avatar: "/placeholder.svg?height=100&width=100",
-  role: "User",
-  organization: "TechCorp Inc.",
-  joinDate: "2021-03-15",
+interface Organization {
+  id: number;
+  name: string;
 }
 
+interface User {
+  user_role: string;
+  user_id: number;
+  organization?: Organization;
+  name: string;
+  email: string;
+  points: number;
+}
+
+const demoUser: User = {
+  user_role: "User",
+  user_id: 1,
+  organization: { id: 1, name: "Demo Corp" },
+  name: "John Doe",
+  email: "john.doe@example.com",
+  points: 1000
+};
+
+const sidebarItems: SidebarItem[] = [
+  { icon: HomeIcon, label: "Dashboard", path: "dashboard" },
+  { icon: UserIcon, label: "Profile", path: "profile" },
+  // { icon: BriefcaseIcon, label: "Organization", path: "organization" },
+  { icon: ClockIcon, label: "History", path: "history" },
+  { icon: CreditCard, label: "Subscriptions", path: "subscription" },
+  { icon: Settings, label: "Settings", path: "settings" },
+]
+
 export default function UserProfilePage() {
-  const [activeTab, setActiveTab] = useState("dashboard")
-  const [user, setUser] = useState(mockUser)
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUser({ ...user, [e.target.id]: e.target.value })
-  }
-
-  const handleSaveChanges = () => {
-    console.log("Saving user changes:", user)
-    // Here you would typically send the updated user data to your backend
-  }
+  const [user, setUser] = useState<User>(demoUser)
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar items={sidebarItems} basePath="/profile" title="MyProfile" />
       <main className="flex-1 p-6 overflow-y-auto">
         <motion.div
-          key={activeTab}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}>
-          {/* <h1 className="text-3xl font-bold mb-6">Welcome, {user.name}</h1> */}
-
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="hidden">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="organization">Organization</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-              <TabsTrigger value="subscription">Subscriptions</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="dashboard">
-              <UserDashboard user={user} />
-            </TabsContent>
-
-            <TabsContent value="profile">
-              <UserProfile user={user} handleInputChange={handleInputChange} handleSaveChanges={handleSaveChanges} />
-            </TabsContent>
-
-            <TabsContent value="organization">
-              <UserOrganization user={user} />
-            </TabsContent>
-
-            <TabsContent value="history">
-              <UserHistory />
-            </TabsContent>
-
-            <TabsContent value="settings">
-              <UserSettings />
-            </TabsContent>
-            
-            <TabsContent value="subscription">
-              <UserSubscription />
-            </TabsContent>
-          </Tabs>
+          {/* Routed content will be rendered here */}
+          <Outlet />
         </motion.div>
       </main>
     </div>
   )
 }
+

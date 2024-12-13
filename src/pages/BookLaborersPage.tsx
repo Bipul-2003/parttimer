@@ -140,9 +140,13 @@ export function LaborBookingForm() {
     };
 
     try {
-      const response = await axios.post("/api/book-labor", formattedValues, {
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/api/labour-bookings",
+        formattedValues,
+        {
+          withCredentials: true,
+        }
+      );
       console.log(response.data);
       toast({
         title: "Booking Successful",
@@ -219,7 +223,8 @@ export function LaborBookingForm() {
                       <FormLabel>Number of Laborers</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}>
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select number of laborers" />
@@ -352,7 +357,8 @@ export function LaborBookingForm() {
                                       className={cn(
                                         "w-full pl-3 text-left font-normal",
                                         !field.value && "text-muted-foreground"
-                                      )}>
+                                      )}
+                                    >
                                       {field.value ? (
                                         format(field.value, "PPP")
                                       ) : (
@@ -364,7 +370,8 @@ export function LaborBookingForm() {
                                 </PopoverTrigger>
                                 <PopoverContent
                                   className="w-auto p-0"
-                                  align="start">
+                                  align="start"
+                                >
                                   <Calendar
                                     mode="single"
                                     selected={field.value}
@@ -393,7 +400,8 @@ export function LaborBookingForm() {
                                 onValueChange={(
                                   value: FormValues["laborDetails"][number]["timeSlot"]
                                 ) => handleTimeSlotChange(value, index)}
-                                value={field.value}>
+                                value={field.value}
+                              >
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select time slot" />

@@ -205,7 +205,7 @@ export function PartTimeServicesTable() {
     const fetchData = async () => {
       try {
         const response = await getUserPartimeBookings();
-        setData(response.data)
+        setData(response)
       } catch (error) {
         console.error("Failed to fetch user part-time bookings:", error)
         toast({

@@ -13,7 +13,7 @@ function App() {
 
   useEffect(() => {
     const checkProfileComplete = async () => {
-      if (user) {
+      if (user && user.user_role !== "LABOUR") {
         const profileStatus = await checkUser(user.email);
 
         if (!profileStatus.profileComplete) {

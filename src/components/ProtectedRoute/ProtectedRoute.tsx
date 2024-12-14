@@ -1,10 +1,13 @@
 import { useAuth } from '@/context/AuthContext';
 import React from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
+
+type OrgRole = 'ADMIN' | 'OWNER' | 'CO_OWNER';
+type UserRole = OrgRole | 'LABOUR';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'ADMIN' | 'OWNER' | 'CO_OWNER';
+  requiredRole?: UserRole;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
@@ -12,7 +15,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
 }) => {
   const { user, loading } = useAuth();
-  const { orgId } = useParams<{ orgId: string }>();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -22,18 +24,24 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
-  if (orgId && user.organization?.id !== parseInt(orgId, 10)) {
-    return <Navigate to="/" replace />;
+  const isLabourRole = user.user_role === 'LABOUR';
+
+  // Handle LABOUR role
+  if (isLabourRole) {
+    if (requiredRole && requiredRole !== 'LABOUR') {
+      return <Navigate to="/worker/dashboard" replace />;
+    }
+    return <>{children}</>;
   }
 
-  if (requiredRole) {
-    const roleHierarchy = {
+  if (requiredRole && requiredRole !== 'LABOUR') {
+    const roleHierarchy: Record<OrgRole, OrgRole[]> = {
       ADMIN: ["ADMIN"],
       OWNER: ["ADMIN", "OWNER"],
       CO_OWNER: ["ADMIN", "OWNER", "CO_OWNER"],
     };
 
-    if (!roleHierarchy[requiredRole].includes(user.user_role)) {
+    if (!roleHierarchy[requiredRole as OrgRole].includes(user.user_role as OrgRole)) {
       return <Navigate to="/" replace />;
     }
   }
@@ -41,5 +49,5 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   return <>{children}</>;
 };
 
-
 export default ProtectedRoute;
+

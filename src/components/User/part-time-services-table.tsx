@@ -34,70 +34,31 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import axios from "axios"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "@/hooks/use-toast"
+import { getUserPartimeBookings } from "@/api/UserApis/bookingsApi"
 
 type PartTimeService = {
-  id: string
-  requestNumber: string
-  date: Date
+  bookingId: number
+  date: string
   time: string
-  status: "PENDING" | "PRICE_OFFERED" | "ACCEPTED" | "COMPLETED"
-  note: string
-  zipcode: string
   city: string
-  offeredPrice?: number
+  zipcode: string
+  description: string
+  status: string
+  offeredPrice: number | null
+  serviceName: string
 }
 
-const data: PartTimeService[] = [
-  {
-    id: "1",
-    requestNumber: "PT001",
-    date: new Date(),
-    time: "09:00",
-    status: "PENDING",
-    note: "House cleaning service",
-    zipcode: "12345",
-    city: "New York",
-  },
-  {
-    id: "2",
-    requestNumber: "PT002",
-    date: new Date(),
-    time: "14:00",
-    status: "PRICE_OFFERED",
-    note: "Dog walking service",
-    zipcode: "67890",
-    city: "Los Angeles",
-    offeredPrice: 50,
-  },
-  {
-    id: "3",
-    requestNumber: "PT003",
-    date: new Date(),
-    time: "11:30",
-    status: "ACCEPTED",
-    note: "Lawn mowing",
-    zipcode: "54321",
-    city: "Chicago",
-    offeredPrice: 75,
-  },
-  {
-    id: "4",
-    requestNumber: "PT004",
-    date: new Date(),
-    time: "16:00",
-    status: "COMPLETED",
-    note: "Grocery delivery",
-    zipcode: "98765",
-    city: "Houston",
-    offeredPrice: 30,
-  },
-]
+const API_URL = "http://localhost:8000";
 
 export const columns: ColumnDef<PartTimeService>[] = [
   {
-    accessorKey: "requestNumber",
-    header: "Request Number",
-    cell: ({ row }) => <div>{row.getValue("requestNumber")}</div>,
+    accessorKey: "bookingId",
+    header: "Booking ID",
+    cell: ({ row }) => <div>{row.getValue("bookingId")}</div>,
   },
   {
     accessorKey: "date",
@@ -112,7 +73,7 @@ export const columns: ColumnDef<PartTimeService>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div>{row.getValue<Date>("date").toLocaleDateString()}</div>,
+    cell: ({ row }) => <div>{row.getValue("date")}</div>,
   },
   {
     accessorKey: "time",
@@ -130,9 +91,9 @@ export const columns: ColumnDef<PartTimeService>[] = [
     cell: ({ row }) => <div>{row.getValue("zipcode")}</div>,
   },
   {
-    accessorKey: "note",
-    header: "Note",
-    cell: ({ row }) => <div>{row.getValue("note")}</div>,
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => <div>{row.getValue("description")}</div>,
   },
   {
     accessorKey: "status",
@@ -150,14 +111,58 @@ export const columns: ColumnDef<PartTimeService>[] = [
     accessorKey: "offeredPrice",
     header: "Offered Price",
     cell: ({ row }) => {
-      const price = row.getValue("offeredPrice") as number | undefined
+      const price = row.getValue("offeredPrice") as number | null
       return <div>{price ? `$${price}` : "N/A"}</div>
     },
+  },
+  {
+    accessorKey: "serviceName",
+    header: "Service Name",
+    cell: ({ row }) => <div>{row.getValue("serviceName")}</div>,
   },
   {
     id: "actions",
     cell: ({ row }) => {
       const service = row.original
+      const navigate = useNavigate()
+
+      const handleViewDetails = () => {
+        navigate(`/part-time-services/${service.bookingId}`)
+      }
+
+      const handleAcceptOffer = async () => {
+        try {
+          await axios.post(`${API_URL}/bookings/${service.bookingId}/accept`)
+          toast({
+            title: "Offer Accepted",
+            description: "You have successfully accepted the offer.",
+          })
+          // Refresh the data or update the local state
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to accept the offer. Please try again.",
+            variant: "destructive",
+          })
+        }
+      }
+
+      const handleCancelService = async () => {
+        try {
+          await axios.post(`${API_URL}/bookings/${service.bookingId}/cancel`)
+          toast({
+            title: "Service Cancelled",
+            description: "You have successfully cancelled the service.",
+          })
+          // Refresh the data or update the local state
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to cancel the service. Please try again.",
+            variant: "destructive",
+          })
+        }
+      }
 
       return (
         <DropdownMenu>
@@ -170,17 +175,17 @@ export const columns: ColumnDef<PartTimeService>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(service.id)}
+              onClick={() => navigator.clipboard.writeText(service.bookingId.toString())}
             >
-              Copy service ID
+              Copy booking ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleViewDetails}>View details</DropdownMenuItem>
             {service.status === "PRICE_OFFERED" && (
-              <DropdownMenuItem>Accept offer</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleAcceptOffer}>Accept offer</DropdownMenuItem>
             )}
             {service.status !== "COMPLETED" && (
-              <DropdownMenuItem>Cancel service</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCancelService}>Cancel service</DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -194,6 +199,25 @@ export function PartTimeServicesTable() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [data, setData] = useState<PartTimeService[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getUserPartimeBookings();
+        setData(response.data)
+      } catch (error) {
+        console.error("Failed to fetch user part-time bookings:", error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch user part-time bookings. Please try again.",
+          variant: "destructive",
+        })
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const table = useReactTable({
     data,
@@ -218,10 +242,10 @@ export function PartTimeServicesTable() {
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter by request number..."
-          value={(table.getColumn("requestNumber")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter by booking ID..."
+          value={(table.getColumn("bookingId")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("requestNumber")?.setFilterValue(event.target.value)
+            table.getColumn("bookingId")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />

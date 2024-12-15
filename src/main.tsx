@@ -233,7 +233,7 @@ const router = createBrowserRouter([
       {
         path: "/worker",
         element: (
-          <ProtectedRoute requiredRole="OWNER">
+          <ProtectedRoute requiredRole="LABOUR">
             <WorkersPage />
           </ProtectedRoute>
         ),

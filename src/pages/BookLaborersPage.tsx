@@ -141,7 +141,7 @@ export function LaborBookingForm() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/labour-bookings",
+        "http://localhost:8080/api/user/labour-bookings",
         formattedValues,
         {
           withCredentials: true,

@@ -42,12 +42,8 @@ import UserOrganization from "./components/User/UserOrganization.tsx";
 import UserHistory from "./components/User/UserHistory.tsx";
 import UserSubscription from "./components/User/UserSubscrions.tsx";
 import UserSettings from "./components/User/UserSettings.tsx";
-// import UserDashboard from "./components/User/UserDashboard.tsx";
-// import UserProfile from "./components/User/UserProfile.tsx";
-// import UserOrganization from "./components/User/UserOrganization.tsx";
-// import UserHistory from "./components/User/UserHistory.tsx";
-// import UserSubscription from "./components/User/UserSubscription.tsx";
-// import UserSettings from "./components/User/UserSettings.tsx";
+import { UserWorkerServiceReqestDetailsPage } from "./pages/WorkerServiceDetailsPage.tsx";
+
 
 const router = createBrowserRouter([
   {
@@ -250,7 +246,16 @@ const router = createBrowserRouter([
             path: "dashboard",
             element: <WorkerDashboard />,
           },
+        
         ],
+      },
+      {
+        path: "/worker-services/:serviceId",
+        element: (
+          // <ProtectedRoute>
+            <UserWorkerServiceReqestDetailsPage />
+          // </ProtectedRoute>
+        ),
       },
       {
         path: "/subscriptions",

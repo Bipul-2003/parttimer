@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import {
   ColumnDef,
@@ -32,52 +34,33 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "@/hooks/use-toast"
+import { getUserWorkerBookings } from "@/api/UserApis/bookingsApi"
 
-type WorkerService = {
-  id: string
-  requestNumber: string
-  date: Date
-  timeSlot: string
-  status: "PENDING" | "ASSIGNED" | "IN_PROGRESS" | "COMPLETED"
-  jobType: string
-  location: string
-  client: string
-  payment?: number
-}
+type LabourAssignment = {
+  assignmentId: number;
+  bookingId: number;
+  bookingDate: string;
+  timeSlot: string;
+  bookingNote: string;
+  bookingStatus: string;
+  totalOffers: number;
+};
 
-const data: WorkerService[] = [
-  {
-    id: "1",
-    requestNumber: "WS001",
-    date: new Date(),
-    timeSlot: "8:00 AM - 4:00 PM",
-    status: "PENDING",
-    jobType: "Construction",
-    location: "New York",
-    client: "ABC Construction Co.",
-  },
-  {
-    id: "2",
-    requestNumber: "WS002",
-    date: new Date(),
-    timeSlot: "9:00 AM - 5:00 PM",
-    status: "ASSIGNED",
-    jobType: "Plumbing",
-    location: "Los Angeles",
-    client: "XYZ Plumbing Services",
-    payment: 200,
-  },
-  // Add more sample data here...
-]
-
-export const columns: ColumnDef<WorkerService>[] = [
+const columns: ColumnDef<LabourAssignment>[] = [
   {
     accessorKey: "requestNumber",
     header: "Request Number",
-    cell: ({ row }) => <div>{row.getValue("requestNumber")}</div>,
+    cell: ({ row }) => {
+      const bookingId = row.original.bookingId;
+      const assignmentId = row.original.assignmentId;
+      return <div>{`${bookingId}-${assignmentId}`}</div>;
+    },
   },
   {
-    accessorKey: "date",
+    accessorKey: "bookingDate",
     header: ({ column }) => {
       return (
         <Button
@@ -89,7 +72,7 @@ export const columns: ColumnDef<WorkerService>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div>{row.getValue<Date>("date").toLocaleDateString()}</div>,
+    cell: ({ row }) => <div>{row.getValue("bookingDate")}</div>,
   },
   {
     accessorKey: "timeSlot",
@@ -97,44 +80,70 @@ export const columns: ColumnDef<WorkerService>[] = [
     cell: ({ row }) => <div>{row.getValue("timeSlot")}</div>,
   },
   {
-    accessorKey: "jobType",
-    header: "Job Type",
-    cell: ({ row }) => <div>{row.getValue("jobType")}</div>,
+    accessorKey: "bookingNote",
+    header: "Booking Note",
+    cell: ({ row }) => <div>{row.getValue("bookingNote")}</div>,
   },
   {
-    accessorKey: "location",
-    header: "Location",
-    cell: ({ row }) => <div>{row.getValue("location")}</div>,
-  },
-  {
-    accessorKey: "client",
-    header: "Client",
-    cell: ({ row }) => <div>{row.getValue("client")}</div>,
-  },
-  {
-    accessorKey: "status",
+    accessorKey: "bookingStatus",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string
+      const status = row.getValue("bookingStatus") as string;
       return (
-        <Badge variant={status === "COMPLETED" ? "default" : "secondary"}>
+        <Badge variant={status === "OPEN" ? "secondary" : "default"}>
           {status}
         </Badge>
-      )
+      );
     },
   },
   {
-    accessorKey: "payment",
-    header: "Payment",
-    cell: ({ row }) => {
-      const payment = row.getValue("payment") as number | undefined
-      return <div>{payment ? `$${payment}` : 'N/A'}</div>
-    },
+    accessorKey: "totalOffers",
+    header: "Total Offers",
+    cell: ({ row }) => <div>{row.getValue("totalOffers")}</div>,
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const service = row.original
+      const assignment = row.original
+      const navigate = useNavigate()
+
+      const handleViewDetails = () => {
+        navigate(`/worker-services/${assignment.bookingId}-${assignment.assignmentId}`)
+      }
+
+      const handleAcceptOffer = async () => {
+        try {
+          // Implement the API call to accept the offer
+          toast({
+            title: "Offer Accepted",
+            description: "You have successfully accepted the offer.",
+          })
+          // Refresh the data or update the local state
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to accept the offer. Please try again.",
+            variant: "destructive",
+          })
+        }
+      }
+
+      const handleCancelAssignment = async () => {
+        try {
+          // Implement the API call to cancel the assignment
+          toast({
+            title: "Assignment Cancelled",
+            description: "You have successfully cancelled the assignment.",
+          })
+          // Refresh the data or update the local state
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to cancel the assignment. Please try again.",
+            variant: "destructive",
+          })
+        }
+      }
 
       return (
         <DropdownMenu>
@@ -147,17 +156,17 @@ export const columns: ColumnDef<WorkerService>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(service.id)}
+              onClick={() => navigator.clipboard.writeText(`${assignment.bookingId}-${assignment.assignmentId}`)}
             >
-              Copy service ID
+              Copy request number
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
-            {service.status === "PENDING" && (
-              <DropdownMenuItem>Accept job</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleViewDetails}>View details</DropdownMenuItem>
+            {assignment.bookingStatus === "OPEN" && (
+              <DropdownMenuItem onClick={handleAcceptOffer}>Accept offer</DropdownMenuItem>
             )}
-            {service.status === "IN_PROGRESS" && (
-              <DropdownMenuItem>Complete job</DropdownMenuItem>
+            {assignment.bookingStatus !== "COMPLETED" && (
+              <DropdownMenuItem onClick={handleCancelAssignment}>Cancel assignment</DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -171,6 +180,30 @@ export function WorkerServicesTable() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [data, setData] = useState<LabourAssignment[]>([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getUserWorkerBookings()
+        setData(response.flatMap((service: { bookingId: number, labourAssignments: LabourAssignment[] }) => 
+          service.labourAssignments.map(assignment => ({
+            ...assignment,
+            bookingId: service.bookingId
+          }))
+        ))
+      } catch (error) {
+        console.error("Failed to fetch user worker bookings:", error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch user worker bookings. Please try again.",
+          variant: "destructive",
+        })
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const table = useReactTable({
     data,

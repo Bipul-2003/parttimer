@@ -10,3 +10,12 @@ export const getUserPartimeBookings = async () => {
     throw new Error("Failed to fetch user bookings");
   }
 }
+
+export const getUserWorkerBookings = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/user/labour-bookings`,{withCredentials: true});
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to fetch worker bookings");
+  }
+}

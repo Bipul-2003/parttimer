@@ -12,7 +12,7 @@ interface Organization {
   name: string;
 }
 
-interface User {
+interface RegularUser {
   user_role: string;
   user_id: number;
   organization?: Organization;
@@ -20,6 +20,16 @@ interface User {
   email: string;
   points: number;
 }
+
+interface LabourUser {
+  user_type: "LABOUR";
+  phone: string;
+  name: string;
+  average_rating: number;
+  id: number;
+}
+
+type User = RegularUser | LabourUser;
 
 interface AuthContextType {
   user: User | null;

@@ -1,8 +1,8 @@
-import Navbar from "./components/Navbar";
+import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { useAuth } from "./context/AuthContext";
-import { useEffect } from "react";
 
 function App() {
   const location = useLocation();
@@ -16,37 +16,39 @@ function App() {
       // Ensure the user is not null
       if (!user) return;
   
-      // Skip the check for LABOUR role
-      if (user.user_role === "LABOUR") {
+      // Skip the check for LABOUR user type
+      if ('user_type' in user && user.user_type === "LABOUR") {
         return;
       }
   
-      // Perform the profile completeness check
-      const profileStatus = await checkUser(user.email);
+      // Perform the profile completeness check for regular users
+      if ('email' in user) {
+        const profileStatus = await checkUser(user.email);
   
-      if (!profileStatus.profileComplete) {
-        const nameParts = user.name.trim().split(/\s+/);
-        const firstName = nameParts[0] || "";
-        const lastName = nameParts[nameParts.length - 1] || "";
-        const middleName =
-          nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : "";
+        if (!profileStatus.profileComplete) {
+          const nameParts = user.name.trim().split(/\s+/);
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts[nameParts.length - 1] || "";
+          const middleName =
+            nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : "";
   
-        navigate("/signup", {
-          state: {
-            firstName,
-            middleName,
-            lastName,
-            email: user.email,
-          },
-        });
+          navigate("/signup", {
+            state: {
+              firstName,
+              middleName,
+              lastName,
+              email: user.email,
+            },
+          });
+        }
       }
     };
   
-    // Only run the profile check if the user is not LABOUR
-    if (user && user.user_role !== "LABOUR") {
+    // Run the profile check for all users
+    if (user) {
       checkProfileComplete();
     }
-  }, [user]);
+  }, [user, checkUser, navigate]);
 
   return (
     <div className="">
@@ -58,3 +60,4 @@ function App() {
 }
 
 export default App;
+

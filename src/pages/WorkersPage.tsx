@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { LayoutDashboard } from 'lucide-react';
 import { Sidebar, SidebarItem } from '@/components/Sidebar/Sidebar';

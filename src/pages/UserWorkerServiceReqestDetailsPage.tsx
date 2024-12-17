@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Star } from 'lucide-react';
@@ -21,10 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import axios from 'axios';
 import { getReqDetails, getReqOffers } from "@/api/UserApis/bookingsApi";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type LaborOffer = {
   priceOfferId: number;

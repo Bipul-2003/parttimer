@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, Star } from "lucide-react";
+import { ChevronLeft, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,90 +21,89 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import axios from 'axios';
+import { getReqDetails, getReqOffers } from "@/api/UserApis/bookingsApi";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type LaborOffer = {
-  laborId: string;
-  laborName: string;
-  offeredPrice: number;
-  rating: number;
+  priceOfferId: number;
+  labourFirstName: string;
+  labourMiddleName: string;
+  labourLastName: string;
+  labourRating: number;
+  proposedPrice: number;
 };
 
 type WorkerService = {
-  id: string;
-  requestNumber: string;
-  date: Date;
+  date: string;
   timeSlot: string;
-  status: "PENDING" | "PRICE_OFFERED" | "ACCEPTED" | "COMPLETED";
+  status: string;
   description: string;
   location: string;
   zipcode: string;
   city: string;
-  note: string;
-  laborOffers: LaborOffer[];
 };
+
+
 
 export function UserWorkerServiceReqestDetailsPage() {
   const { serviceId } = useParams<{ serviceId: string }>();
   const navigate = useNavigate();
   const [service, setService] = useState<WorkerService | null>(null);
+  const [offers, setOffers] = useState<LaborOffer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch service details
-    // This is a mock implementation. Replace with actual API call.
-    setService({
-      id: serviceId || "",
-      requestNumber: `REQ-${serviceId}`,
-      date: new Date(),
-      timeSlot: "8:30 AM - 11:30 AM",
-      status: "PRICE_OFFERED",
-      description: "Need help moving furniture",
-      location: "123 Main St",
-      zipcode: "12345",
-      city: "New York",
-      note: "Please bring moving straps and gloves",
-      laborOffers: [
-        {
-          laborId: "L1",
-          laborName: "John Doe",
-          offeredPrice: 150,
-          rating: 4.5,
-        },
-        {
-          laborId: "L2",
-          laborName: "Jane Smith",
-          offeredPrice: 140,
-          rating: 4.8,
-        },
-        {
-          laborId: "L3",
-          laborName: "Mike Johnson",
-          offeredPrice: 160,
-          rating: 4.2,
-        },
-      ],
-    });
+    const fetchData = async () => {
+      if (!serviceId) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const [serviceDetails, offerDetails] = await Promise.all([
+          getReqDetails(serviceId),
+          getReqOffers(serviceId)
+        ]);
+        setService(serviceDetails);
+        setOffers(offerDetails);
+      } catch (err) {
+        setError("Failed to fetch data. Please try again later.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [serviceId]);
 
   const handleBack = () => {
-    navigate(-1); // This will navigate to the previous page
+    navigate(-1);
   };
 
-  const handleAcceptOffer = async (laborId: string) => {
+  const handleAcceptOffer = async (priceOfferId: number) => {
     // TODO: Implement API call to accept the offer
-    console.log(
-      `Accepted offer from labor ${laborId} for service ${serviceId}`
-    );
-    setService((prev) => (prev ? { ...prev, status: "ACCEPTED" } : null));
+    console.log(`Accepted offer ${priceOfferId} for service ${serviceId}`);
+    setService((prev) => prev ? { ...prev, status: "ACCEPTED" } : null);
   };
 
   const handleCancelRequest = async () => {
     // TODO: Implement API call to cancel the request
     console.log(`Cancelled service ${serviceId}`);
-    navigate(-1); // Go back to the previous page after cancelling
+    navigate(-1);
   };
 
-  if (!service) {
+  if (loading) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!service) {
+    return <div>No service details found.</div>;
   }
 
   return (
@@ -121,20 +120,19 @@ export function UserWorkerServiceReqestDetailsPage() {
           </BreadcrumbList>
         </Breadcrumb>
         <CardTitle className="text-xl sm:text-2xl font-semibold mt-2">
-          Service: {service.requestNumber}
+          Service Details
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6 px-4 sm:px-6">
         <div className="mb-8 flex items-center space-x-2">
-          <h2 className="text-lg font-semibold ">status</h2>
-          <Badge
-            variant={service.status === "ACCEPTED" ? "default" : "secondary"}>
+          <h2 className="text-lg font-semibold">Status</h2>
+          <Badge variant={service.status === "ACCEPTED" ? "default" : "secondary"}>
             {service.status}
           </Badge>
         </div>
 
         <div className="space-y-6">
-          {service.status === "PRICE_OFFERED" && (
+          {service.status === "OPEN" && offers.length > 0 && (
             <div>
               <h2 className="text-lg font-semibold mb-2">Labor Offers</h2>
               <Card>
@@ -149,19 +147,18 @@ export function UserWorkerServiceReqestDetailsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {service.laborOffers.map((offer) => (
-                        <TableRow key={offer.laborId}>
-                          <TableCell>{offer.laborName}</TableCell>
-                          <TableCell>${offer.offeredPrice}</TableCell>
+                      {offers.map((offer) => (
+                        <TableRow key={offer.priceOfferId}>
+                          <TableCell>{`${offer.labourFirstName} ${offer.labourMiddleName} ${offer.labourLastName}`}</TableCell>
+                          <TableCell>${offer.proposedPrice.toFixed(2)}</TableCell>
                           <TableCell>
                             <div className="flex items-center">
-                              {offer.rating}
+                              {offer.labourRating.toFixed(1)}
                               <Star className="h-4 w-4 ml-1 fill-yellow-400 text-yellow-400" />
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              onClick={() => handleAcceptOffer(offer.laborId)}>
+                            <Button onClick={() => handleAcceptOffer(offer.priceOfferId)}>
                               Accept Offer
                             </Button>
                           </TableCell>
@@ -182,17 +179,13 @@ export function UserWorkerServiceReqestDetailsPage() {
                   {service.description}
                 </p>
                 <p className="text-sm sm:text-base">
-                  <strong>Date:</strong> {format(service.date, "PPP")}
+                  <strong>Date:</strong> {format(new Date(service.date), "PPP")}
                 </p>
                 <p className="text-sm sm:text-base">
                   <strong>Time:</strong> {service.timeSlot}
                 </p>
                 <p className="text-sm sm:text-base">
-                  <strong>Location:</strong> {service.location}, {service.city},{" "}
-                  {service.zipcode}
-                </p>
-                <p className="text-sm sm:text-base">
-                  <strong>Note:</strong> {service.note}
+                  <strong>Location:</strong> {service.location}, {service.city}, {service.zipcode}
                 </p>
               </CardContent>
             </Card>
@@ -210,3 +203,4 @@ export function UserWorkerServiceReqestDetailsPage() {
     </Card>
   );
 }
+

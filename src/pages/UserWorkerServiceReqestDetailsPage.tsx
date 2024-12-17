@@ -53,13 +53,16 @@ export function UserWorkerServiceReqestDetailsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const labourAssignmentId = serviceId?.split('-')[1];
+      if (!labourAssignmentId) 
+        return;
       if (!serviceId) return;
       setLoading(true);
       setError(null);
       try {
         const [serviceDetails, offerDetails] = await Promise.all([
-          getReqDetails(serviceId),
-          getReqOffers(serviceId)
+          getReqDetails(labourAssignmentId),
+          getReqOffers(labourAssignmentId)
         ]);
         setService(serviceDetails);
         setOffers(offerDetails);

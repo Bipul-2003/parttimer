@@ -63,7 +63,7 @@ export function WorkerDashboard() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/labour-dashboard/open-bookings');
+        const response = await axios.get('http://localhost:8080/api/labour-dashboard/open-bookings',{withCredentials: true});
         setRequests(response.data.map((item: any) => ({
           id: item.id.toString(),
           requestNumber: item.bookingId.toString(),

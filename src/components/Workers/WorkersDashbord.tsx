@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import axios from 'axios';
 // import { LaborRequestDetails } from "./LaborRequestDetails"
 
 type LaborRequest = {
@@ -54,35 +55,33 @@ type LaborRequest = {
 };
 
 export function WorkerDashboard() {
-  const [requests, setRequests] = useState<LaborRequest[]>([
-    {
-      id: "1",
-      requestNumber: "REQ001",
-      date: new Date(),
-      timeSlot: "8:30 AM - 11:30 AM",
-      status: "PENDING",
-      description: "Need help with moving furniture",
-      location: "123 Main St",
-      zipcode: "12345",
-      city: "New York",
-    },
-    {
-      id: "2",
-      requestNumber: "REQ002",
-      date: new Date(),
-      timeSlot: "12:30 PM - 5:30 PM",
-      status: "PRICE_OFFERED",
-      description: "Assistance required for garden work",
-      location: "456 Elm St",
-      zipcode: "67890",
-      city: "Los Angeles",
-      offeredPrice: 150,
-    },
-  ]);
-
+  const [requests, setRequests] = useState<LaborRequest[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
     null
   );
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/labour-dashboard/open-bookings');
+        setRequests(response.data.map((item: any) => ({
+          id: item.id.toString(),
+          requestNumber: item.bookingId.toString(),
+          date: new Date(item.bookingDate),
+          timeSlot: item.timeSlot,
+          status: "PENDING",
+          description: item.bookingNote,
+          location: item.city,
+          zipcode: item.zipcode,
+          city: item.city,
+        })));
+      } catch (error) {
+        console.error('Error fetching requests:', error);
+      }
+    };
+
+    fetchRequests();
+  }, []);
 
   const handleOfferPrice = async (requestId: string, price: number) => {
     // TODO: Implement API call to offer price
@@ -269,3 +268,4 @@ export function WorkerDashboard() {
     </>
   );
 }
+

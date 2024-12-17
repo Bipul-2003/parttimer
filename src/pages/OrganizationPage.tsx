@@ -1,4 +1,3 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { BarChart3, Users, UserCog, ClipboardList, CreditCard, Building, Settings, DollarSign } from 'lucide-react';
@@ -72,8 +71,24 @@ const sidebarItems: SidebarItem[] = [
 export default function OrganizationPage() {
   const { user } = useAuth();
 
-  if (!user?.organization) {
+  // Function to check if the user is a RegularUser
+  const isRegularUser = (user: any): user is { user_role: string; organization?: { id: number; name: string } } => {
+    return user && 'user_role' in user;
+  };
+
+  // If user is null or undefined, show loading or error state
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  // Check if the user is a RegularUser and has an organization
+  if (isRegularUser(user) && !user.organization) {
     return <div>You are not associated with any organization.</div>;
+  }
+
+  // If the user is a LabourUser, they shouldn't have access to this page
+  if (!isRegularUser(user)) {
+    return <div>Access denied. This page is only for organization members.</div>;
   }
 
   return (

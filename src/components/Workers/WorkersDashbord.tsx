@@ -46,7 +46,7 @@ type LaborRequest = {
   requestNumber: string;
   date: Date;
   timeSlot: string;
-  status: "PENDING" | "PRICE_OFFERED" | "ACCEPTED" | "COMPLETED";
+  status:  "OPEN" | "PRICE_OFFERED" | "ACCEPTED" | "COMPLETED"; 
   description: string;
   location: string;
   zipcode: string;
@@ -216,7 +216,7 @@ export function WorkerDashboard() {
                               onClick={() => setSelectedRequestId(request.id)}>
                               View Details
                             </DropdownMenuItem>
-                            {request.status === "PENDING" && (
+                            {request.status === "OPEN" && (
                               <Dialog>
                                 <DialogTrigger asChild>
                                   <DropdownMenuItem

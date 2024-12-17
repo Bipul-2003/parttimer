@@ -42,7 +42,7 @@ import UserOrganization from "./components/User/UserOrganization.tsx";
 import UserHistory from "./components/User/UserHistory.tsx";
 import UserSubscription from "./components/User/UserSubscrions.tsx";
 import UserSettings from "./components/User/UserSettings.tsx";
-import { UserWorkerServiceReqestDetailsPage } from "./pages/WorkerServiceDetailsPage.tsx";
+import { UserWorkerServiceReqestDetailsPage } from "./pages/UserWorkerServiceReqestDetailsPage.tsx";
 
 
 const router = createBrowserRouter([

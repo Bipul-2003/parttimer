@@ -69,7 +69,7 @@ export function WorkerDashboard() {
           requestNumber: item.bookingId.toString(),
           date: new Date(item.bookingDate),
           timeSlot: item.timeSlot,
-          status: "PENDING",
+          status: item.bookingStatus,
           description: item.bookingNote,
           location: item.city,
           zipcode: item.zipcode,

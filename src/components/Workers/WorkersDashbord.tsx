@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,8 +38,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import axios from 'axios';
-// import { LaborRequestDetails } from "./LaborRequestDetails"
+import { getOpenWorkerBookings, workerOfferPrice } from "@/api/WorkerApis";
+import { toast } from "@/hooks/use-toast";
 
 type LaborRequest = {
   id: string;
@@ -59,12 +59,16 @@ export function WorkerDashboard() {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
     null
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const response = await axios.get('http://localhost:8080/api/labour-dashboard/open-bookings',{withCredentials: true});
-        setRequests(response.data.map((item: any) => ({
+  const fetchRequests = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await getOpenWorkerBookings();
+      setRequests(
+        response.map((item: any) => ({
           id: item.id.toString(),
           requestNumber: item.bookingId.toString(),
           date: new Date(item.bookingDate),
@@ -74,26 +78,47 @@ export function WorkerDashboard() {
           location: item.city,
           zipcode: item.zipcode,
           city: item.city,
-        })));
-      } catch (error) {
-        console.error('Error fetching requests:', error);
-      }
-    };
+        }))
+      );
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "An unknown error occurred"
+      );
+      toast({
+        title: "Error",
+        description: "Failed to fetch labor requests. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchRequests();
   }, []);
 
   const handleOfferPrice = async (requestId: string, price: number) => {
-    // TODO: Implement API call to offer price
-    console.log(`Offered price $${price} for request ${requestId}`);
-    // Update the request status and price in the local state
-    setRequests(
-      requests.map((req) =>
-        req.id === requestId
-          ? { ...req, status: "PRICE_OFFERED" as const, offeredPrice: price }
-          : req
-      )
-    );
+    try {
+      setIsLoading(true);
+      await workerOfferPrice(requestId, price);
+      await fetchRequests(); // Refresh the requests after successful price offer
+      toast({
+        title: "Success",
+        description: `Offered price $${price} for request ${requestId}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to offer price. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCompleteRequest = async (requestId: string) => {
@@ -107,15 +132,19 @@ export function WorkerDashboard() {
     );
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <>
       {selectedRequestId ? (
-        <div className="">hii</div>
+        <div className="">Selected Request Details</div>
       ) : (
-        // <LaborRequestDetails
-        //   requestId={selectedRequestId}
-        //   onBack={() => setSelectedRequestId(null)}
-        // />
         <div className="">
           <h1 className="text-2xl font-bold mb-4">Labor Requests</h1>
 
@@ -268,4 +297,3 @@ export function WorkerDashboard() {
     </>
   );
 }
-

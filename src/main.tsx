@@ -43,6 +43,7 @@ import UserHistory from "./components/User/UserHistory.tsx";
 import UserSubscription from "./components/User/UserSubscrions.tsx";
 import UserSettings from "./components/User/UserSettings.tsx";
 import { UserWorkerServiceReqestDetailsPage } from "./pages/UserWorkerServiceReqestDetailsPage.tsx";
+import  WorkerHistoryTable  from "./components/Workers/WorkerHistoryTable.tsx";
 
 
 const router = createBrowserRouter([
@@ -246,6 +247,10 @@ const router = createBrowserRouter([
             path: "dashboard",
             element: <WorkerDashboard />,
           },
+          {
+            path: "history",
+            element: <WorkerHistoryTable />,
+          }
         
         ],
       },

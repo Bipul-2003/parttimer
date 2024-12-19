@@ -36,3 +36,14 @@ export const workerOfferPrice = async (labourAssignmentId: string, proposedPrice
         throw new Error("Failed to offer price");
     }
     }
+
+    export const getWorkerHistory = async () => { 
+        try {
+            const response = await axios.get(`http://localhost:8080/api/labour/price-history`, {
+                withCredentials: true,
+            });
+            return response.data;
+        } catch (error) {
+            throw new Error("Failed to fetch worker history");
+        }
+    }

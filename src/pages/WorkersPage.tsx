@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard,ClipboardList } from 'lucide-react';
 import { Sidebar, SidebarItem } from '@/components/Sidebar/Sidebar';
 
 const sidebarItems: SidebarItem[] = [
@@ -8,6 +8,13 @@ const sidebarItems: SidebarItem[] = [
     label: "Dashboard",
     path: "dashboard",
   },
+  {
+    icon: ClipboardList,
+    label: "History",
+    path: "history",
+  }
+
+
 ];
 
 export default function WorkersPage() {

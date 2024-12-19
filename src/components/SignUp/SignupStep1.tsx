@@ -23,7 +23,6 @@ import { SignupData, signupSchema } from "@/lib/validations/signup"
 import { useState } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { useToast } from "@/hooks/use-toast"
-import { useNavigate } from "react-router-dom"
 
 type SignupStep1Props = {
   formData: Partial<SignupData>
@@ -43,27 +42,47 @@ const step1Schema = signupSchema.pick({
 
 export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1Props) {
   const [isLoading, setIsLoading] = useState(false)
-  const { googleSignIn , user} = useAuth()
+  const { googleSignIn, checkUser } = useAuth()
   const { toast } = useToast()
-  const navigate = useNavigate()
 
   const form = useForm<z.infer<typeof step1Schema>>({
     resolver: zodResolver(step1Schema),
     defaultValues: formData,
   })
 
-  function onSubmit(values: z.infer<typeof step1Schema>) {
-    updateFormData(values)
-    nextStep()
+  async function onSubmit(values: z.infer<typeof step1Schema>) {
+    try {
+      setIsLoading(true)
+      const { profileComplete } = await checkUser(values.email)
+      if (profileComplete) {
+        toast({
+          title: "Account Exists",
+          description: "An account with this email already exists. Please log in.",
+          variant: "destructive",
+        })
+      } else {
+        updateFormData(values)
+        nextStep()
+      }
+    } catch (error) {
+      console.error("Error checking user:", error)
+      toast({
+        title: "Error",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   async function handleGoogleSignup() {
     try {
       setIsLoading(true)
-       await googleSignIn()
+      const response = await googleSignIn()
       
-      if (user) {
-        const { name,email } = user
+      if (response.user) {
+        const { name, email } = response.user
         const splitname = name ? name.split(' ') : []
         
         updateFormData({
@@ -200,7 +219,9 @@ export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1P
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full">Next</Button>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Loading...' : 'Next'}
+          </Button>
         </form>
       </Form>
       <div className="relative">

@@ -44,6 +44,7 @@ import UserSubscription from "./components/User/UserSubscrions.tsx";
 import UserSettings from "./components/User/UserSettings.tsx";
 import { UserWorkerServiceReqestDetailsPage } from "./pages/UserWorkerServiceReqestDetailsPage.tsx";
 import  WorkerHistoryTable  from "./components/Workers/WorkerHistoryTable.tsx";
+import { NotFound } from "./components/NotFound.tsx";
 
 
 const router = createBrowserRouter([
@@ -200,7 +201,7 @@ const router = createBrowserRouter([
           {
             path: "payments/epm",
             element: (
-              <ProtectedRoute requiredRole="ADMIN">
+              <ProtectedRoute requiredRole="OWNER">
                 <PaymentManagement />
               </ProtectedRoute>
             ),
@@ -271,6 +272,10 @@ const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 

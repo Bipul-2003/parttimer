@@ -12,19 +12,27 @@ interface Organization {
   name: string;
 }
 
-interface RegularUser {
-  user_role: string;
-  user_id: number;
-  organization?: Organization;
+interface BaseUser {
+  user_type: "USER" | "LABOUR";
   name: string;
-  email: string;
-  points: number;
 }
 
-interface LabourUser {
+interface RegularUser extends BaseUser {
+  user_type: "USER";
+  user_role: "USER" | "OWNER" | "CO_OWNER";
+  user_id: number;
+  organization?: Organization;
+  email: string;
+  points: number;
+  zipcode: string | null;
+  city: string | null;
+  "user subscription": boolean;
+  "seller subscription": boolean;
+}
+
+interface LabourUser extends BaseUser {
   user_type: "LABOUR";
   phone: string;
-  name: string;
   average_rating: number;
   id: number;
 }

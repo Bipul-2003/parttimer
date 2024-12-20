@@ -26,7 +26,7 @@ import { getCountry, getState, getCity } from "@/api/locationsApi"
 type WorkerLocationSelectionProps = {
   formData: Partial<SignupData>
   updateFormData: (data: Partial<SignupData>) => void
-  nextStep: () => void
+  completeSignup: () => void
   prevStep: () => void
 }
 
@@ -36,7 +36,7 @@ const workerLocationSchema = z.object({
   cities: z.array(z.string()).min(1, "Please select at least one city").max(3, "You can select up to 3 cities"),
 })
 
-export function WorkerCitySelection({ formData, updateFormData, nextStep, prevStep }: WorkerLocationSelectionProps) {
+export function WorkerCitySelection({ formData, updateFormData, completeSignup, prevStep }: WorkerLocationSelectionProps) {
   const [countries, setCountries] = useState<string[]>([])
   const [states, setStates] = useState<string[]>([])
   const [cities, setCities] = useState<string[]>([])
@@ -95,7 +95,7 @@ export function WorkerCitySelection({ formData, updateFormData, nextStep, prevSt
 
   const onSubmit = (values: z.infer<typeof workerLocationSchema>) => {
     updateFormData(values)
-    nextStep()
+    completeSignup()
   }
 
   return (
@@ -214,7 +214,7 @@ export function WorkerCitySelection({ formData, updateFormData, nextStep, prevSt
           <Button type="button" onClick={prevStep} variant="outline">
             Back
           </Button>
-          <Button type="submit">Next</Button>
+          <Button type="submit">Complete Sign Up</Button>
         </div>
       </form>
     </Form>

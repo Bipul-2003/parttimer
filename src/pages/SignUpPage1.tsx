@@ -88,7 +88,12 @@ export default function SignupPage1() {
           {step === 1 && <SignupStep1 formData={formData} updateFormData={updateFormData} nextStep={nextStep} />}
           {step === 2 && <UserTypeSelection formData={formData} updateFormData={updateFormData} nextStep={nextStep} prevStep={prevStep} />}
           {step === 3 && formData.userType === 'LABOUR' && (
-            <WorkerCitySelection formData={formData} updateFormData={updateFormData} nextStep={completeSignup} prevStep={prevStep} />
+            <WorkerCitySelection 
+            formData={formData} 
+            updateFormData={updateFormData} 
+            completeSignup={completeSignup} 
+            prevStep={prevStep} 
+          />
           )}
           {step === 3 && formData.userType === 'REGULAR' && (
             <SignupStep2 formData={formData} updateFormData={updateFormData} nextStep={nextStep} prevStep={prevStep} />

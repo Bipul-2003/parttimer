@@ -4,6 +4,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
 import { format } from "date-fns";
 import axios from "axios";
+import { useAuth } from "@/context/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,7 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon } from 'lucide-react';
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 
@@ -45,6 +46,8 @@ const formSchema = z.object({
   sameTimeSlotForAll: z.boolean().default(false),
   sameNoteForAll: z.boolean().default(false),
   sharedNote: z.string().optional(),
+  city: z.string().min(1, "City is required"),
+  zipcode: z.string().min(1, "Zipcode is required"),
   laborDetails: z.array(
     z.object({
       date: z.date({ required_error: "Date is required" }),
@@ -62,6 +65,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function LaborBookingForm() {
+  const { user } = useAuth();
   const [sharedNote, setSharedNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -70,7 +74,9 @@ export function LaborBookingForm() {
     defaultValues: {
       address: "",
       phoneNumber: "",
-      email: "",
+      email: user?.user_type === "USER" ? user.email : "",
+      city: user?.user_type === "USER" ? user.city || "" : "",
+      zipcode: user?.user_type === "USER" ? user.zipcode || "" : "",
       numberOfLabors: "1",
       sameDateForAll: false,
       sameTimeSlotForAll: false,
@@ -209,7 +215,48 @@ export function LaborBookingForm() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your email" {...field} />
+                        <Input 
+                          placeholder="Enter your email" 
+                          {...field} 
+                          disabled={user?.user_type === "USER"}
+                          value={user?.user_type === "USER" ? user.email : field.value}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter your city" 
+                          {...field} 
+                          disabled={user?.user_type === "USER"}
+                          value={user?.user_type === "USER" ? user.city || "" : field.value}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="zipcode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Zipcode</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter your zipcode" 
+                          {...field} 
+                          disabled={user?.user_type === "USER"}
+                          value={user?.user_type === "USER" ? user.zipcode || "" : field.value}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -466,3 +513,4 @@ export function LaborBookingForm() {
     </div>
   );
 }
+

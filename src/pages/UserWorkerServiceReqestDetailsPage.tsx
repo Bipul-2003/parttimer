@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getReqDetails, getReqOffers } from "@/api/UserApis/bookingsApi";
+import axios from 'axios';
 
 
 type LaborOffer = {
@@ -82,9 +83,22 @@ export function UserWorkerServiceReqestDetailsPage() {
   };
 
   const handleAcceptOffer = async (priceOfferId: number) => {
-    // TODO: Implement API call to accept the offer
-    console.log(`Accepted offer ${priceOfferId} for service ${serviceId}`);
-    setService((prev) => prev ? { ...prev, status: "ACCEPTED" } : null);
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post(`http://localhost:8080/api/user/labour-bookings/accept-offer/${priceOfferId}`);
+      if (response.status === 200) {
+        console.log(`Accepted offer ${priceOfferId} for service ${serviceId}`);
+        setService((prev) => prev ? { ...prev, status: "ACCEPTED" } : null);
+      } else {
+        throw new Error('Failed to accept offer');
+      }
+    } catch (err) {
+      setError("Failed to accept offer. Please try again later.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancelRequest = async () => {
@@ -157,8 +171,11 @@ export function UserWorkerServiceReqestDetailsPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Button onClick={() => handleAcceptOffer(offer.priceOfferId)}>
-                              Accept Offer
+                            <Button 
+                              onClick={() => handleAcceptOffer(offer.priceOfferId)}
+                              disabled={loading}
+                            >
+                              {loading ? 'Accepting...' : 'Accept Offer'}
                             </Button>
                           </TableCell>
                         </TableRow>

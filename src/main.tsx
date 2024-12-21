@@ -254,7 +254,7 @@ const router = createBrowserRouter([
             element: <WorkerHistoryTable />,
           },
           {
-            path: "/labor-request/:id",
+            path: "labor-request/:id",
             element: <LaborRequestDetails />,
           }
         

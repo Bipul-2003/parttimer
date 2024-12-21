@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { useToast } from '@/hooks/use-toast'
 import { signup } from '@/api/auth'
 import { useLocation, useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
 export default function SignupPage1() {
   const [step, setStep] = useState(1)
@@ -46,18 +47,12 @@ export default function SignupPage1() {
 
   const completeSignup = async () => {
     try {
-      // Prepare the signup data
-      const signupData: any = {
-        ...formData as SignupData,
-        serviceCities: formData.cities, // Rename 'cities' to 'serviceCities'
-        isRideVerified: false, // Add isRideVerified as false
-        subscriptionStatus: 'BASIC', // Set subscriptionStatus to BASIC
+      let response;
+      if (formData.userType === 'LABOUR') {
+        response = await laborSignup();
+      } else {
+        response = await signup(formData as SignupData);
       }
-
-      // Remove the original 'cities' field if it exists
-      delete signupData.cities;
-
-      const response = await signup(signupData)
       
       toast({
         title: "Signup Successful",
@@ -73,6 +68,31 @@ export default function SignupPage1() {
         description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       })
+    }
+  }
+
+  const laborSignup = async () => {
+    const laborData = {
+      ...formData,
+      serviceCities: formData.cities,
+      isRideNeeded: false,
+      subscriptionStatus: 'BASIC'
+    };
+
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/labour/sign-up', laborData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Labor signup failed');
+      } else {
+        throw new Error('An unexpected error occurred during labor signup');
+      }
     }
   }
 
@@ -100,11 +120,11 @@ export default function SignupPage1() {
           {step === 2 && <UserTypeSelection formData={formData} updateFormData={updateFormData} nextStep={nextStep} prevStep={prevStep} />}
           {step === 3 && formData.userType === 'LABOUR' && (
             <WorkerCitySelection 
-            formData={formData} 
-            updateFormData={updateFormData} 
-            completeSignup={completeSignup} 
-            prevStep={prevStep} 
-          />
+              formData={formData} 
+              updateFormData={updateFormData} 
+              completeSignup={completeSignup} 
+              prevStep={prevStep} 
+            />
           )}
           {step === 3 && formData.userType === 'REGULAR' && (
             <SignupStep2 formData={formData} updateFormData={updateFormData} nextStep={nextStep} prevStep={prevStep} />

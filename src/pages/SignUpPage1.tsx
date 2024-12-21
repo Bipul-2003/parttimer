@@ -46,7 +46,18 @@ export default function SignupPage1() {
 
   const completeSignup = async () => {
     try {
-      const response = await signup(formData as SignupData)
+      // Prepare the signup data
+      const signupData: any = {
+        ...formData as SignupData,
+        serviceCities: formData.cities, // Rename 'cities' to 'serviceCities'
+        isRideVerified: false, // Add isRideVerified as false
+        subscriptionStatus: 'BASIC', // Set subscriptionStatus to BASIC
+      }
+
+      // Remove the original 'cities' field if it exists
+      delete signupData.cities;
+
+      const response = await signup(signupData)
       
       toast({
         title: "Signup Successful",

@@ -45,6 +45,7 @@ import UserSettings from "./components/User/UserSettings.tsx";
 import { UserWorkerServiceReqestDetailsPage } from "./pages/UserWorkerServiceReqestDetailsPage.tsx";
 import  WorkerHistoryTable  from "./components/Workers/WorkerHistoryTable.tsx";
 import { NotFound } from "./components/NotFound.tsx";
+import LaborRequestDetails from "./components/Workers/WorkerRequestDetails.tsx";
 
 
 const router = createBrowserRouter([
@@ -251,6 +252,10 @@ const router = createBrowserRouter([
           {
             path: "history",
             element: <WorkerHistoryTable />,
+          },
+          {
+            path: "/labor-request/:id",
+            element: <LaborRequestDetails />,
           }
         
         ],

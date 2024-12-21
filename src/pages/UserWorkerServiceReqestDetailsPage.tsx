@@ -86,7 +86,11 @@ export function UserWorkerServiceReqestDetailsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(`http://localhost:8080/api/user/labour-bookings/accept-offer/${priceOfferId}`);
+      const response = await axios.post(
+        `http://localhost:8080/api/user/labour-bookings/accept-offer/${priceOfferId}`,
+        {}, // empty body since it's just the URL parameter
+        { withCredentials: true }
+      );
       if (response.status === 200) {
         console.log(`Accepted offer ${priceOfferId} for service ${serviceId}`);
         setService((prev) => prev ? { ...prev, status: "ACCEPTED" } : null);

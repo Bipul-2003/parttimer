@@ -152,7 +152,7 @@ const columns: ColumnDef<LaborHistory>[] = [
       return (
         <Button
           variant="outline"
-          onClick={() => navigate(`/labor-request/${history.offerId}`)}
+          onClick={() => navigate(`/worker/labor-request/${history.offerId}`)}
         >
           View Details
         </Button>

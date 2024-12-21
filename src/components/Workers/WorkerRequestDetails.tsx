@@ -143,7 +143,7 @@ export default function LaborRequestDetails() {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto mt-8">
+    <Card className="w-full mx-auto mt-8">
       <CardHeader className="bg-primary text-primary-foreground">
         <Breadcrumb>
           <BreadcrumbList>
@@ -199,11 +199,11 @@ export default function LaborRequestDetails() {
               </div>
             </ScrollArea>
 
-            <div className="mt-6 flex justify-end">
+            {/* <div className="mt-6 flex justify-end">
               <Button variant="outline" asChild>
                 <Link to="/">Back to Dashboard</Link>
               </Button>
-            </div>
+            </div> */}
           </>
         ) : null}
       </CardContent>

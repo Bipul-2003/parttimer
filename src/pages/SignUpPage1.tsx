@@ -13,7 +13,7 @@ import { signup } from '@/api/auth'
 
 export default function SignupPage1() {
   const [step, setStep] = useState(1)
-  const [formData, setFormData] = useState<Partial<SignupData>>({})
+  const [formData, setFormData] = useState<Partial<SignupData & { serviceCities?: string[] }>>({})
   const { toast } = useToast()
   const navigate = useNavigate()
   const location = useLocation()
@@ -37,7 +37,7 @@ export default function SignupPage1() {
     }
   }, [location])
 
-  const updateFormData = (data: Partial<SignupData>) => {
+  const updateFormData = (data: Partial<SignupData & { serviceCities?: string[] }>) => {
     setFormData((prev) => ({ ...prev, ...data }))
   }
 
@@ -47,7 +47,7 @@ export default function SignupPage1() {
   const regularSignup = async (data: SignupData) => {
     try {
       const response = await signup(data)
-      return response
+      return response.data
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.message || 'Signup failed')
@@ -60,7 +60,7 @@ export default function SignupPage1() {
   const laborSignup = async () => {
     const laborData = {
       ...formData,
-      serviceCities: formData.cities, // Use cities directly
+      serviceCities: formData.serviceCities || [], // Use serviceCities, fallback to empty array if undefined
       isRideNeeded: false,
       subscriptionStatus: 'BASIC'
     }
@@ -136,7 +136,7 @@ export default function SignupPage1() {
               updateFormData={(data) => {
                 updateFormData({
                   ...data,
-                  cities: data.cities // Ensure cities are correctly updated
+                  serviceCities: data.cities // Ensure serviceCities are correctly updated
                 })
               }}
               completeSignup={completeSignup} 

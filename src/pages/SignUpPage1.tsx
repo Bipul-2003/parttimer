@@ -74,18 +74,21 @@ export default function SignupPage1() {
   const laborSignup = async () => {
     const laborData = {
       ...formData,
-      serviceCities: formData.cities,
+      serviceCities: formData.cities, // Use cities instead of serviceCities
       isRideNeeded: false,
       subscriptionStatus: 'BASIC'
     };
-
+  console.log("inside labor signup");
+  console.log(laborData);
+  
+  
     try {
       const response = await axios.post('http://localhost:8080/api/auth/labour/sign-up', laborData, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-
+  
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -95,7 +98,8 @@ export default function SignupPage1() {
       }
     }
   }
-
+  
+  
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">

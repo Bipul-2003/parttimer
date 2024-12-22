@@ -1,42 +1,41 @@
+import React, { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from '@/hooks/use-toast'
 import { SignupStep1 } from '@/components/SignUp/SignupStep1'
 import { SignupStep2 } from '@/components/SignUp/SignupStep2'
 import { SignupStep3 } from '@/components/SignUp/SignupStep3'
 import { UserTypeSelection } from '@/components/SignUp/UserTypeSelection'
 import { WorkerCitySelection } from '@/components/SignUp/WorkerCitySelection'
 import { SignupData } from '@/lib/validations/signup'
-import { useEffect, useState } from 'react'
-import { Toaster } from "@/components/ui/toaster"
-import { useToast } from '@/hooks/use-toast'
 import { signup } from '@/api/auth'
-import { useLocation, useNavigate } from 'react-router-dom'
-import axios from 'axios'
 
 export default function SignupPage1() {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<Partial<SignupData>>({})
   const { toast } = useToast()
   const navigate = useNavigate()
-  const location = useLocation();
+  const location = useLocation()
 
   useEffect(() => {
     if (location.state) {
-      const { firstName, lastName, middleName, email } = location.state;
+      const { firstName, lastName, middleName, email } = location.state
 
       const updateData: Partial<SignupData> = {
         firstName,
         lastName,
         email,
-      };
-
-      if (middleName) {
-        updateData.middleName = middleName;
       }
 
-      updateFormData(updateData);
+      if (middleName) {
+        updateData.middleName = middleName
+      }
 
-      setStep(2);
+      updateFormData(updateData)
+      setStep(2)
     }
-  }, [location]);
+  }, [location])
 
   const updateFormData = (data: Partial<SignupData>) => {
     setFormData((prev) => ({ ...prev, ...data }))
@@ -45,13 +44,51 @@ export default function SignupPage1() {
   const nextStep = () => setStep((prev) => prev + 1)
   const prevStep = () => setStep((prev) => prev - 1)
 
+  const regularSignup = async (data: SignupData) => {
+    try {
+      const response = await signup(data)
+      return response
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Signup failed')
+      } else {
+        throw new Error('An unexpected error occurred during signup')
+      }
+    }
+  }
+
+  const laborSignup = async () => {
+    const laborData = {
+      ...formData,
+      serviceCities: formData.cities, // Use cities directly
+      isRideNeeded: false,
+      subscriptionStatus: 'BASIC'
+    }
+    console.log("Labor signup data:", laborData)
+
+    try {
+      const response = await axios.post('http://localhost:8080/api/auth/labour/sign-up', laborData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      return response.data
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Labor signup failed')
+      } else {
+        throw new Error('An unexpected error occurred during labor signup')
+      }
+    }
+  }
+
   const completeSignup = async () => {
     try {
-      let response;
+      let response
       if (formData.userType === 'LABOUR') {
-        response = await laborSignup();
+        response = await laborSignup()
       } else {
-        response = await signup(formData as SignupData);
+        response = await regularSignup(formData as SignupData)
       }
       
       toast({
@@ -71,35 +108,6 @@ export default function SignupPage1() {
     }
   }
 
-  const laborSignup = async () => {
-    const laborData = {
-      ...formData,
-      serviceCities: formData.cities, // Use cities instead of serviceCities
-      isRideNeeded: false,
-      subscriptionStatus: 'BASIC'
-    };
-  console.log("inside labor signup");
-  console.log(laborData);
-  
-  
-    try {
-      const response = await axios.post('http://localhost:8080/api/auth/labour/sign-up', laborData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Labor signup failed');
-      } else {
-        throw new Error('An unexpected error occurred during labor signup');
-      }
-    }
-  }
-  
-  
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -125,7 +133,12 @@ export default function SignupPage1() {
           {step === 3 && formData.userType === 'LABOUR' && (
             <WorkerCitySelection 
               formData={formData} 
-              updateFormData={updateFormData} 
+              updateFormData={(data) => {
+                updateFormData({
+                  ...data,
+                  cities: data.cities // Ensure cities are correctly updated
+                })
+              }}
               completeSignup={completeSignup} 
               prevStep={prevStep} 
             />

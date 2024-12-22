@@ -105,19 +105,19 @@ const columns: ColumnDef<LaborHistory>[] = [
     header: "Time Slot",
     cell: ({ row }) => <div>{row.getValue("timeSlot")}</div>,
   },
-  {
-    accessorKey: "offeredPrice",
-    header: () => <div className="text-right">Price</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("offeredPrice"))
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount)
+  // {
+  //   accessorKey: "offeredPrice",
+  //   header: () => <div className="text-right">Price</div>,
+  //   cell: ({ row }) => {
+  //     const amount = parseFloat(row.getValue("offeredPrice"))
+  //     const formatted = new Intl.NumberFormat("en-US", {
+  //       style: "currency",
+  //       currency: "USD",
+  //     }).format(amount)
  
-      return <div className="text-right font-medium">{formatted}</div>
-    },
-  },
+  //     return <div className="text-right font-medium">{formatted}</div>
+  //   },
+  // },
   {
     accessorKey: "status",
     header: "Status",

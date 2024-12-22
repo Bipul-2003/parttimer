@@ -46,7 +46,7 @@ type LaborRequest = {
   requestNumber: string;
   date: Date;
   timeSlot: string;
-  status:  "OPEN" | "PRICE_OFFERED" | "ACCEPTED" | "COMPLETED"; 
+  status: "OPEN" | "PRICE_OFFERED" | "ACCEPTED" | "COMPLETED";
   description: string;
   location: string;
   zipcode: string;
@@ -56,9 +56,9 @@ type LaborRequest = {
 
 export function WorkerDashboard() {
   const [requests, setRequests] = useState<LaborRequest[]>([]);
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
-    null
-  );
+  // const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+  //   null
+  // );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -142,158 +142,154 @@ export function WorkerDashboard() {
 
   return (
     <>
-      {selectedRequestId ? (
-        <div className="">Selected Request Details</div>
-      ) : (
-        <div className="">
-          <h1 className="text-2xl font-bold mb-4">Labor Requests</h1>
+      <div className="">
+        <h1 className="text-2xl font-bold mb-4">Labor Requests</h1>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Available Labor Requests</CardTitle>
-              <CardDescription>
-                There are {requests.length} labor requests available
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Request Number</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Time Slot</TableHead>
-                    <TableHead>City</TableHead>
-                    <TableHead>Zipcode</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Offered Price</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {requests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell>{request.requestNumber}</TableCell>
-                      <TableCell>{format(request.date, "PP")}</TableCell>
-                      <TableCell>{request.timeSlot}</TableCell>
-                      <TableCell>{request.city}</TableCell>
-                      <TableCell>{request.zipcode}</TableCell>
-                      <TableCell>{request.description}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            request.status === "ACCEPTED"
-                              ? "default"
-                              : "secondary"
-                          }>
-                          {request.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {request.offeredPrice
-                          ? `$${request.offeredPrice}`
-                          : "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                navigator.clipboard.writeText(request.id)
-                              }>
-                              Copy request ID
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Labor Requests</CardTitle>
+            <CardDescription>
+              There are {requests.length} labor requests available
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Request Number</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Time Slot</TableHead>
+                  <TableHead>City</TableHead>
+                  <TableHead>Zipcode</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Offered Price</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {requests.map((request) => (
+                  <TableRow key={request.id}>
+                    <TableCell>{request.requestNumber}</TableCell>
+                    <TableCell>{format(request.date, "PP")}</TableCell>
+                    <TableCell>{request.timeSlot}</TableCell>
+                    <TableCell>{request.city}</TableCell>
+                    <TableCell>{request.zipcode}</TableCell>
+                    <TableCell>{request.description}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          request.status === "ACCEPTED"
+                            ? "default"
+                            : "secondary"
+                        }>
+                        {request.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {request.offeredPrice
+                        ? `$${request.offeredPrice}`
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              navigator.clipboard.writeText(request.id)
+                            }>
+                            Copy request ID
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {/* <DropdownMenuItem
                               onSelect={(e) => e.preventDefault()}
                               onClick={() => setSelectedRequestId(request.id)}>
                               View Details
-                            </DropdownMenuItem>
-                            {request.status === "OPEN" && (
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <DropdownMenuItem
-                                    onSelect={(e) => e.preventDefault()}>
-                                    Offer Price
-                                  </DropdownMenuItem>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[425px]">
-                                  <DialogHeader>
-                                    <DialogTitle>Offer Price</DialogTitle>
-                                    <DialogDescription>
-                                      Enter the price you want to offer for this
-                                      request.
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <Input
-                                    id="price"
-                                    placeholder="Enter price"
-                                    type="number"
-                                  />
-                                  <DialogFooter>
-                                    <Button
-                                      onClick={() => {
-                                        const price = parseFloat(
-                                          (
-                                            document.getElementById(
-                                              "price"
-                                            ) as HTMLInputElement
-                                          ).value
-                                        );
-                                        if (price)
-                                          handleOfferPrice(request.id, price);
-                                      }}>
-                                      Submit Offer
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
-                            )}
-                            {request.status === "ACCEPTED" && (
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <DropdownMenuItem
-                                    onSelect={(e) => e.preventDefault()}>
+                            </DropdownMenuItem> */}
+                          {request.status === "OPEN" && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <DropdownMenuItem
+                                  onSelect={(e) => e.preventDefault()}>
+                                  Offer Price
+                                </DropdownMenuItem>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>Offer Price</DialogTitle>
+                                  <DialogDescription>
+                                    Enter the price you want to offer for this
+                                    request.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <Input
+                                  id="price"
+                                  placeholder="Enter price"
+                                  type="number"
+                                />
+                                <DialogFooter>
+                                  <Button
+                                    onClick={() => {
+                                      const price = parseFloat(
+                                        (
+                                          document.getElementById(
+                                            "price"
+                                          ) as HTMLInputElement
+                                        ).value
+                                      );
+                                      if (price)
+                                        handleOfferPrice(request.id, price);
+                                    }}>
+                                    Submit Offer
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                          {request.status === "ACCEPTED" && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <DropdownMenuItem
+                                  onSelect={(e) => e.preventDefault()}>
+                                  Mark as Completed
+                                </DropdownMenuItem>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>Complete Request</DialogTitle>
+                                  <DialogDescription>
+                                    Are you sure you want to mark this request
+                                    as completed?
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                  <Button
+                                    onClick={() =>
+                                      handleCompleteRequest(request.id)
+                                    }>
                                     Mark as Completed
-                                  </DropdownMenuItem>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[425px]">
-                                  <DialogHeader>
-                                    <DialogTitle>Complete Request</DialogTitle>
-                                    <DialogDescription>
-                                      Are you sure you want to mark this request
-                                      as completed?
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <DialogFooter>
-                                    <Button
-                                      onClick={() =>
-                                        handleCompleteRequest(request.id)
-                                      }>
-                                      Mark as Completed
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </>
   );
 }

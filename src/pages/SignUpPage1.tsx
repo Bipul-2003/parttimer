@@ -60,7 +60,7 @@ export default function SignupPage1() {
   const laborSignup = async () => {
     const laborData = {
       ...formData,
-      serviceCities: formData.serviceCities || [], // Use serviceCities, fallback to empty array if undefined
+      serviceCities: formData.serviceCities || [],
       isRideNeeded: false,
       subscriptionStatus: 'BASIC'
     }
@@ -75,7 +75,12 @@ export default function SignupPage1() {
       return response.data
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Labor signup failed')
+        // Properly extract the error message from the backend response
+        const errorMessage = error.response?.data?.error || 
+                           error.response?.data?.message ||
+                           error.response?.data ||
+                           'Labor signup failed'
+        throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage))
       } else {
         throw new Error('An unexpected error occurred during labor signup')
       }
@@ -136,7 +141,7 @@ export default function SignupPage1() {
               updateFormData={(data) => {
                 updateFormData({
                   ...data,
-                  serviceCities: data.cities // Ensure serviceCities are correctly updated
+                  serviceCities: data.cities
                 })
               }}
               completeSignup={completeSignup} 
@@ -155,4 +160,3 @@ export default function SignupPage1() {
     </div>
   )
 }
-

@@ -128,11 +128,6 @@ const columns: ColumnDef<LaborHistory>[] = [
     ),
   },
   {
-    accessorKey: "bookingAddress",
-    header: "Booking Address",
-    cell: ({ row }) => <div>{row.getValue("bookingAddress")}</div>,
-  },
-  {
     accessorKey: "city",
     header: "City",
     cell: ({ row }) => <div>{row.getValue("city")}</div>,

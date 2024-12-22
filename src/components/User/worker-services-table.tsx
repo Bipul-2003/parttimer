@@ -46,7 +46,7 @@ type LabourAssignment = {
   timeSlot: string;
   bookingNote: string;
   bookingStatus: string;
-  totalOffers: number;
+  numberOfPriceOffers: number;
 };
 
 const columns: ColumnDef<LabourAssignment>[] = [
@@ -97,9 +97,9 @@ const columns: ColumnDef<LabourAssignment>[] = [
     },
   },
   {
-    accessorKey: "totalOffers",
+    accessorKey: "numberOfPriceOffers",
     header: "Total Offers",
-    cell: ({ row }) => <div>{row.getValue("totalOffers")}</div>,
+    cell: ({ row }) => <div>{row.getValue("numberOfPriceOffers")}</div>,
   },
   {
     id: "actions",
@@ -111,39 +111,39 @@ const columns: ColumnDef<LabourAssignment>[] = [
         navigate(`/worker-services/${assignment.bookingId}-${assignment.assignmentId}`)
       }
 
-      const handleAcceptOffer = async () => {
-        try {
-          // Implement the API call to accept the offer
-          toast({
-            title: "Offer Accepted",
-            description: "You have successfully accepted the offer.",
-          })
-          // Refresh the data or update the local state
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "Failed to accept the offer. Please try again.",
-            variant: "destructive",
-          })
-        }
-      }
+      // const handleAcceptOffer = async () => {
+      //   try {
+      //     // Implement the API call to accept the offer
+      //     toast({
+      //       title: "Offer Accepted",
+      //       description: "You have successfully accepted the offer.",
+      //     })
+      //     // Refresh the data or update the local state
+      //   } catch (error) {
+      //     toast({
+      //       title: "Error",
+      //       description: "Failed to accept the offer. Please try again.",
+      //       variant: "destructive",
+      //     })
+      //   }
+      // }
 
-      const handleCancelAssignment = async () => {
-        try {
-          // Implement the API call to cancel the assignment
-          toast({
-            title: "Assignment Cancelled",
-            description: "You have successfully cancelled the assignment.",
-          })
-          // Refresh the data or update the local state
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "Failed to cancel the assignment. Please try again.",
-            variant: "destructive",
-          })
-        }
-      }
+      // const handleCancelAssignment = async () => {
+      //   try {
+      //     // Implement the API call to cancel the assignment
+      //     toast({
+      //       title: "Assignment Cancelled",
+      //       description: "You have successfully cancelled the assignment.",
+      //     })
+      //     // Refresh the data or update the local state
+      //   } catch (error) {
+      //     toast({
+      //       title: "Error",
+      //       description: "Failed to cancel the assignment. Please try again.",
+      //       variant: "destructive",
+      //     })
+      //   }
+      // }
 
       return (
         <DropdownMenu>
@@ -162,12 +162,12 @@ const columns: ColumnDef<LabourAssignment>[] = [
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleViewDetails}>View details</DropdownMenuItem>
-            {assignment.bookingStatus === "OPEN" && (
+            {/* {assignment.bookingStatus === "OPEN" && (
               <DropdownMenuItem onClick={handleAcceptOffer}>Accept offer</DropdownMenuItem>
-            )}
-            {assignment.bookingStatus !== "COMPLETED" && (
+            )} */}
+            {/* {assignment.bookingStatus !== "COMPLETED" && (
               <DropdownMenuItem onClick={handleCancelAssignment}>Cancel assignment</DropdownMenuItem>
-            )}
+            )} */}
           </DropdownMenuContent>
         </DropdownMenu>
       )

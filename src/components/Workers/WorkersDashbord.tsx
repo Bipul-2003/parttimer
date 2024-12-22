@@ -163,7 +163,7 @@ export function WorkerDashboard() {
                   <TableHead>Zipcode</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Offered Price</TableHead>
+                  {/* <TableHead>Offered Price</TableHead> */}
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -186,11 +186,11 @@ export function WorkerDashboard() {
                         {request.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       {request.offeredPrice
                         ? `$${request.offeredPrice}`
                         : "N/A"}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

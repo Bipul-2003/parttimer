@@ -54,7 +54,7 @@ type PartTimeService = {
 
 const API_URL = "http://localhost:8000";
 
-export const columns: ColumnDef<PartTimeService>[] = [
+const columns: ColumnDef<PartTimeService>[] = [
   {
     accessorKey: "bookingId",
     header: "Booking ID",
@@ -200,6 +200,7 @@ export function PartTimeServicesTable() {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
   const [data, setData] = useState<PartTimeService[]>([])
+  const [globalFilter, setGlobalFilter] = React.useState('')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -230,11 +231,14 @@ export function PartTimeServicesTable() {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: "includesString",
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
   })
 
@@ -242,11 +246,9 @@ export function PartTimeServicesTable() {
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter by booking ID..."
-          value={(table.getColumn("bookingId")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("bookingId")?.setFilterValue(event.target.value)
-          }
+          placeholder="Search all columns..."
+          value={globalFilter ?? ""}
+          onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
         <DropdownMenu>

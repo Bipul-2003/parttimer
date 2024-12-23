@@ -24,8 +24,8 @@ interface RegularUser extends BaseUser {
   organization?: Organization;
   email: string;
   points: number;
-  zipcode: string | null;
-  city: string | null;
+  zipcode: string ;
+  city: string ;
   "user subscription": boolean;
   "seller subscription": boolean;
 }

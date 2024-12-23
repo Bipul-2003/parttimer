@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { animateScroll as scroll } from "react-scroll";
 import { Button } from "@/components/ui/button";
@@ -30,23 +30,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  CalendarIcon,
-  CarIcon,
-  HomeIcon,
-  LeafIcon,
-  ClockIcon,
-  MapPinIcon,
-  UserIcon,
-  MailIcon,
-  StarIcon,
-  CheckCircleIcon,
-  SearchIcon,
-  Dumbbell,
-  GraduationCapIcon,
-} from "lucide-react";
+import { CalendarIcon, CarIcon, HomeIcon, LeafIcon, ClockIcon, MapPinIcon, UserIcon, MailIcon, StarIcon, CheckCircleIcon, SearchIcon, Dumbbell, GraduationCapIcon } from 'lucide-react';
 import { fetchServices } from "@/api/service.api";
 import { bookService } from "@/api/apiService";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useAuth } from "@/context/AuthContext";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Calendar } from "@/components/ui/calendar";
 
 interface Service {
   serviceId: number;
@@ -57,24 +50,74 @@ interface Service {
   description: string;
 }
 
+interface BookingRequest {
+  serviceId: string;
+  customerName: string;
+  email: string;
+  location: string;
+  name: string;
+  date: string;
+  time: string;
+  description: string;
+  phone: string;
+  mobile: string;
+  city: string;
+  zipCode: string;
+}
+
+const formSchema = z.object({
+  service: z.string().min(1, "Please select a service"),
+  date: z.date({
+    required_error: "Please select a date",
+  }),
+  time: z.string().min(1, "Please select a time"),
+  location: z.string().min(1, "Location is required"),
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  description: z.string().optional(),
+  mobile: z.string().min(10, "Mobile number must be at least 10 digits"),
+  city: z.string().optional(),
+  zipCode: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 function ServicesPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [isBookDialogOpen, setIsBookDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
-  const [selectedSubcategory, setSelectedSubcategory] =
-    useState("All Subcategories");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("All Subcategories");
   const [searchQuery, setSearchQuery] = useState("");
   const [services, setServices] = useState<Service[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const servicesRef = useRef<HTMLDivElement>(null);
 
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      service: "",
+      date: new Date(),
+      time: "",
+      location: "",
+      fullName: "",
+      email: "",
+      phone: "",
+      description: "",
+      mobile: "",
+      city: user?.user_type === "USER" ? user.city : "",
+      zipCode: user?.user_type === "USER" ? user.zipcode : "",
+    },
+  });
+
   const iconMap: { [key: string]: React.ElementType } = {
-    Other: UserIcon, // General icon for "Other" category
-    Automotive: CarIcon, // Icon for automotive services
-    "Home & Garden": LeafIcon, // Icon for home and garden services
-    Education: GraduationCapIcon, // Icon for education services
-    // You can add more as needed
+    Other: UserIcon,
+    Automotive: CarIcon,
+    "Home & Garden": LeafIcon,
+    Education: GraduationCapIcon,
   };
 
   useEffect(() => {
@@ -103,6 +146,12 @@ function ServicesPage() {
     setFilteredServices(filtered);
   }, [selectedCategory, selectedSubcategory, searchQuery, services]);
 
+  useEffect(() => {
+    if (user?.user_type === "LABOUR") {
+      navigate("/"); // Redirect to home page or show a message
+    }
+  }, [user, navigate]);
+
   const categories = [
     "All Categories",
     ...Array.from(new Set(services.map((service) => service.category))),
@@ -119,44 +168,40 @@ function ServicesPage() {
 
   const handleRequestSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Handle request form submission logic here
     console.log("Request form submitted");
     setIsRequestDialogOpen(false);
   };
 
-  const handleBookSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    // Collect form data
+  const handleBookSubmit = async (data: FormValues) => {
     const serviceId =
       services
         .find(
           (service) =>
-            service.name.toLowerCase().replace(" ", "-") === selectedService
+            service.name.toLowerCase().replace(" ", "-") === data.service
         )
         ?.serviceId?.toString() || "";
-    const bookingRequest = {
+
+    const bookingRequest: BookingRequest = {
       serviceId: serviceId,
-      customerName: (event.currentTarget["book-fullname"] as HTMLInputElement)
-        .value,
-      email: (event.currentTarget["book-email"] as HTMLInputElement).value,
-      location: (event.currentTarget["book-location"] as HTMLInputElement)
-        .value,
-      name: (event.currentTarget["book-fullname"] as HTMLInputElement).value,
-      date: (event.currentTarget["book-date"] as HTMLInputElement).value,
-      time: (event.currentTarget["book-time"] as HTMLInputElement).value,
-      description: (event.currentTarget["book-description"] as HTMLInputElement)
-        .value,
+      customerName: data.fullName,
+      email: data.email,
+      location: data.location,
+      name: data.fullName,
+      date: data.date.toISOString().split('T')[0],
+      time: data.time,
+      description: data.description || "",
+      phone: data.phone,
+      mobile: data.mobile,
+      city: data.city || "",
+      zipCode: data.zipCode || "",
     };
 
     try {
       const result = await bookService(bookingRequest);
       console.log("Booking successful:", result);
-      // Handle success (e.g., show a confirmation message, close dialog)
-      setIsBookDialogOpen(false); // Close the dialog on success
+      setIsBookDialogOpen(false);
     } catch (error) {
       console.error("Error booking service:", error);
-      // Handle error (e.g., show an error message)
     }
   };
 
@@ -171,8 +216,17 @@ function ServicesPage() {
 
   const openBookDialog = (serviceName: string) => {
     setSelectedService(serviceName.toLowerCase().replace(" ", "-"));
+    form.setValue("service", serviceName.toLowerCase().replace(" ", "-"));
     setIsBookDialogOpen(true);
   };
+
+  if (user?.user_type === "LABOUR") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl">This page is not available for labour users.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-background">
@@ -308,9 +362,6 @@ function ServicesPage() {
               >
                 <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300">
                   <CardHeader>
-                    {/* <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4">
-                      <service.icon className="w-6 h-6 text-primary-foreground" />
-                    </div> */}
                     <CardTitle className="text-2xl">{service.name}</CardTitle>
                     <CardDescription className="text-sm text-muted-foreground">
                       {service.category} - {service.subcategory}
@@ -424,99 +475,182 @@ function ServicesPage() {
               booking shortly.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleBookSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="book-service" className="text-right">
-                  Service
-                </Label>
-                <Select required defaultValue={selectedService}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a service" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map((service) => (
-                      <SelectItem
-                        key={service.serviceId}
-                        value={service.name.toLowerCase().replace(" ", "-")}
-                      >
-                        {service.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="book-date" className="text-right">
-                  <CalendarIcon className="h-4 w-4" />
-                </Label>
-                <Input
-                  id="book-date"
-                  type="date"
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="book-time" className="text-right">
-                  <ClockIcon className="h-4 w-4" />
-                </Label>
-                <Input
-                  id="book-time"
-                  type="time"
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="book-location" className="text-right">
-                  <MapPinIcon className="h-4 w-4" />
-                </Label>
-                <Input
-                  id="book-location"
-                  placeholder="Location"
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="book-fullname" className="text-right">
-                  <UserIcon className="h-4 w-4" />
-                </Label>
-                <Input
-                  id="book-fullname"
-                  placeholder="Full Name"
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="book-email" className="text-right">
-                  <MailIcon className="h-4 w-4" />
-                </Label>
-                <Input
-                  id="book-email"
-                  type="email"
-                  placeholder="Email"
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="book-description" className="text-right">
-                  Description
-                </Label>
-                <Textarea
-                  id="book-description"
-                  placeholder="Additional details"
-                  className="col-span-3"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit">Book Now</Button>
-            </DialogFooter>
-          </form>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleBookSubmit)} className="space-y-8">
+              <FormField
+                control={form.control}
+                name="service"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Service</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a service" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {services.map((service) => (
+                          <SelectItem
+                            key={service.serviceId}
+                            value={service.name.toLowerCase().replace(" ", "-")}
+                          >
+                            {service.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date</FormLabel>
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your location" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Enter your email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="Enter your phone number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="mobile"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mobile Number</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="Enter your mobile number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {user?.user_type === "USER" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="zipCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Zip Code</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Additional details (optional)"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="submit">Book Now</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
@@ -524,3 +658,4 @@ function ServicesPage() {
 }
 
 export default ServicesPage;
+

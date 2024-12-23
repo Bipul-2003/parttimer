@@ -80,9 +80,9 @@ const router = createBrowserRouter([
       {
         path: "/services",
         element: (
-          <ProtectedRoute>
+          // <ProtectedRoute>
             <ServicesPage />
-          </ProtectedRoute>
+          // </ProtectedRoute>
         ),
       },
       {

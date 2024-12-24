@@ -36,7 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Users, Package, Clock, MoreHorizontal } from "lucide-react";
+import { BarChart3, Users, Package, Clock, MoreHorizontal } from 'lucide-react';
 import axios from "axios";
 import { dashboardAPI } from "@/api/dashboard";
 import { Booking, DashboardStats } from "@/types/dashboardTypes";
@@ -73,7 +73,10 @@ export default function OrgDashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!user?.organization) return;
+      if (user?.user_type !== "USER" || !user.organization) {
+        setError("User does not have access to organization data");
+        return;
+      }
 
       try {
         setLoading(true);
@@ -95,7 +98,7 @@ export default function OrgDashboard() {
     };
 
     fetchDashboardData();
-  }, [user?.organization]);
+  }, [user]);
 
 
 
@@ -362,3 +365,4 @@ export default function OrgDashboard() {
     </div>
   );
 }
+

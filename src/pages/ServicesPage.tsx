@@ -54,7 +54,7 @@ interface BookingRequest {
   serviceId: string;
   customerName: string;
   email: string;
-  location: string;
+  address: string;
   name: string;
   date: string;
   time: string;
@@ -71,7 +71,7 @@ const formSchema = z.object({
     required_error: "Please select a date",
   }),
   time: z.string().min(1, "Please select a time"),
-  location: z.string().min(1, "Location is required"),
+  address: z.string().min(1, "Address is required"),
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
@@ -86,7 +86,7 @@ type FormValues = z.infer<typeof formSchema>;
 function ServicesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
+  // const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [isBookDialogOpen, setIsBookDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -102,7 +102,7 @@ function ServicesPage() {
       service: "",
       date: new Date(),
       time: "",
-      location: "",
+      address: "",
       fullName: "",
       email: "",
       phone: "",
@@ -166,11 +166,11 @@ function ServicesPage() {
     setSelectedSubcategory("All Subcategories");
   };
 
-  const handleRequestSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log("Request form submitted");
-    setIsRequestDialogOpen(false);
-  };
+  // const handleRequestSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  //   event.preventDefault();
+  //   console.log("Request form submitted");
+  //   setIsRequestDialogOpen(false);
+  // };
 
   const handleBookSubmit = async (data: FormValues) => {
     const serviceId =
@@ -185,7 +185,7 @@ function ServicesPage() {
       serviceId: serviceId,
       customerName: data.fullName,
       email: data.email,
-      location: data.location,
+      address: data.address,
       name: data.fullName,
       date: data.date.toISOString().split('T')[0],
       time: data.time,
@@ -248,13 +248,13 @@ function ServicesPage() {
               <Button size="lg" variant="secondary" onClick={scrollToServices}>
                 Book Now
               </Button>
-              <Button
+              {/* <Button
                 size="lg"
                 variant="secondary"
                 onClick={() => setIsRequestDialogOpen(true)}
               >
                 Request a Service
-              </Button>
+              </Button> */}
             </div>
           </motion.div>
         </div>
@@ -395,7 +395,7 @@ function ServicesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <Dialog
+          {/* <Dialog
             open={isRequestDialogOpen}
             onOpenChange={setIsRequestDialogOpen}
           >
@@ -462,7 +462,7 @@ function ServicesPage() {
                 </DialogFooter>
               </form>
             </DialogContent>
-          </Dialog>
+          </Dialog> */}
         </motion.div>
       </main>
 
@@ -536,12 +536,12 @@ function ServicesPage() {
               />
               <FormField
                 control={form.control}
-                name="location"
+                name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your location" {...field} />
+                      <Input placeholder="Enter your address" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -599,36 +599,32 @@ function ServicesPage() {
                   </FormItem>
                 )}
               />
-              {user?.user_type === "USER" && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="zipCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Zip Code</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="zipCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zip Code</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="description"

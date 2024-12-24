@@ -4,7 +4,7 @@ interface BookingRequest {
   serviceId: string;
   customerName: string;
   email: string;
-  location: string;
+  address: string;
   name: string;
   date: string;
   time: string;

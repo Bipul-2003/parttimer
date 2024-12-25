@@ -141,12 +141,7 @@ export default function SignupPage1() {
           {step === 3 && formData.userType === 'LABOUR' && (
             <WorkerCitySelection 
               formData={formData} 
-              updateFormData={(data) => {
-                updateFormData({
-                  ...data,
-                  serviceCities: data.serviceCities
-                })
-              }}
+              updateFormData={updateFormData}
               completeSignup={completeSignup} 
               prevStep={prevStep} 
             />

@@ -14,21 +14,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Link } from 'react-router-dom'
+import { useAuth } from '@/context/AuthContext'
 
-export function UserNav({
-  logout,
-  user,
-}: {
-  logout: () => void
-  user: { name: string }
-}) {
+export function UserNav() {
   const [open, setOpen] = useState(false)
+  const { user, logout } = useAuth()
 
   const handleSelect = (callback?: () => void) => {
     setOpen(false)
     if (callback) {
       callback()
     }
+  }
+
+  if (!user) {
+    return null // Or render a login button
   }
 
   return (
@@ -51,14 +51,23 @@ export function UserNav({
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/admin/dashboard" onClick={() => handleSelect()}>
-            Dashboard
-          </Link>
-        </DropdownMenuItem>
         <DropdownMenuGroup>
+          {user.user_type === 'USER' && user.organization && (
+            <DropdownMenuItem asChild>
+              <Link to="/organization/dashboard" onClick={() => handleSelect()}>
+                Organization Dashboard
+              </Link>
+            </DropdownMenuItem>
+          )}
+          {user.user_type === 'LABOUR' && (
+            <DropdownMenuItem asChild>
+              <Link to="/worker/dashboard" onClick={() => handleSelect()}>
+                Worker Dashboard
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem asChild>
-            <Link to="/user/profile" onClick={() => handleSelect()}>
+            <Link to="/profile" onClick={() => handleSelect()}>
               Profile
             </Link>
           </DropdownMenuItem>
@@ -74,3 +83,4 @@ export function UserNav({
     </DropdownMenu>
   )
 }
+

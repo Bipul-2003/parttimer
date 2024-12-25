@@ -20,20 +20,23 @@ function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, i18n } = useTranslation(['navbar', 'common']);
   const { language, setLanguage } = useLanguage();
-
-  const { user, loading, logout } = useAuth();
-  const currencyAmount = user?.points || 0;
+  const { user, isAuthenticated } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const CurrencyBadge = () => (
-    <Link to="/points">
-      <Badge variant="secondary" className="ml-2">
-        <span className="mr-1">⚜️</span>
-        {currencyAmount}
-      </Badge>
-    </Link>
-  );
+  const CurrencyBadge = () => {
+    if (user?.user_type === 'USER') {
+      return (
+        <Link to="/points">
+          <Badge variant="secondary" className="ml-2">
+            <span className="mr-1">⚜️</span>
+            {user.points}
+          </Badge>
+        </Link>
+      );
+    }
+    return null;
+  };
 
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
@@ -48,33 +51,29 @@ function Navbar() {
     { value: 'es', label: t('spanish', { ns: 'common' }) },
   ];
 
+  const navItems = [
+    { to: '/services', label: t('services', { ns: 'navbar' }) },
+    { to: '/how-it-works', label: t('howItWorks', { ns: 'navbar' }) },
+    { to: '/post-request', label: t('postRequest', { ns: 'navbar' }) },
+    { to: '/book-laborers', label: t('bookLaborers', { ns: 'navbar' }) },
+  ];
+
   return (
     <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="/" className="text-2xl font-bold text-blue-600">
+        <Link to="/" className="text-2xl font-bold text-blue-600">
           PartTimer
-        </a>
+        </Link>
         <nav className="hidden md:flex space-x-6">
-          <Link
-            to={`services`}
-            className="text-gray-600 hover:text-blue-600 transition-colors">
-            {t('services', { ns: 'navbar' })}
-          </Link>
-          <a
-            href="#how-it-works"
-            className="text-gray-600 hover:text-blue-600 transition-colors">
-            {t('howItWorks', { ns: 'navbar' })}
-          </a>
-          <a
-            href="#post-request"
-            className="text-gray-600 hover:text-blue-600 transition-colors">
-            {t('postRequest', { ns: 'navbar' })}
-          </a>
-          <Link
-            to={`bookLaborers`}
-            className="text-gray-600 hover:text-blue-600 transition-colors">
-            {t('bookLaborers', { ns: 'navbar' })}
-          </Link>
+          {navItems.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
         <div className="hidden md:flex items-center gap-3">
           <Select onValueChange={handleLanguageChange} value={language}>
@@ -97,10 +96,10 @@ function Navbar() {
               ))}
             </SelectContent>
           </Select>
-          {user ? (
+          {isAuthenticated ? (
             <>
               <CurrencyBadge />
-              <UserNav logout={logout} user={user} />
+              <UserNav />
             </>
           ) : (
             <Button size="sm" variant="default" className="h-9">
@@ -115,21 +114,16 @@ function Navbar() {
       {/* Mobile menu */}
       {isMenuOpen && (
         <nav className="md:hidden bg-white px-4 py-2 flex flex-col space-y-2">
-          <a
-            href="#services"
-            className="text-gray-600 hover:text-blue-600 transition-colors">
-            {t('services', { ns: 'navbar' })}
-          </a>
-          <a
-            href="#how-it-works"
-            className="text-gray-600 hover:text-blue-600 transition-colors">
-            {t('howItWorks', { ns: 'navbar' })}
-          </a>
-          <a
-            href="#post-request"
-            className="text-gray-600 hover:text-blue-600 transition-colors">
-            {t('postRequest', { ns: 'navbar' })}
-          </a>
+          {navItems.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="text-gray-600 hover:text-blue-600 transition-colors"
+              onClick={toggleMenu}
+            >
+              {item.label}
+            </Link>
+          ))}
           <Select onValueChange={handleLanguageChange} value={language}>
             <SelectTrigger className="w-full h-9">
               <SelectValue placeholder={t('languageSelector', { ns: 'common' })}>
@@ -150,14 +144,14 @@ function Navbar() {
               ))}
             </SelectContent>
           </Select>
-          {user ? (
+          {isAuthenticated ? (
             <div className="flex items-center justify-between">
-              <UserNav logout={logout} user={user} />
+              <UserNav />
               <CurrencyBadge />
             </div>
           ) : (
             <Button size="sm" variant="default" className="w-full h-9">
-              <Link to="/login">{t('signIn', { ns: 'navbar' })}</Link>
+              <Link to="/login" onClick={toggleMenu}>{t('signIn', { ns: 'navbar' })}</Link>
             </Button>
           )}
         </nav>

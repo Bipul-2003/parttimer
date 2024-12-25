@@ -1,43 +1,50 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Outlet } from 'react-router-dom'
-import { HomeIcon, UserIcon, BriefcaseIcon, ClockIcon, Settings, CreditCard } from 'lucide-react'
-import { Sidebar, SidebarItem } from '@/components/Sidebar/Sidebar';
-
-interface Organization {
-  id: number;
-  name: string;
-}
-
-interface User {
-  user_role: string;
-  user_id: number;
-  organization?: Organization;
-  name: string;
-  email: string;
-  points: number;
-}
-
-const demoUser: User = {
-  user_role: "User",
-  user_id: 1,
-  organization: { id: 1, name: "Demo Corp" },
-  name: "John Doe",
-  email: "john.doe@example.com",
-  points: 1000
-};
-
-const sidebarItems: SidebarItem[] = [
-  { icon: HomeIcon, label: "Dashboard", path: "dashboard" },
-  { icon: UserIcon, label: "Profile", path: "profile" },
-  // { icon: BriefcaseIcon, label: "Organization", path: "organization" },
-  { icon: ClockIcon, label: "History", path: "history" },
-  { icon: CreditCard, label: "Subscriptions", path: "subscription" },
-  { icon: Settings, label: "Settings", path: "settings" },
-]
+import { useMemo } from "react";
+import { motion } from "framer-motion";
+import { Outlet } from "react-router-dom";
+import {
+  HomeIcon,
+  UserIcon,
+  BriefcaseIcon,
+  ClockIcon,
+  Settings,
+  CreditCard,
+} from "lucide-react";
+import { Sidebar, SidebarItem } from "@/components/Sidebar/Sidebar";
+import { useAuth } from "@/context/AuthContext";
 
 export default function UserProfilePage() {
-  const [user, setUser] = useState<User>(demoUser)
+  const { user } = useAuth();
+
+  const sidebarItems: SidebarItem[] = useMemo(() => {
+    const items: SidebarItem[] = [
+      { icon: UserIcon, label: "Profile", path: "profile" },
+      { icon: CreditCard, label: "Subscriptions", path: "subscription" },
+      { icon: Settings, label: "Settings", path: "settings" },
+    ];
+
+    if (user?.user_type === "USER") {
+      items.unshift({ icon: HomeIcon, label: "Dashboard", path: "dashboard" });
+      items.splice(3, 0, {
+        icon: ClockIcon,
+        label: "History",
+        path: "history",
+      });
+    }
+
+    if (user?.user_type === "USER" && user.organization) {
+      items.splice(2, 0, {
+        icon: BriefcaseIcon,
+        label: "Organization",
+        path: "organization",
+      });
+    }
+
+    return items;
+  }, [user]);
+
+  if (!user) {
+    return null; // Or render a loading state or redirect to login
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -47,11 +54,9 @@ export default function UserProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}>
-          {/* Routed content will be rendered here */}
           <Outlet />
         </motion.div>
       </main>
     </div>
-  )
+  );
 }
-

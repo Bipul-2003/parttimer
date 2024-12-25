@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { Toaster } from "@/components/ui/toaster"
@@ -41,14 +41,14 @@ export default function SignupPage1() {
     }
   }, [location])
 
-  const updateFormData = (data: Partial<SignupData & { serviceCities?: string[] }>) => {
+  const updateFormData = useCallback((data: Partial<SignupData & { serviceCities?: string[] }>) => {
     setFormData((prev) => ({ ...prev, ...data }))
-  }
+  }, [])
 
-  const nextStep = () => setStep((prev) => prev + 1)
-  const prevStep = () => setStep((prev) => prev - 1)
+  const nextStep = useCallback(() => setStep((prev) => prev + 1), [])
+  const prevStep = useCallback(() => setStep((prev) => prev - 1), [])
 
-  const regularSignup = async (data: SignupData) => {
+  const regularSignup = useCallback(async (data: SignupData) => {
     try {
       const response = await signup(data)
       return response.data
@@ -59,12 +59,16 @@ export default function SignupPage1() {
         throw new Error('An unexpected error occurred during signup')
       }
     }
-  }
+  }, [])
 
-  const laborSignup = async () => {
+  const laborSignup = useCallback(async () => {
+    if (!formData.serviceCities || formData.serviceCities.length === 0) {
+      throw new Error('Please select at least one service city')
+    }
+
     const laborData = {
       ...formData,
-      serviceCities: formData.serviceCities || [],
+      serviceCities: formData.serviceCities,
       isRideNeeded: false,
       subscriptionStatus: 'BASIC'
     }
@@ -88,9 +92,9 @@ export default function SignupPage1() {
         throw new Error('An unexpected error occurred during labor signup')
       }
     }
-  }
+  }, [formData])
 
-  const completeSignup = async () => {
+  const completeSignup = useCallback(async () => {
     try {
       let response
       if (formData.userType === 'LABOUR') {
@@ -114,7 +118,7 @@ export default function SignupPage1() {
         variant: "destructive",
       })
     }
-  }
+  }, [formData, laborSignup, regularSignup, toast, navigate])
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

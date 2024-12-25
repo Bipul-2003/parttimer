@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -50,48 +50,55 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
     },
   })
 
-  useEffect(() => {
-    const fetchCountries = async () => {
+  const fetchCountries = useCallback(async () => {
+    try {
+      const countriesData = await getCountry()
+      setCountries(countriesData)
+    } catch (error) {
+      console.error("Failed to fetch countries:", error)
+    }
+  }, [])
+
+  const fetchStates = useCallback(async (country: string) => {
+    if (country) {
       try {
-        const countriesData = await getCountry()
-        setCountries(countriesData)
+        const statesData = await getState(country)
+        setStates(statesData)
       } catch (error) {
-        console.error("Failed to fetch countries:", error)
+        console.error("Failed to fetch states:", error)
       }
     }
+  }, [])
 
-    fetchCountries()
+  const fetchCities = useCallback(async (country: string, state: string) => {
+    if (country && state) {
+      try {
+        const citiesData = await getCity(country, state)
+        setCities(citiesData)
+      } catch (error) {
+        console.error("Failed to fetch cities:", error)
+      }
+    }
   }, [])
 
   useEffect(() => {
-    const fetchStates = async () => {
-      if (form.watch('country')) {
-        try {
-          const statesData = await getState(form.watch('country'))
-          setStates(statesData)
-        } catch (error) {
-          console.error("Failed to fetch states:", error)
-        }
-      }
-    }
-
-    fetchStates()
-  }, [form.watch('country')])
+    fetchCountries()
+  }, [fetchCountries])
 
   useEffect(() => {
-    const fetchCities = async () => {
-      if (form.watch('country') && form.watch('state')) {
-        try {
-          const citiesData = await getCity(form.watch('country'), form.watch('state'))
-          setCities(citiesData)
-        } catch (error) {
-          console.error("Failed to fetch cities:", error)
-        }
-      }
+    const country = form.watch('country')
+    if (country) {
+      fetchStates(country)
     }
+  }, [form.watch('country'), fetchStates])
 
-    fetchCities()
-  }, [form.watch('country'), form.watch('state')])
+  useEffect(() => {
+    const country = form.watch('country')
+    const state = form.watch('state')
+    if (country && state) {
+      fetchCities(country, state)
+    }
+  }, [form.watch('country'), form.watch('state'), fetchCities])
 
   const onSubmit = (values: z.infer<typeof workerLocationSchema>) => {
     updateFormData(values)

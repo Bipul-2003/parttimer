@@ -60,7 +60,8 @@ export default function SignupPage1() {
   const laborSignup = async () => {
     const laborData = {
       ...formData,
-      serviceCities: formData.serviceCities || [],
+      // cities as serviceCities,
+      serviceCities: formData.cities,
       isRideNeeded: false,
       subscriptionStatus: 'BASIC'
     }

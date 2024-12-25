@@ -1,38 +1,34 @@
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PartTimeServicesTable } from "./part-time-services-table"
 import { WorkerServicesTable } from "./worker-services-table"
+import { useAuth } from "@/context/AuthContext"
+import { Skeleton } from "@/components/ui/skeleton"
 
-interface Organization {
-  id: number;
-  name: string;
-}
+export default function UserDashboard() {
+  const { user, loading } = useAuth()
+  const navigate = useNavigate()
 
-interface User {
-  user_role: string;
-  user_id: number;
-  organization?: Organization;
-  name: string;
-  email: string;
-  points: number;
-}
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        navigate('/login')
+      } else if (user.user_type === 'LABOUR') {
+        navigate('/worker')
+      }
+    }
+  }, [user, loading, navigate])
 
-interface DashboardProps {
-  user?: User;
-}
+  if (loading) {
+    return <DashboardSkeleton />
+  }
 
-const demoUser: User = {
-  user_role: "User",
-  user_id: 1,
-  organization: { id: 1, name: "Demo Corp" },
-  name: "John Doe",
-  email: "john.doe@example.com",
-  points: 1000
-};
+  if (!user || user.user_type !== 'USER') {
+    return null // This will be handled by the useEffect hook above
+  }
 
-export default function UserDashboard({ user = demoUser }: DashboardProps) {
   return (
     <div className="container mx-auto space-y-4">
       <Card className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
@@ -40,18 +36,11 @@ export default function UserDashboard({ user = demoUser }: DashboardProps) {
           <CardTitle className="text-xl font-bold">Welcome back, {user.name}!</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* <div className="flex items-center space-x-4">
-            <Avatar className="w-16 h-16 border-2 border-white">
-              <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`} alt={user.name} />
-              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm text-gray-200">{user.email}</p>
-              <Badge variant="secondary" className="mt-1 bg-white text-purple-700">
-                {user.user_role}
-              </Badge>
-            </div>
-          </div> */}
+          <p className="text-sm text-gray-200">{user.email}</p>
+          <p className="text-sm text-gray-200 mt-2">Points: {user.points}</p>
+          {user.organization && (
+            <p className="text-sm text-gray-200 mt-2">Organization: {user.organization.name}</p>
+          )}
         </CardContent>
       </Card>
 
@@ -79,6 +68,31 @@ export default function UserDashboard({ user = demoUser }: DashboardProps) {
         </CardContent>
       </Card>
     </div>
-  );
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="container mx-auto space-y-4">
+      <Card className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
+        <CardHeader className="pb-0">
+          <Skeleton className="h-6 w-1/3 bg-white/20" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-4 w-1/4 bg-white/20 mt-2" />
+          <Skeleton className="h-4 w-1/5 bg-white/20 mt-2" />
+        </CardContent>
+      </Card>
+
+      <Card className="w-full">
+        <CardHeader>
+          <Skeleton className="h-8 w-1/2" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-64 w-full" />
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
 

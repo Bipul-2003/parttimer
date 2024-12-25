@@ -11,12 +11,22 @@ import { WorkerCitySelection } from '@/components/SignUp/WorkerCitySelection'
 import { SignupData } from '@/lib/validations/signup'
 import { signup } from '@/api/auth'
 
+interface FormDataState extends Partial<SignupData> {
+  cities?: string[]
+  serviceCities?: string[]
+}
+
+
 export default function SignupPage1() {
   const [step, setStep] = useState(1)
-  const [formData, setFormData] = useState<Partial<SignupData & { serviceCities?: string[] }>>({})
+  const [formData, setFormData] = useState<FormDataState>({})
   const { toast } = useToast()
   const navigate = useNavigate()
   const location = useLocation()
+
+  console.log("Formdata");
+  console.log(formData);
+  
 
   useEffect(() => {
     if (location.state) {
@@ -61,7 +71,7 @@ export default function SignupPage1() {
     const laborData = {
       ...formData,
       // cities as serviceCities,
-      serviceCities: formData.cities,
+      serviceCities: formData.cities || [],
       isRideNeeded: false,
       subscriptionStatus: 'BASIC'
     }

@@ -36,10 +36,11 @@ export const signupSchema = z.object({
   typeOfVerificationFile: z.enum(["passport", "driverLicense", "nationalId"]).optional(),
   consentAccepted: z.boolean().default(false),
   userType: z.enum(["REGULAR", "LABOUR"]),
-  cities: z.array(z.string()).min(1).max(3).optional(),
+  serviceCities: z.array(z.string()).min(1).max(3).optional(),
 })
 
 export type SignupData = z.infer<typeof signupSchema>
+
 
 
 

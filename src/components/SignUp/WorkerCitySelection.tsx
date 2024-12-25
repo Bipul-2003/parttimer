@@ -24,8 +24,8 @@ import { SignupData } from '@/lib/validations/signup'
 import { getCountry, getState, getCity } from "@/api/locationsApi"
 
 type WorkerLocationSelectionProps = {
-  formData: Partial<SignupData>
-  updateFormData: (data: Partial<SignupData>) => void
+  formData: Partial<SignupData & { serviceCities?: string[] }>
+  updateFormData: (data: Partial<SignupData & { serviceCities?: string[] }>) => void
   completeSignup: () => void
   prevStep: () => void
 }
@@ -33,7 +33,7 @@ type WorkerLocationSelectionProps = {
 const workerLocationSchema = z.object({
   country: z.string().min(1, "Please select a country"),
   state: z.string().min(1, "Please select a state"),
-  cities: z.array(z.string()).min(1, "Please select at least one city").max(3, "You can select up to 3 cities"),
+  serviceCities: z.array(z.string()).min(1, "Please select at least one city").max(3, "You can select up to 3 cities"),
 })
 
 export function WorkerCitySelection({ formData, updateFormData, completeSignup, prevStep }: WorkerLocationSelectionProps) {
@@ -46,7 +46,7 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
     defaultValues: {
       country: formData.country || '',
       state: formData.state || '',
-      cities: formData.cities || [],
+      serviceCities: formData.serviceCities || [],
     },
   })
 
@@ -160,7 +160,7 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
 
         <FormField
           control={form.control}
-          name="cities"
+          name="serviceCities"
           render={() => (
             <FormItem>
               <FormLabel>Cities</FormLabel>
@@ -170,7 +170,7 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
                     <FormField
                       key={city}
                       control={form.control}
-                      name="cities"
+                      name="serviceCities"
                       render={({ field }) => {
                         return (
                           <FormItem

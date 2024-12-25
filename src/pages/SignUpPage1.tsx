@@ -12,10 +12,8 @@ import { SignupData } from '@/lib/validations/signup'
 import { signup } from '@/api/auth'
 
 interface FormDataState extends Partial<SignupData> {
-  cities?: string[]
   serviceCities?: string[]
 }
-
 
 export default function SignupPage1() {
   const [step, setStep] = useState(1)
@@ -23,10 +21,6 @@ export default function SignupPage1() {
   const { toast } = useToast()
   const navigate = useNavigate()
   const location = useLocation()
-
-  console.log("Formdata");
-  console.log(formData);
-  
 
   useEffect(() => {
     if (location.state) {
@@ -70,8 +64,7 @@ export default function SignupPage1() {
   const laborSignup = async () => {
     const laborData = {
       ...formData,
-      // cities as serviceCities,
-      serviceCities: formData.cities || [],
+      serviceCities: formData.serviceCities || [],
       isRideNeeded: false,
       subscriptionStatus: 'BASIC'
     }
@@ -86,7 +79,6 @@ export default function SignupPage1() {
       return response.data
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        // Properly extract the error message from the backend response
         const errorMessage = error.response?.data?.error || 
                            error.response?.data?.message ||
                            error.response?.data ||
@@ -152,7 +144,7 @@ export default function SignupPage1() {
               updateFormData={(data) => {
                 updateFormData({
                   ...data,
-                  serviceCities: data.cities
+                  serviceCities: data.serviceCities
                 })
               }}
               completeSignup={completeSignup} 
@@ -171,3 +163,4 @@ export default function SignupPage1() {
     </div>
   )
 }
+

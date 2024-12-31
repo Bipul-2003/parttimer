@@ -1,6 +1,8 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
+import config from "@/config/config";
+// const API_URL = config.apiURI;
 
-const API_URL = "http://localhost:8080/api/locations";
+const API_URL = config.apiURI+"/api/locations";
 
 export const getCountry = async () => {
   try {

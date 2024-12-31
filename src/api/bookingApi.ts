@@ -4,13 +4,13 @@ import {
   ServiceAssignmentDTO,
   OrganizationEmployeeDTO,
   BookingAssignmentDTO,
-  EmployeeDetails,
 } from "@/types/BookingDetailsDTO";
+import config from "@/config/config";
 
 class BookingApi {
   private http: AxiosInstance;
 
-  constructor(baseURL = "http://localhost:8080/api/organizations") {
+  constructor(baseURL = config.apiURI+"/api/organizations") {
     this.http = axios.create({
       baseURL,
       withCredentials: true,

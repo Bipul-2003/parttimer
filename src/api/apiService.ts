@@ -1,4 +1,6 @@
 import axios from "axios";
+import config from "@/config/config";
+const API_URL = config.apiURI+"/api";
 
 interface BookingRequest {
   serviceId: string;
@@ -16,7 +18,7 @@ export const bookService = async (
 ): Promise<any> => {
   try {
     const response = await axios.post(
-      `http://localhost:8080/api/bookings/book`, 
+      `${API_URL}/bookings/book`, 
       bookingRequest,
       {
         withCredentials: true,

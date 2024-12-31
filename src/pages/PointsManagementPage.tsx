@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { useLocation, Link } from "react-router-dom";
 import {
@@ -12,18 +12,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sparkles,
-  CreditCard,
-  Gift,
-  ShoppingCart,
-  Users,
-  Copy,
-  Check,
-} from "lucide-react";
+import { Sparkles, CreditCard, Gift, ShoppingCart, Users, Copy, Check } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import config from "@/config/config";
 
 const stripePromise = loadStripe(
   "pk_test_51QRCSY2KrknwI1uDyRSnqfdAtXtXA4kSYLluzjV0WJ1Qqp3DHoh77RqBfE0sYFJ5RpJaVRhXuUbN2ejSyC5Kv6t200BA6PxhXr"
@@ -34,7 +27,7 @@ export default function PointsManagement() {
   const [isCopied, setIsCopied] = useState(false);
   const { user, fetchUser } = useAuth();
 
-  const gemCount = user?.points || 0;
+  const gemCount = user?.user_type === "USER" ? user.points : 0;
 
   const location = useLocation();
   const { toast } = useToast();
@@ -49,8 +42,9 @@ export default function PointsManagement() {
         title: "Purchase Successful",
         description: `${amount} gems have been added to your account!`,
       });
-      // Fetch updated gem count from the server
-      fetchUser();
+      if (user?.user_type === "USER") {
+        fetchUser();
+      }
     } else if (status === "error") {
       toast({
         title: "Purchase Failed",
@@ -58,35 +52,20 @@ export default function PointsManagement() {
           "There was an error processing your payment. Please try again.",
       });
     }
-  }, [location, toast]);
-
-  // const fetchGemCount = async () => {
-  //   try {
-  //     const response = await fetch("http://localhost:8080/stripe/user/gems");
-  //     if (!response.ok) {
-  //       throw new Error("Failed to fetch gem count");
-  //     }
-  //     const data = await response.json();
-  //     setGemCount(data.gemCount);
-  //   } catch (error) {
-  //     console.error("Error fetching gem count:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to update gem count. Please refresh the page.",
-  //     });
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   // Fetch the user's current gem count from the backend
-  //   fetchGemCount();
-  // }, []);
+  }, [location, toast, user]);
 
   const generateReferralLink = useCallback(() => {
-    const uniqueCode = Math.random().toString(36).substring(2, 8);
-    const newLink = `https://yourdomain.com/refer/${uniqueCode}`;
-    setReferralLink(newLink);
-  }, []);
+    if (user?.user_type === "USER") {
+      const uniqueCode = Math.random().toString(36).substring(2, 8);
+      const newLink = `https://yourdomain.com/refer/${uniqueCode}`;
+      setReferralLink(newLink);
+    } else {
+      toast({
+        title: "Error",
+        description: "Only regular users can generate referral links.",
+      });
+    }
+  }, [user, toast]);
 
   const copyToClipboard = useCallback(() => {
     navigator.clipboard.writeText(referralLink).then(() => {
@@ -98,6 +77,21 @@ export default function PointsManagement() {
       setTimeout(() => setIsCopied(false), 2000);
     });
   }, [referralLink, toast]);
+
+  if (user?.user_type !== "USER") {
+    return (
+      <div className="container mx-auto p-4">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Only regular users can access the Points Management system.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 bg-gradient-to-b from-purple-50 to-indigo-100 min-h-screen">
@@ -267,11 +261,20 @@ function GemPackage({
   special = false,
 }: GemPackageProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
+
   const handlePurchase = async () => {
+    if (user?.user_type !== "USER") {
+      toast({
+        title: "Error",
+        description: "Only regular users can purchase gems.",
+      });
+      return;
+    }
+
     try {
-      console.log("price: " + price);
       const response = await fetch(
-        "http://localhost:8080/stripe/product/v1/checkout",
+        config.apiURI+"/stripe/product/v1/checkout",
         {
           method: "POST",
           headers: {
@@ -360,3 +363,4 @@ function GemPackage({
     </Card>
   );
 }
+

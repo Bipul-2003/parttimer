@@ -172,7 +172,7 @@ function getStatusVariant(status: string) {
 export default function WorkerHistoryTable() {
   const [data, setData] = useState<LaborHistory[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // const [error, setError] = useState<string | null>(null)
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -184,13 +184,13 @@ export default function WorkerHistoryTable() {
 
   const fetchData = async () => {
     setLoading(true)
-    setError(null)
+    // setError(null)
     try {
       const response = await getWorkerHistory()
       setData(response)
     } catch (err) {
       const errorMessage = 'Failed to fetch labor history data. Please try again later.'
-      setError(errorMessage)
+      // setError(errorMessage)
       toast({
         variant: "destructive",
         title: "Error",

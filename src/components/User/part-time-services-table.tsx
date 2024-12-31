@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import {
   ColumnDef,
@@ -39,6 +37,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "@/hooks/use-toast"
 import { getUserPartimeBookings } from "@/api/UserApis/bookingsApi"
+import config from "@/config/config";
 
 type PartTimeService = {
   bookingId: number
@@ -52,7 +51,8 @@ type PartTimeService = {
   serviceName: string
 }
 
-const API_URL = "http://localhost:8000";
+
+const API_URL = config.apiURI;
 
 const columns: ColumnDef<PartTimeService>[] = [
   {

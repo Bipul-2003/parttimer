@@ -189,7 +189,7 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
         <FormField
           control={form.control}
           name="document"
-          render={({ field }) => (
+          render={({  }) => (
             <FormItem>
               <FormLabel>Upload Document</FormLabel>
               <FormControl>

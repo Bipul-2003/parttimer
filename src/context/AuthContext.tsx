@@ -24,8 +24,8 @@ interface RegularUser extends BaseUser {
   organization?: Organization;
   email: string;
   points: number;
-  zipcode: string ;
-  city: string ;
+  zipcode: string;
+  city: string;
   "user subscription": boolean;
   "seller subscription": boolean;
 }
@@ -46,7 +46,7 @@ interface AuthContextType {
   checkUser: (email: string) => Promise<{ profileComplete: boolean }>;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<any>;
-  fetchUser: () => Promise<any>;
+  fetchUser: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -64,7 +64,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const fetchUser = async () => {
     try {
       const currentUser = await getCurrentUser();
-      if (currentUser) {
+      if (currentUser && isValidUser(currentUser)) {
         setUser(currentUser);
         setIsAuthenticated(true);
       } else {
@@ -143,7 +143,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, login, isAuthenticated, googleSignIn, checkUser, fetchUser}}>
+    <AuthContext.Provider value={{ user, loading, logout, login, isAuthenticated, googleSignIn, checkUser, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -156,4 +156,16 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+// Helper function to validate user object
+function isValidUser(user: any): user is User {
+  return (
+    user &&
+    typeof user === "object" &&
+    "user_type" in user &&
+    (user.user_type === "USER" || user.user_type === "LABOUR") &&
+    "name" in user &&
+    typeof user.name === "string"
+  );
+}
 

@@ -8,7 +8,7 @@ type UserTypeSelectionProps = {
   prevStep: () => void
 }
 
-export function UserTypeSelection({ formData, updateFormData, nextStep, prevStep }: UserTypeSelectionProps) {
+export function UserTypeSelection({  updateFormData, nextStep, prevStep }: UserTypeSelectionProps) {
   const handleSelection = (userType: 'REGULAR' | 'LABOUR') => {
     updateFormData({ userType })
     nextStep()

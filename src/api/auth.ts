@@ -1,8 +1,12 @@
 // auth.ts
 
 import axios from "axios";
+import config from "@/config/config";
 
-const API_URL = "http://localhost:8080/api/auth";
+const API_URL = config.apiURI+"/api/auth";
+
+
+// const API_URL = "http://localhost:8080/api/auth";
 
 // Create an axios instance with default config
 const authAPI = axios.create({

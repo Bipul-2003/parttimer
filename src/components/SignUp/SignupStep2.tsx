@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { signupSchema, SignupData } from "../../lib/validations/signup";
 import { getCountry, getState, getCity, getZipcodes } from "@/api/locationsApi";
-import { useLocation, useNavigate } from "react-router-dom";
+// import { useLocation, useNavigate } from "react-router-dom";
 
 type SignupStep2Props = {
   formData: Partial<SignupData>;

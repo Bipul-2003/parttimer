@@ -29,14 +29,14 @@ Make sure you have the following installed:
 
 1. Clone the repository:
 
-```sh
+```bash
 git clone https://github.com/your-username/your-repo-name.git
 cd your-repo-name
 ```
 
-2. Install dependencies:
+1. Install dependencies:
 
-```sh
+```bash
 npm install
 # or
 yarn install
@@ -46,7 +46,7 @@ yarn install
 
 Start the development server:
 
-```sh
+```bash
 npm run dev
 # or
 yarn dev
@@ -58,7 +58,7 @@ Open your browser and navigate to `http://localhost:3000`. You should see your R
 
 To create a production build:
 
-```sh
+```bash
 npm run build
 # or
 yarn build
@@ -72,7 +72,7 @@ If you are developing a production application, we recommend updating the config
 
 1. Configure the top-level `parserOptions` property like this:
 
-```js
+```typescript
 export default tseslint.config({
   languageOptions: {
     // other options...
@@ -84,11 +84,11 @@ export default tseslint.config({
 })
 ```
 
-2. Replace `tseslint.configs.recommended` with `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`.
-3. Optionally add `...tseslint.configs.stylisticTypeChecked`.
-4. Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+1. Replace `tseslint.configs.recommended` with `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`.
+2. Optionally add `...tseslint.configs.stylisticTypeChecked`.
+3. Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
 
-```js
+```typescript
 // eslint.config.js
 import react from 'eslint-plugin-react'
 
@@ -112,7 +112,7 @@ export default tseslint.config({
 
 The project structure is as follows:
 
-```
+```plaintext
 ├── public
 │   └── index.html
 ├── src

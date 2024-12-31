@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { CircleUser } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { Toaster } from "@/components/ui/toaster"
@@ -10,6 +10,7 @@ import { UserTypeSelection } from '@/components/SignUp/UserTypeSelection'
 import { WorkerCitySelection } from '@/components/SignUp/WorkerCitySelection'
 import { SignupData } from '@/lib/validations/signup'
 import { signup } from '@/api/auth'
+import config from '@/config/config'
 
 interface FormDataState extends Partial<SignupData> {
   serviceCities?: string[]
@@ -75,7 +76,7 @@ export default function SignupPage1() {
     console.log("Labor signup data:", laborData)
 
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/labour/sign-up', laborData, {
+      const response = await axios.post(config.apiURI+'/api/auth/labour/sign-up', laborData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -96,11 +97,10 @@ export default function SignupPage1() {
 
   const completeSignup = useCallback(async () => {
     try {
-      let response
       if (formData.userType === 'LABOUR') {
-        response = await laborSignup()
+        await laborSignup()
       } else {
-        response = await regularSignup(formData as SignupData)
+        await regularSignup(formData as SignupData)
       }
       
       toast({

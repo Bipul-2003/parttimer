@@ -56,6 +56,7 @@ function Navbar() {
     { to: '/how-it-works', label: t('howItWorks', { ns: 'navbar' }) },
     { to: '/post-request', label: t('postRequest', { ns: 'navbar' }) },
     { to: '/book-laborers', label: t('bookLaborers', { ns: 'navbar' }) },
+    {to: '/advertisement', label: t('Advertisement', { ns: 'navbar' })},
   ];
 
   return (

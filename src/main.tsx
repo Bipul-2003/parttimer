@@ -43,10 +43,16 @@ import UserHistory from "./components/User/UserHistory.tsx";
 import UserSubscription from "./components/User/UserSubscrions.tsx";
 import UserSettings from "./components/User/UserSettings.tsx";
 import { UserWorkerServiceReqestDetailsPage } from "./pages/UserWorkerServiceReqestDetailsPage.tsx";
-import  WorkerHistoryTable  from "./components/Workers/WorkerHistoryTable.tsx";
+import WorkerHistoryTable from "./components/Workers/WorkerHistoryTable.tsx";
 import { NotFound } from "./components/NotFound.tsx";
 import LaborRequestDetails from "./components/Workers/WorkerRequestDetails.tsx";
-
+// import AdvertisementPage from './components/Advertisements/AdsHome.tsx';
+import AdsPage from "./pages/AdsPage.tsx";
+import AdsHome from "./components/Advertisements/AdsHome.tsx";
+import ShopDetailPage from "./components/Advertisements/ShopDeatiledPage.tsx";
+import PublishAdPage from "./components/Advertisements/PublishAdPage.tsx";
+import MyAdsPage from "./components/Advertisements/MyAdsPage.tsx";
+import ManageAdPage from "./components/Advertisements/ManageAdPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -75,22 +81,48 @@ const router = createBrowserRouter([
       },
       {
         path: "/bookLaborers",
-        element:<LaborBookingForm/>
+        element: <LaborBookingForm />,
+      },
+      {
+        path: "/advertisement",
+        element: <AdsPage />,
+        children: [
+          {
+            index: true,
+            element: <AdsHome />,
+          },
+          {
+            path: ":id",
+            element: <ShopDetailPage />,
+          },
+          {
+            path: "publish-ad",
+            element: <PublishAdPage />,
+          },
+          {
+            path: "my-ads",
+            element: <MyAdsPage />,
+          },
+          {
+            path: "manage-ad/:id",
+            element: <ManageAdPage />,
+          },
+        ],
       },
       {
         path: "/services",
         element: (
           // <ProtectedRoute>
-            <ServicesPage />
+          <ServicesPage />
           // </ProtectedRoute>
         ),
       },
       {
         path: "/points",
         element: (
-          // <ProtectedRoute>
-          <PointsManagement />
-          // </ProtectedRoute>
+          <ProtectedRoute>
+            <PointsManagement />
+          </ProtectedRoute>
         ),
       },
       {
@@ -104,9 +136,9 @@ const router = createBrowserRouter([
       {
         path: "/profile",
         element: (
-          // <ProtectedRoute>
+          <ProtectedRoute>
             <UserProfilePage />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         ),
         children: [
           {
@@ -256,24 +288,23 @@ const router = createBrowserRouter([
           {
             path: "labor-request/:id",
             element: <LaborRequestDetails />,
-          }
-        
+          },
         ],
       },
       {
         path: "/worker-services/:serviceId",
         element: (
-          // <ProtectedRoute>
+          <ProtectedRoute>
             <UserWorkerServiceReqestDetailsPage />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         ),
       },
       {
         path: "/subscriptions",
         element: (
-          // <ProtectedRoute>
-          <SubscriptionsPage />
-          // </ProtectedRoute>
+          <ProtectedRoute>
+            <SubscriptionsPage />
+          </ProtectedRoute>
         ),
       },
     ],
@@ -296,4 +327,3 @@ createRoot(document.getElementById("root")!).render(
     </I18nextProvider>
   </StrictMode>
 );
-

@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from "axios";
+import config from "@/config/config";
 
 // Interfaces
 export interface Organization {
@@ -66,7 +67,7 @@ export const statusOrder: readonly Status[] = [
 ] as const;
 
 // API Configuration
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = config.apiURI+"/api";
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,

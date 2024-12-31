@@ -1,6 +1,7 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
+import config from "@/config/config";
 
-const API_URL = "http://localhost:8080/api/auth";
+const API_URL = config.apiURI+"/api/auth";
 
 export const checkUser = async (email: string) => {
   try {

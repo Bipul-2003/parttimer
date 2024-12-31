@@ -55,17 +55,17 @@ export default function DetailedServiceRequestPage() {
   const [request, setRequest] = React.useState<ServiceRequest | null>(null);
   const [rating, setRating] = React.useState(0);
   const [feedback, setFeedback] = React.useState("");
-  const [paymentMethod, setPaymentMethod] = React.useState<
-    "offline" | "bank" | ""
-  >("");
+  // const [paymentMethod, setPaymentMethod] = React.useState<
+  //   "offline" | "bank" | ""
+  // >("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const [newStatus, setNewStatus] = React.useState<BackendStatus | null>(null);
+  // const [newStatus, setNewStatus] = React.useState<BackendStatus | null>(null);
 
-  const isPosted = (request: ServiceRequest): boolean => {
-    return request.status.toUpperCase() === "POSTED";
-  };
+  // const isPosted = (request: ServiceRequest): boolean => {
+  //   return request.status.toUpperCase() === "POSTED";
+  // };
 
   // const statusOrder: FrontendStatus[] = [
   //   "posted",
@@ -248,55 +248,55 @@ export default function DetailedServiceRequestPage() {
   //   }
   // };
 
-  const ServiceRequestDetails: React.FC<{ request: ServiceRequest }> = ({
-    request,
-  }) => {
-    return (
-      <div>
-        {/* existing request details */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Service Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Date</Label>
-                <div className="font-medium">{request.date}</div>
-              </div>
-              <div>
-                <Label>Time</Label>
-                <div className="font-medium">{request.time}</div>
-              </div>
-              <div className="col-span-2">
-                <Label>Address</Label>
-                <div className="font-medium">{request.address}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+  // const ServiceRequestDetails: React.FC<{ request: ServiceRequest }> = ({
+  //   request,
+  // }) => {
+  //   return (
+  //     <div>
+  //       {/* existing request details */}
+  //       <Card className="mb-6">
+  //         <CardHeader>
+  //           <CardTitle>Service Details</CardTitle>
+  //         </CardHeader>
+  //         <CardContent>
+  //           <div className="grid grid-cols-2 gap-4">
+  //             <div>
+  //               <Label>Date</Label>
+  //               <div className="font-medium">{request.date}</div>
+  //             </div>
+  //             <div>
+  //               <Label>Time</Label>
+  //               <div className="font-medium">{request.time}</div>
+  //             </div>
+  //             <div className="col-span-2">
+  //               <Label>Address</Label>
+  //               <div className="font-medium">{request.address}</div>
+  //             </div>
+  //           </div>
+  //         </CardContent>
+  //       </Card>
 
-        {request.organizationOwnerName && (
-          <div className="mt-4">
-            <h4 className="font-semibold">Organization Owner:</h4>
-            <p>{request.organizationOwnerName}</p>
-          </div>
-        )}
+  //       {request.organizationOwnerName && (
+  //         <div className="mt-4">
+  //           <h4 className="font-semibold">Organization Owner:</h4>
+  //           <p>{request.organizationOwnerName}</p>
+  //         </div>
+  //       )}
 
-        {request.organizationCoOwnerNames &&
-          request.organizationCoOwnerNames.length > 0 && (
-            <div className="mt-2">
-              <h4 className="font-semibold">Organization Co-Owners:</h4>
-              <ul className="list-disc pl-5">
-                {request.organizationCoOwnerNames.map((name, index) => (
-                  <li key={index}>{name}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-      </div>
-    );
-  };
+  //       {request.organizationCoOwnerNames &&
+  //         request.organizationCoOwnerNames.length > 0 && (
+  //           <div className="mt-2">
+  //             <h4 className="font-semibold">Organization Co-Owners:</h4>
+  //             <ul className="list-disc pl-5">
+  //               {request.organizationCoOwnerNames.map((name, index) => (
+  //                 <li key={index}>{name}</li>
+  //               ))}
+  //             </ul>
+  //           </div>
+  //         )}
+  //     </div>
+  //   );
+  // };
 
   if (isLoading && !request) {
     return (

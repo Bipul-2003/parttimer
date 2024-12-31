@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";

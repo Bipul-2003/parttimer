@@ -45,9 +45,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import ServiceRequestManagement from "./ServiceRequestManagement";
-import { Link, useParams } from "react-router-dom";
+import { Link} from "react-router-dom";
 import { dashboardAPI } from "@/api/dashboard";
-import { fetchOrganizationServices } from "@/types/dashboardTypes";
+// import { fetchOrganizationServices } from "@/types/dashboardTypes";
 import { useAuth } from "@/context/AuthContext";
 
 type Service = {
@@ -81,9 +81,9 @@ export function ManageService() {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        if (!user?.organization) return;
+        if (user?.user_type !== "USER" || !user.organization) return;
         const response = await dashboardAPI.fetchOrganizationServices(
-          user.organization?.id.toString()
+          user.organization.id.toString()
         );
         const transformedData = response.map(
           (service): Service => ({
@@ -105,7 +105,7 @@ export function ManageService() {
     };
 
     fetchServices();
-  }, [user?.organization]);
+  }, [user]);
 
   const columns: ColumnDef<Service>[] = [
     {
@@ -215,8 +215,9 @@ export function ManageService() {
 
   const handleAddService = async () => {
     try {
+      if (user?.user_type !== "USER" || !user.organization) return;
       // Call API to add the new service
-      // const addedService = await dashboardAPI.addService(user.organization?.id.toString(), newService);
+      // const addedService = await dashboardAPI.addService(user.organization.id.toString(), newService);
       
       // Update local state
       // setServices([...services, { ...addedService, isEnabled: true }]);
@@ -231,8 +232,8 @@ export function ManageService() {
     }
   };
 
-  if (!user?.organization) {
-    return <div>You are not associated with any organization.</div>;
+  if (user?.user_type !== "USER" || !user.organization) {
+    return <div>You are not associated with any organization or don't have the right permissions.</div>;
   }
 
   return (

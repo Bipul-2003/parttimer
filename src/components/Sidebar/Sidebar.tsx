@@ -48,7 +48,7 @@ export function Sidebar({ items, basePath, title }: SidebarProps) {
   const [activeItem, setActiveItem] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const {user} = useAuth();// Replace with your actual user object
+  const { user } = useAuth();
 
   useEffect(() => {
     const path = location.pathname.split("/").pop();
@@ -63,9 +63,8 @@ export function Sidebar({ items, basePath, title }: SidebarProps) {
   }, [location, items]);
 
   const handleNavigation = (path: string, label: string, requiredRole?: string) => {
-    if (requiredRole && user?.user_role !== requiredRole) {
-      // Handle unauthorized access (e.g., show a message or redirect)
-      alert("You do not have permission to access this page."); //Example handling
+    if (requiredRole && user?.user_type === "USER" && user.user_role !== requiredRole) {
+      alert("You do not have permission to access this page.");
       return;
     }
     setActiveItem(label);
@@ -105,76 +104,80 @@ export function Sidebar({ items, basePath, title }: SidebarProps) {
           <TooltipProvider>
             {items.map((item, index) => (
               <div key={index} className="mb-2">
-                {item.children ? (
-                  <Accordion type="single" collapsible>
-                    <AccordionItem value={item.label}>
-                      <AccordionTrigger className="px-4">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="flex items-center">
-                              <CustomIcon
-                                Icon={item.icon}
-                                className={`${isCollapsed ? "" : "mr-3"}`}
-                              />
-                              {!isCollapsed && item.label}
-                            </span>
-                          </TooltipTrigger>
-                          {isCollapsed && (
-                            <TooltipContent side="right">
-                              {item.label}
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </AccordionTrigger>
-                      {!isCollapsed && (
-                        <AccordionContent>
-                          {item.children.map((child, childIndex) => (
-                            <Button
-                              key={childIndex}
-                              variant="ghost"
-                              className={`w-full justify-start py-2 px-4 mb-1 ${
-                                activeItem === child.label
-                                  ? "bg-purple-100 text-purple-700"
-                                  : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
-                              }`}
-                              onClick={() =>
-                                handleNavigation(child.path, child.label, child.requiredRole)
-                              }
-                            >
-                              {child.label}
-                            </Button>
-                          ))}
-                        </AccordionContent>
+                {(!item.requiredRole || (user?.user_type === "USER" && user.user_role === item.requiredRole)) && (
+                  item.children ? (
+                    <Accordion type="single" collapsible>
+                      <AccordionItem value={item.label}>
+                        <AccordionTrigger className="px-4">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="flex items-center">
+                                <CustomIcon
+                                  Icon={item.icon}
+                                  className={`${isCollapsed ? "" : "mr-3"}`}
+                                />
+                                {!isCollapsed && item.label}
+                              </span>
+                            </TooltipTrigger>
+                            {isCollapsed && (
+                              <TooltipContent side="right">
+                                {item.label}
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                        </AccordionTrigger>
+                        {!isCollapsed && (
+                          <AccordionContent>
+                            {item.children.map((child, childIndex) => (
+                              (!child.requiredRole || (user?.user_type === "USER" && user.user_role === child.requiredRole)) && (
+                                <Button
+                                  key={childIndex}
+                                  variant="ghost"
+                                  className={`w-full justify-start py-2 px-4 mb-1 ${
+                                    activeItem === child.label
+                                      ? "bg-purple-100 text-purple-700"
+                                      : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
+                                  }`}
+                                  onClick={() =>
+                                    handleNavigation(child.path, child.label, child.requiredRole)
+                                  }
+                                >
+                                  {child.label}
+                                </Button>
+                              )
+                            ))}
+                          </AccordionContent>
+                        )}
+                      </AccordionItem>
+                    </Accordion>
+                  ) : (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className={`w-full justify-start py-2 px-4 mb-1 ${
+                            activeItem === item.label
+                              ? "bg-purple-100 text-purple-700"
+                              : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
+                          } ${isCollapsed ? "justify-center" : ""}`}
+                          onClick={() =>
+                            handleNavigation(item.path, item.label, item.requiredRole)
+                          }
+                        >
+                          <CustomIcon
+                            Icon={item.icon}
+                            className={`${isCollapsed ? "" : "mr-3"}`}
+                          />
+                          {!isCollapsed && item.label}
+                        </Button>
+                      </TooltipTrigger>
+                      {isCollapsed && (
+                        <TooltipContent side="right">
+                          {item.label}
+                        </TooltipContent>
                       )}
-                    </AccordionItem>
-                  </Accordion>
-                ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start py-2 px-4 mb-1 ${
-                          activeItem === item.label
-                            ? "bg-purple-100 text-purple-700"
-                            : "text-gray-600 hover:text-purple-700 hover:bg-purple-50"
-                        } ${isCollapsed ? "justify-center" : ""}`}
-                        onClick={() =>
-                          handleNavigation(item.path, item.label, item.requiredRole)
-                        }
-                      >
-                        <CustomIcon
-                          Icon={item.icon}
-                          className={`${isCollapsed ? "" : "mr-3"}`}
-                        />
-                        {!isCollapsed && item.label}
-                      </Button>
-                    </TooltipTrigger>
-                    {isCollapsed && (
-                      <TooltipContent side="right">
-                        {item.label}
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
+                    </Tooltip>
+                  )
                 )}
               </div>
             ))}

@@ -1,6 +1,8 @@
 import axios from "axios";
+import config from "@/config/config";
+// const API_URL = config.apiURI;
 
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL = config.apiURI+"/api";
 
 export const serviceApi = {
   requestNewService: async (serviceData: {

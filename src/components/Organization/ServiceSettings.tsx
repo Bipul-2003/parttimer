@@ -30,7 +30,7 @@ import {
   getFilteredRowModel,
 } from "@tanstack/react-table";
 
-import DashboardAPI, { dashboardAPI } from "@/api/dashboard";
+import  { dashboardAPI } from "@/api/dashboard";
 import { OrganizationSettingsServiceDTO } from "@/types/dashboardTypes";
 import { useParams } from "react-router-dom";
 
@@ -100,7 +100,7 @@ export default function Component() {
   const [data, setData] = useState<OrganizationSettingsServiceDTO[]>([]); //services
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  // const [loading, setLoading] = useState<boolean>(true);
   const [globalFilter, setGlobalFilter] = useState("");
   const { orgId } = useParams<{ orgId: string }>();
   // const toggleServiceAvailability = (id: number) => {
@@ -120,7 +120,7 @@ export default function Component() {
 
   // Function to load all organization services
   const loadServices = async () => {
-    setLoading(true);
+    // setLoading(true);
     try {
       const services = await dashboardAPI.fetchServicesByOrganization(
         orgId as string
@@ -130,7 +130,7 @@ export default function Component() {
     } catch (error) {
       console.error("Failed to load services:", error);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -140,7 +140,7 @@ export default function Component() {
     serviceId: number
   ) => {
     try {
-      const updatedService = await dashboardAPI.toggleServiceAvailability(
+       await dashboardAPI.toggleServiceAvailability(
         organizationId,
         serviceId
       );

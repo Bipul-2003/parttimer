@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { ChevronLeft, User, DollarSign, Star, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+
+import config from "@/config/config";
 
 
 export type LaborRequest = {
@@ -41,7 +43,7 @@ export default function LaborRequestDetails() {
   useEffect(() => {
     const fetchRequestDetails = async () => {
       try {
-        const response = await axios.get<LaborRequest>(`http://localhost:8080/api/labour/${requestId}/details`, {
+        const response = await axios.get<LaborRequest>(config.apiURI+`/api/labour/${requestId}/details`, {
           withCredentials: true,
         });
         setRequest(response.data);

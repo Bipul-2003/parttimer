@@ -19,7 +19,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   AlertCircle,
-  CheckCircle2,
   Gem,
   RefreshCcw,
   Users,

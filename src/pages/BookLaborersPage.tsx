@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from 'lucide-react';
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import config from "@/config/config";
 
 const formSchema = z.object({
   address: z.string().min(1, "Address is required"),
@@ -147,7 +148,7 @@ export function LaborBookingForm() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/user/labour-bookings",
+        config.apiURI+"/api/user/labour-bookings",
         formattedValues,
         {
           withCredentials: true,

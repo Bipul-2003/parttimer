@@ -1,6 +1,7 @@
 import axios from "axios";
+import config from "@/config/config";
 
-const API_URL = "http://localhost:8080/api/labour-dashboard";
+const API_URL = config.apiURI+"/api/labour-dashboard";
 
 export const getOpenWorkerBookings = async () => {
   try {
@@ -39,7 +40,7 @@ export const workerOfferPrice = async (labourAssignmentId: string, proposedPrice
 
     export const getWorkerHistory = async () => { 
         try {
-            const response = await axios.get(`http://localhost:8080/api/labour/price-history`, {
+            const response = await axios.get(config.apiURI+`/api/labour/price-history`, {
                 withCredentials: true,
             });
             return response.data;

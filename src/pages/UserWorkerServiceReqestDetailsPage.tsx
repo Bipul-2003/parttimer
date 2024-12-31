@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table";
 import { getReqDetails, getReqOffers } from "@/api/UserApis/bookingsApi";
 import axios from 'axios';
+import config from "@/config/config";
 
 
 type LaborOffer = {
@@ -87,7 +88,7 @@ export function UserWorkerServiceReqestDetailsPage() {
     setError(null);
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/user/labour-bookings/accept-offer/${priceOfferId}`,
+        config.apiURI+`/api/user/labour-bookings/accept-offer/${priceOfferId}`,
         {}, // empty body since it's just the URL parameter
         { withCredentials: true }
       );

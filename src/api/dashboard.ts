@@ -13,11 +13,13 @@ import {
   ServiceDeliveryUpdate,
   OrganizationSettingsServiceDTO,
 } from "../types/dashboardTypes";
+import config from "@/config/config";
+// const API_URL = config.apiURI;
 
 class DashboardAPI {
   private api: AxiosInstance;
 
-  constructor(baseURL = "http://localhost:8080/api") {
+  constructor(baseURL = config.apiURI+"/api") {
     this.api = axios.create({
       baseURL,
       withCredentials: true,

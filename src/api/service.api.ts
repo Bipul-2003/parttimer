@@ -1,6 +1,7 @@
 import axios from "axios";
+import config from "@/config/config";
 
-const API_URL = "http://localhost:8080/api/services";
+const API_URL = config.apiURI+"/api/services";
 
 export const fetchServices = async () => {
   try {

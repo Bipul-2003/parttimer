@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { animateScroll as scroll } from "react-scroll";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -30,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, CarIcon, HomeIcon, LeafIcon, ClockIcon, MapPinIcon, UserIcon, MailIcon, StarIcon, CheckCircleIcon, SearchIcon, Dumbbell, GraduationCapIcon } from 'lucide-react';
+import {  ClockIcon, StarIcon, CheckCircleIcon, SearchIcon } from 'lucide-react';
 import { fetchServices } from "@/api/service.api";
 import { bookService } from "@/api/apiService";
 import { useNavigate } from "react-router-dom";
@@ -88,7 +86,7 @@ function ServicesPage() {
   const navigate = useNavigate();
   // const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [isBookDialogOpen, setIsBookDialogOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState("");
+  // const [selectedService, setSelectedService] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [selectedSubcategory, setSelectedSubcategory] = useState("All Subcategories");
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,12 +111,12 @@ function ServicesPage() {
     },
   });
 
-  const iconMap: { [key: string]: React.ElementType } = {
-    Other: UserIcon,
-    Automotive: CarIcon,
-    "Home & Garden": LeafIcon,
-    Education: GraduationCapIcon,
-  };
+  // const iconMap: { [key: string]: React.ElementType } = {
+  //   Other: UserIcon,
+  //   Automotive: CarIcon,
+  //   "Home & Garden": LeafIcon,
+  //   Education: GraduationCapIcon,
+  // };
 
   useEffect(() => {
     const loadServices = async () => {
@@ -215,7 +213,7 @@ function ServicesPage() {
   };
 
   const openBookDialog = (serviceName: string) => {
-    setSelectedService(serviceName.toLowerCase().replace(" ", "-"));
+    // setSelectedService(serviceName.toLowerCase().replace(" ", "-"));
     form.setValue("service", serviceName.toLowerCase().replace(" ", "-"));
     setIsBookDialogOpen(true);
   };

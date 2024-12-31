@@ -73,21 +73,19 @@ export default function ServiceRequestManager() {
   const [availableEmployees, setAvailableEmployees] =
     useState<OrganizationEmployeeDTO>();
 
-  const { requestId} = useParams();
+  const { requestId } = useParams();
   const navigate = useNavigate();
 
   const { user } = useAuth();
 
-
   useEffect(() => {
-    if (user?.organization) {
+    if (user?.user_type === "USER" && user?.organization) {
       fetchDetails();
     }
   }, [user]);
 
-  
   const fetchDetails = async () => {
-    if (!user?.organization) return;
+    if (user?.user_type !== "USER" || !user.organization) return;
     try {
       const data = await bookingAPI.getBookingDetails(
         user.organization.id.toString(),
@@ -102,10 +100,8 @@ export default function ServiceRequestManager() {
     }
   };
 
-
- 
   const fetchAvailableEmployees = async () => {
-    if (!user?.organization) return;
+    if (user?.user_type !== "USER" || !user.organization) return;
     try {
       const employees = await bookingAPI.getAvailableEmployees(
         user.organization.id.toString(),
@@ -117,7 +113,7 @@ export default function ServiceRequestManager() {
       console.error("Error fetching available employees:", error);
     }
   };
- 
+
   const handleEmployeeToggle = (employeeId: number) => {
     setAssignedEmployees((prev) =>
       prev.includes(employeeId)
@@ -131,7 +127,7 @@ export default function ServiceRequestManager() {
   };
 
   const handleOfferPrice = async () => {
-    if (!user?.organization) return;
+    if (user?.user_type !== "USER" || !user.organization) return;
     if (offeredPrice) {
       try {
         await bookingAPI.offerPrice(
@@ -147,9 +143,8 @@ export default function ServiceRequestManager() {
     }
   };
 
- 
   const handleConfirmRequest = async () => {
-    if (!user?.organization) return;
+    if (user?.user_type !== "USER" || !user.organization) return;
     if (assignedEmployees.length > 0) {
       try {
         await bookingAPI.assignEmployees(
@@ -194,8 +189,13 @@ export default function ServiceRequestManager() {
   //     console.error("Error verifying payment:", error);
   //   }
   // };
-  if (!user?.organization) {
-    return <div>You are not associated with any organization.</div>;
+  if (user?.user_type !== "USER" || !user.organization) {
+    return (
+      <div>
+        You are not associated with any organization or don't have the right
+        permissions.
+      </div>
+    );
   }
 
   if (!requestData) {
@@ -214,8 +214,7 @@ export default function ServiceRequestManager() {
                   onClick={(e) => {
                     e.preventDefault();
                     navigate(-1);
-                  }}
-                >
+                  }}>
                   <ChevronLeft className="mr-2 h-4 w-4 inline" />
                   Back
                 </BreadcrumbLink>
@@ -242,8 +241,7 @@ export default function ServiceRequestManager() {
                   {statusOrder.map((statusItem, index) => (
                     <div
                       key={statusItem}
-                      className="flex flex-col items-center"
-                    >
+                      className="flex flex-col items-center">
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
                           statusOrder.indexOf(
@@ -251,8 +249,7 @@ export default function ServiceRequestManager() {
                           ) >= index
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground"
-                        } mb-2`}
-                      >
+                        } mb-2`}>
                         {statusOrder.indexOf(
                           requestData.status as FrontendStatus
                         ) > index ? (

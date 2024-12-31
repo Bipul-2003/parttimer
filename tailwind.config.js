@@ -1,3 +1,5 @@
+import tailwindcssAnimate from "tailwindcss-animate";
+
 /** @type {import('tailwindcss').Config} */
 export default {
     darkMode: ["class"],
@@ -78,6 +80,21 @@ export default {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
+  engines: {
+    node: ">=14.x"
+  },
+  builds: [
+    {
+      src: "src/main.tsx",
+      use: "@vercel/node"
+    }
+  ],
+  routes: [
+    {
+      src: "/(.*)",
+      dest: "/src/main.tsx"
+    }
+  ]
 }
 

@@ -56,3 +56,17 @@ export const getZipcodes = async (country: string, state: string, city: string) 
   }
 };
 
+export const getZipbyCity = async (city: string) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/${city}/zipcodes`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Zipcode fetch failed");
+    }
+    throw new Error("An unexpected error occurred");
+  }
+}
+

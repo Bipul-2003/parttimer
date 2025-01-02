@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
@@ -33,10 +33,14 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, AlertTriangle } from 'lucide-react';
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import config from "@/config/config";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { getZipbyCity } from "@/api/locationsApi";
+
+
 
 const formSchema = z.object({
   address: z.string().min(1, "Address is required"),
@@ -67,9 +71,39 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function LaborBookingForm() {
   const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-4 md:p-8 flex items-center justify-center">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            Please log in to access this page.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (user.user_type !== "USER") {
+    return (
+      <div className="min-h-screen bg-gray-100 p-4 md:p-8 flex items-center justify-center">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            This page is only accessible to regular users.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   const [sharedNote, setSharedNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [zipcodes, setZipcodes] = useState<string[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -78,7 +112,7 @@ export function LaborBookingForm() {
       phoneNumber: "",
       email: user?.user_type === "USER" ? user.email : "",
       city: user?.user_type === "USER" ? user.city || "" : "",
-      zipcode: user?.user_type === "USER" ? user.zipcode || "" : "",
+      zipcode: "",
       numberOfLabors: "1",
       sameDateForAll: false,
       sameTimeSlotForAll: false,
@@ -89,6 +123,18 @@ export function LaborBookingForm() {
       ],
     },
   });
+
+  const fetchZipcodes = useCallback(async (city: string) => {
+    const fetchedZipcodes = await getZipbyCity(city);
+    setZipcodes(fetchedZipcodes);
+  }, []);
+
+  useEffect(() => {
+    const city = form.watch("city");
+    if (city) {
+      fetchZipcodes(city);
+    }
+  }, [form.watch("city"), fetchZipcodes]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -268,12 +314,22 @@ export function LaborBookingForm() {
                         <FormItem>
                           <FormLabel>Zipcode</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter your zipcode" 
-                              {...field} 
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
                               disabled={user?.user_type === "USER"}
-                              value={user?.user_type === "USER" ? user.zipcode || "" : field.value}
-                            />
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select zipcode" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {zipcodes.map((zipcode) => (
+                                  <SelectItem key={zipcode} value={zipcode}>
+                                    {zipcode}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </FormControl>
                           <FormMessage />
                         </FormItem>

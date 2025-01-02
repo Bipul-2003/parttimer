@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom" // Added useNavigate
 
 const userFormSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -27,6 +27,7 @@ export default function EnhancedLoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const { login, googleSignIn } = useAuth()
+  const navigate = useNavigate() // Initialize useNavigate
 
   const userForm = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
@@ -49,7 +50,7 @@ export default function EnhancedLoginPage() {
     setErrorMessage("")
     try {
       await login(values.email, values.password)
-      // Redirect after successful login
+      navigate("/") // Navigate to homepage after successful login
     } catch (error: any) {
       setErrorMessage(error.message || "Login failed. Please try again.")
     } finally {
@@ -63,7 +64,7 @@ export default function EnhancedLoginPage() {
     try {
       // Implement worker login logic here
       await login(values.phone, values.password)
-      console.log("Worker login:", values)
+      navigate("/") // Navigate to homepage after successful login
     } catch (error: any) {
       setErrorMessage(error.message || "Login failed. Please try again.")
     } finally {
@@ -76,6 +77,7 @@ export default function EnhancedLoginPage() {
       setIsLoading(true)
       setErrorMessage("")
       await googleSignIn()
+      navigate("/") // Navigate to homepage after successful login
     } catch (error: any) {
       setErrorMessage(error.message || "Google Sign-In failed. Please try again.")
     } finally {

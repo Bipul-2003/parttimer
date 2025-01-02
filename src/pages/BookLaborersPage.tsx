@@ -53,7 +53,7 @@ const formSchema = z.object({
     z.object({
       date: z.date({ required_error: "Date is required" }),
       timeSlot: z.enum(
-        ["7:30 AM - 11:30 AM", "12:30 PM - 4:30 PM", "Full Day"],
+        ["7:30 AM - 11:30 AM", "12:30 PM - 4:30 PM", "Full Day", "Extended Hours"],
         {
           required_error: "Time slot is required",
         }
@@ -69,6 +69,7 @@ export function LaborBookingForm() {
   const { user } = useAuth();
   const [sharedNote, setSharedNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -160,6 +161,7 @@ export function LaborBookingForm() {
         title: "Booking Successful",
         description: "Your labor booking has been submitted successfully.",
       });
+      setBookingSuccess(true);
     } catch (error) {
       console.error(error);
       toast({
@@ -177,322 +179,216 @@ export function LaborBookingForm() {
     <div className="min-h-screen bg-gray-100 p-4 md:p-8">
       <Card className="max-w-5xl mx-auto">
         <CardContent className="p-6">
-          <h1 className="text-3xl font-bold mb-6">Book Laborers</h1>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter your phone number"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter your email" 
-                          {...field} 
-                          disabled={user?.user_type === "USER"}
-                          value={user?.user_type === "USER" ? user.email : field.value}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter your city" 
-                          {...field} 
-                          disabled={user?.user_type === "USER"}
-                          value={user?.user_type === "USER" ? user.city || "" : field.value}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="zipcode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Zipcode</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter your zipcode" 
-                          {...field} 
-                          disabled={user?.user_type === "USER"}
-                          value={user?.user_type === "USER" ? user.zipcode || "" : field.value}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="numberOfLabors"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Number of Laborers</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select number of laborers" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {["1", "2", "3", "4"].map((num) => (
-                            <SelectItem key={num} value={num}>
-                              {num}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+          {bookingSuccess ? (
+            <div className="text-center">
+              <h1 className="text-3xl font-bold mb-6">Booking Successful!</h1>
+              <p className="mb-6">Your labor booking has been submitted successfully.</p>
+              <Button onClick={() => {
+                setBookingSuccess(false);
+                form.reset();
+              }}>
+                Book Another
+              </Button>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold mb-6">Book Laborers</h1>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Address</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your address" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter your phone number"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter your email" 
+                              {...field} 
+                              disabled={user?.user_type === "USER"}
+                              value={user?.user_type === "USER" ? user.email : field.value}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter your city" 
+                              {...field} 
+                              disabled={user?.user_type === "USER"}
+                              value={user?.user_type === "USER" ? user.city || "" : field.value}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="zipcode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Zipcode</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter your zipcode" 
+                              {...field} 
+                              disabled={user?.user_type === "USER"}
+                              value={user?.user_type === "USER" ? user.zipcode || "" : field.value}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="numberOfLabors"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Number of Laborers</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select number of laborers" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {["1", "2", "3", "4"].map((num) => (
+                                <SelectItem key={num} value={num}>
+                                  {num}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-              <Separator />
+                  <Separator />
 
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Scheduling Options</h2>
-                <div className="flex space-x-4">
-                  <FormField
-                    control={form.control}
-                    name="sameDateForAll"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Same date for all</FormLabel>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="sameTimeSlotForAll"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Same time slot for all</FormLabel>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="sameNoteForAll"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Same note for all</FormLabel>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {form.watch("sameNoteForAll") && (
-                  <FormField
-                    control={form.control}
-                    name="sharedNote"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Shared Note</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Add a note for all laborers"
-                            className="resize-none"
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e);
-                              setSharedNote(e.target.value);
-                              form.setValue(
-                                "laborDetails",
-                                form
-                                  .getValues("laborDetails")
-                                  .map((detail) => ({
-                                    ...detail,
-                                    note: e.target.value,
-                                  }))
-                              );
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
-
-              <div className="space-y-6">
-                {fields.map((field, index) => (
-                  <Card key={field.id}>
-                    <CardContent className="p-4">
-                      <h3 className="text-lg font-semibold mb-4">
-                        Labor {index + 1}
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name={`laborDetails.${index}.date`}
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel className="pb-3">Date</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn(
-                                        "w-full pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                    >
-                                      {field.value ? (
-                                        format(field.value, "PPP")
-                                      ) : (
-                                        <span>Pick a date</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-auto p-0"
-                                  align="start"
-                                >
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={(date) =>
-                                      handleDateChange(date, index)
-                                    }
-                                    disabled={(date) =>
-                                      date < new Date() ||
-                                      date < new Date("1900-01-01")
-                                    }
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`laborDetails.${index}.timeSlot`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Time Slot</FormLabel>
-                              <Select
-                                onValueChange={(
-                                  value: FormValues["laborDetails"][number]["timeSlot"]
-                                ) => handleTimeSlotChange(value, index)}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select time slot" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="8:30 AM - 11:30 AM">
-                                    7:30 AM - 11:30 AM
-                                  </SelectItem>
-                                  <SelectItem value="12:30 PM - 5:30 PM">
-                                    12:30 PM - 4:30 PM
-                                  </SelectItem>
-                                  <SelectItem value="Full Day">
-                                    Full Day
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+                  <div className="space-y-4">
+                    <h2 className="text-xl font-semibold">Scheduling Options</h2>
+                    <div className="flex space-x-4">
                       <FormField
                         control={form.control}
-                        name={`laborDetails.${index}.note`}
+                        name="sameDateForAll"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Same date for all</FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="sameTimeSlotForAll"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Same time slot for all</FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="sameNoteForAll"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Same note for all</FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    {form.watch("sameNoteForAll") && (
+                      <FormField
+                        control={form.control}
+                        name="sharedNote"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Note</FormLabel>
+                            <FormLabel>Shared Note</FormLabel>
                             <FormControl>
                               <Textarea
-                                placeholder="Add any additional notes for this laborer"
+                                placeholder="Add a note for all laborers"
                                 className="resize-none"
-                                disabled={form.watch("sameNoteForAll")}
-                                value={
-                                  form.watch("sameNoteForAll")
-                                    ? sharedNote
-                                    : field.value
-                                }
+                                {...field}
                                 onChange={(e) => {
-                                  if (!form.watch("sameNoteForAll")) {
-                                    field.onChange(e);
-                                  }
+                                  field.onChange(e);
+                                  setSharedNote(e.target.value);
+                                  form.setValue(
+                                    "laborDetails",
+                                    form
+                                      .getValues("laborDetails")
+                                      .map((detail) => ({
+                                        ...detail,
+                                        note: e.target.value,
+                                      }))
+                                  );
                                 }}
                               />
                             </FormControl>
@@ -500,23 +396,147 @@ export function LaborBookingForm() {
                           </FormItem>
                         )}
                       />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    )}
+                  </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Book Laborers"
-                )}
-              </Button>
-            </form>
-          </Form>
+                  <div className="space-y-6">
+                    {fields.map((field, index) => (
+                      <Card key={field.id}>
+                        <CardContent className="p-4">
+                          <h3 className="text-lg font-semibold mb-4">
+                            Labor {index + 1}
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name={`laborDetails.${index}.date`}
+                              render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                  <FormLabel className="pb-3">Date</FormLabel>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button
+                                          variant={"outline"}
+                                          className={cn(
+                                            "w-full pl-3 text-left font-normal",
+                                            !field.value && "text-muted-foreground"
+                                          )}
+                                        >
+                                          {field.value ? (
+                                            format(field.value, "PPP")
+                                          ) : (
+                                            <span>Pick a date</span>
+                                          )}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                      className="w-auto p-0"
+                                      align="start"
+                                    >
+                                      <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={(date) =>
+                                          handleDateChange(date, index)
+                                        }
+                                        disabled={(date) =>
+                                          date < new Date() ||
+                                          date < new Date("1900-01-01")
+                                        }
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`laborDetails.${index}.timeSlot`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Time Slot</FormLabel>
+                                  <Select
+                                    onValueChange={(
+                                      value: FormValues["laborDetails"][number]["timeSlot"]
+                                    ) => handleTimeSlotChange(value, index)}
+                                    value={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select time slot" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="7:30 AM - 11:30 AM">
+                                        7:30 AM - 11:30 AM
+                                      </SelectItem>
+                                      <SelectItem value="12:30 PM - 4:30 PM">
+                                        12:30 PM - 4:30 PM
+                                      </SelectItem>
+                                      <SelectItem value="Full Day">
+                                        Full Day (7:30 AM - 4:30 PM) 
+                                      </SelectItem>
+                                      <SelectItem value="Extended Hours">
+                                        Extended Hours
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name={`laborDetails.${index}.note`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Note</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Add any additional notes for this laborer"
+                                    className="resize-none"
+                                    disabled={form.watch("sameNoteForAll")}
+                                    value={
+                                      form.watch("sameNoteForAll")
+                                        ? sharedNote
+                                        : field.value
+                                    }
+                                    onChange={(e) => {
+                                      if (!form.watch("sameNoteForAll")) {
+                                        field.onChange(e);
+                                      }
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Book Laborers"
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

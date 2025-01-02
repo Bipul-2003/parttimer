@@ -347,6 +347,16 @@ export function LaborBookingForm() {
                               </SelectContent>
                             </Select>
                           </FormControl>
+                          <div className="text-sm text-muted-foreground flex items-center gap-2">
+                            {zipcodes.length === 0 ? (
+                              <>
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <span>Fetching available zipcodes...</span>
+                              </>
+                            ) : (
+                              `${zipcodes.length} zipcodes available for ${form.watch("city")}`
+                            )}
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}

@@ -112,7 +112,6 @@ export function LaborBookingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [zipcodes, setZipcodes] = useState<string[]>([]);
-  const [isLoadingZipcodes, setIsLoadingZipcodes] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -134,12 +133,11 @@ export function LaborBookingForm() {
   });
 
   const fetchZipcodes = useCallback(async (city: string) => {
-    setIsLoadingZipcodes(true);
     try {
       const fetchedZipcodes = await getZipbyCity(city);
       setZipcodes(fetchedZipcodes);
-    } finally {
-      setIsLoadingZipcodes(false);
+    } catch (error) {
+      console.error('Error fetching zipcodes:', error);
     }
   }, []);
 
@@ -330,17 +328,10 @@ export function LaborBookingForm() {
                           <FormControl>
                             <Select
                               onValueChange={field.onChange}
-                              defaultValue={user.zipcode || ""}
+                              value={field.value || user.zipcode || ""}
                             >
                               <SelectTrigger>
-                                {isLoadingZipcodes ? (
-                                  <div className="flex items-center gap-2">
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    <span>Loading zipcodes...</span>
-                                  </div>
-                                ) : (
-                                  <SelectValue placeholder="Select zipcode" />
-                                )}
+                                <SelectValue placeholder="Select zipcode" />
                               </SelectTrigger>
                               <SelectContent>
                                 {zipcodes.map((zipcode) => (

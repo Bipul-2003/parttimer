@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Menu, X } from 'lucide-react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { UserNav } from "./user-nav";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ function Navbar() {
   const { t, i18n } = useTranslation(['navbar', 'common']);
   const { language, setLanguage } = useLanguage();
   const { user, isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -56,16 +57,12 @@ function Navbar() {
     { to: '/how-it-works', label: t('howItWorks', { ns: 'navbar' }) },
     { to: '/post-request', label: t('postRequest', { ns: 'navbar' }) },
     { to: '/book-laborers', label: t('bookLaborers', { ns: 'navbar' }) },
-    {to: '/advertisement', label: t('Advertisement', { ns: 'navbar' })},
+    { to: '/advertisement', label: t('Advertisement', { ns: 'navbar' })},
   ];
 
   const renderAuthButton = () => {
     if (loading) {
-      return (
-        <Button size="sm" variant="default" className="h-9" disabled>
-          {t('loading', { ns: 'common' })}
-        </Button>
-      );
+      return null; // Don't show anything while loading
     }
 
     if (isAuthenticated) {
@@ -78,8 +75,13 @@ function Navbar() {
     }
 
     return (
-      <Button size="sm" variant="default" className="h-9">
-        <Link to="/login">{t('signIn', { ns: 'navbar' })}</Link>
+      <Button 
+        size="sm" 
+        variant="default" 
+        className="h-9"
+        onClick={() => navigate('/login')}
+      >
+        {t('signIn', { ns: 'navbar' })}
       </Button>
     );
   };

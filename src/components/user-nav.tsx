@@ -66,7 +66,7 @@ export function UserNav() {
           )}
           <DropdownMenuItem asChild>
             <Link to="/profile" onClick={() => handleSelect()}>
-              Profile
+              My Dashboard
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

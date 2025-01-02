@@ -70,7 +70,15 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function LaborBookingForm() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-4 md:p-8 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -112,7 +120,7 @@ export function LaborBookingForm() {
       phoneNumber: "",
       email: user?.user_type === "USER" ? user.email : "",
       city: user?.user_type === "USER" ? user.city || "" : "",
-      zipcode: "",
+      zipcode: user?.zipcode || "",
       numberOfLabors: "1",
       sameDateForAll: false,
       sameTimeSlotForAll: false,
@@ -316,8 +324,7 @@ export function LaborBookingForm() {
                           <FormControl>
                             <Select
                               onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              // disabled={user?.user_type === "USER"}
+                              value={field.value || user.zipcode || ""}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select zipcode" />

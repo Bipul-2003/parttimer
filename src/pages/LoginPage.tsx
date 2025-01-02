@@ -1,205 +1,196 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { Separator } from "@/components/ui/separator";
+'use client'
 
-const formSchema = z.object({
-  usernameOrEmail: z.string().min(1, "Username or email is required"),
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useAuth } from "@/context/AuthContext"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
+import { Link } from "react-router-dom"
+
+const userFormSchema = z.object({
+  email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-});
+})
 
-export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
-  // const location = useLocation();
+const workerFormSchema = z.object({
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+})
 
-  const { login, googleSignIn, isAuthenticated } = useAuth();
+export default function EnhancedLoginPage() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const { login, googleSignIn } = useAuth()
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const userForm = useForm<z.infer<typeof userFormSchema>>({
+    resolver: zodResolver(userFormSchema),
     defaultValues: {
-      usernameOrEmail: "",
+      email: "",
       password: "",
     },
-  });
+  })
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
+  const workerForm = useForm<z.infer<typeof workerFormSchema>>({
+    resolver: zodResolver(workerFormSchema),
+    defaultValues: {
+      phone: "",
+      password: "",
+    },
+  })
 
-  // Handle OAuth callback
-  // useEffect(() => {
-  //   const handleOAuthCallback = async () => {
-  //     try {
-  //       // Assuming the backend redirects with a token in the URL
-  //       const queryParams = new URLSearchParams(location.search);
-  //       const oauthToken = queryParams.get("token");
-
-  //       if (oauthToken) {
-  //         // Clear the token from URL to prevent re-processing
-  //         window.history.replaceState({}, document.title, location.pathname);
-
-  //         // Use googleSignIn to handle the OAuth flow
-  //         await googleSignIn();
-  //         navigate("/");
-  //       }
-  //     } catch (error: any) {
-  //       setErrorMessage(error.message || "OAuth login failed");
-  //     }
-  //   };
-
-  //   handleOAuthCallback();
-  // }, [location, googleSignIn, navigate]);
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-    setErrorMessage("");
-
+  async function onUserSubmit(values: z.infer<typeof userFormSchema>) {
+    setIsLoading(true)
+    setErrorMessage("")
     try {
-      await login(values.usernameOrEmail, values.password);
-      navigate("/"); // Redirect after successful login
+      await login(values.email, values.password)
+      // Redirect after successful login
     } catch (error: any) {
-      setErrorMessage(error.message || "Login failed. Please try again.");
+      setErrorMessage(error.message || "Login failed. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
+    }
+  }
+
+  async function onWorkerSubmit(values: z.infer<typeof workerFormSchema>) {
+    setIsLoading(true)
+    setErrorMessage("")
+    try {
+      // Implement worker login logic here
+      await login(values.phone, values.password)
+      console.log("Worker login:", values)
+    } catch (error: any) {
+      setErrorMessage(error.message || "Login failed. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   async function handleGoogleSignIn() {
     try {
-      setIsLoading(true);
-      setErrorMessage("");
-
-      // Redirect to Google OAuth endpoint
-      await googleSignIn();
+      setIsLoading(true)
+      setErrorMessage("")
+      await googleSignIn()
     } catch (error: any) {
-      setErrorMessage(
-        error.message || "Google Sign-In failed. Please try again."
-      );
+      setErrorMessage(error.message || "Google Sign-In failed. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
   return (
-    <div className="py-32 flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-      <Card className="w-[400px] shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 p-4">
+      <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access your account
-          </CardDescription>
+          <CardTitle className="text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">Welcome Back</CardTitle>
+          <CardDescription className="text-center text-gray-600">Choose your login method</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="usernameOrEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="johndoe@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Logging in...
+        <CardContent>
+          <Tabs defaultValue="user" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="user">User</TabsTrigger>
+              <TabsTrigger value="worker">Worker</TabsTrigger>
+            </TabsList>
+            <TabsContent value="user">
+              <Form {...userForm}>
+                <form onSubmit={userForm.handleSubmit(onUserSubmit)} className="space-y-4">
+                  <FormField
+                    control={userForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="johndoe@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={userForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="••••••••" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" disabled={isLoading}>
+                    {isLoading ? "Logging in..." : "Log in"}
+                  </Button>
+                </form>
+              </Form>
+              <div className="mt-4">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
                   </div>
-                ) : (
-                  "Log in"
-                )}
-              </Button>
-            </form>
-          </Form>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleSignIn}
-            disabled={isLoading}
-          >
-            <svg
-              className="mr-2 h-4 w-4"
-              aria-hidden="true"
-              focusable="false"
-              data-prefix="fab"
-              data-icon="google"
-              role="img"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 488 512"
-            >
-              <path
-                fill="currentColor"
-                d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
-              ></path>
-            </svg>
-            Sign in with Google
-          </Button>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-4 bg-white hover:bg-gray-50"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                >
+                  <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                    <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                  </svg>
+                  Sign in with Google
+                </Button>
+              </div>
+            </TabsContent>
+            <TabsContent value="worker">
+              <Form {...workerForm}>
+                <form onSubmit={workerForm.handleSubmit(onWorkerSubmit)} className="space-y-4">
+                  <FormField
+                    control={workerForm.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="+1 (555) 000-0000" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={workerForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="••••••••" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white" disabled={isLoading}>
+                    {isLoading ? "Logging in..." : "Log in"}
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+          </Tabs>
           {errorMessage && (
-            <p className="text-red-500 text-sm text-center">{errorMessage}</p>
+            <p className="mt-4 text-red-500 text-sm text-center">{errorMessage}</p>
           )}
         </CardContent>
         <CardFooter className="flex justify-center">
@@ -212,5 +203,6 @@ export default function LoginPage() {
         </CardFooter>
       </Card>
     </div>
-  );
+  )
 }
+

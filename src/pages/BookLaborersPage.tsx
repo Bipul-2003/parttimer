@@ -317,7 +317,7 @@ export function LaborBookingForm() {
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
-                              disabled={user?.user_type === "USER"}
+                              // disabled={user?.user_type === "USER"}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select zipcode" />

@@ -16,7 +16,7 @@ export default function UserDashboard() {
       if (!user) {
         navigate('/login')
       } else if (user.user_type === 'LABOUR') {
-        navigate('/worker')
+        navigate('/profile/myprofile')
       }
     }
   }, [user, loading, navigate])

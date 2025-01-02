@@ -17,7 +17,7 @@ export default function UserProfilePage() {
 
   const sidebarItems: SidebarItem[] = useMemo(() => {
     const items: SidebarItem[] = [
-      { icon: UserIcon, label: "Profile", path: "profile" },
+      { icon: UserIcon, label: "Profile", path: "myprofile" },
       { icon: CreditCard, label: "Subscriptions", path: "subscription" },
       { icon: Settings, label: "Settings", path: "settings" },
     ];

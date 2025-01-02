@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import config from "@/config/config";
@@ -53,7 +53,7 @@ const formSchema = z.object({
     z.object({
       date: z.date({ required_error: "Date is required" }),
       timeSlot: z.enum(
-        ["8:30 AM - 11:30 AM", "12:30 PM - 5:30 PM", "Full Day"],
+        ["7:30 AM - 11:30 AM", "12:30 PM - 4:30 PM", "Full Day"],
         {
           required_error: "Time slot is required",
         }
@@ -84,7 +84,7 @@ export function LaborBookingForm() {
       sameNoteForAll: false,
       sharedNote: "",
       laborDetails: [
-        { date: new Date(), timeSlot: "8:30 AM - 11:30 AM", note: "" },
+        { date: new Date(), timeSlot: "7:30 AM - 11:30 AM", note: "" },
       ],
     },
   });
@@ -100,7 +100,7 @@ export function LaborBookingForm() {
     const currentLength = fields.length;
     if (numberOfLabors > currentLength) {
       for (let i = currentLength; i < numberOfLabors; i++) {
-        append({ date: new Date(), timeSlot: "8:30 AM - 11:30 AM", note: "" });
+        append({ date: new Date(), timeSlot: "7:30 AM - 11:30 AM", note: "" });
       }
     } else if (numberOfLabors < currentLength) {
       for (let i = currentLength; i > numberOfLabors; i--) {
@@ -137,6 +137,7 @@ export function LaborBookingForm() {
   };
 
   async function onSubmit(values: FormValues) {
+    if (isSubmitting) return; // Prevent multiple submissions
     setIsSubmitting(true);
     const formattedValues = {
       ...values,
@@ -457,10 +458,10 @@ export function LaborBookingForm() {
                                 </FormControl>
                                 <SelectContent>
                                   <SelectItem value="8:30 AM - 11:30 AM">
-                                    8:30 AM - 11:30 AM
+                                    7:30 AM - 11:30 AM
                                   </SelectItem>
                                   <SelectItem value="12:30 PM - 5:30 PM">
-                                    12:30 PM - 5:30 PM
+                                    12:30 PM - 4:30 PM
                                   </SelectItem>
                                   <SelectItem value="Full Day">
                                     Full Day
@@ -505,7 +506,14 @@ export function LaborBookingForm() {
               </div>
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Book Laborers"}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Book Laborers"
+                )}
               </Button>
             </form>
           </Form>

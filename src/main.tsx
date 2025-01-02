@@ -150,7 +150,7 @@ const router = createBrowserRouter([
             element: <UserDashboard />,
           },
           {
-            path: "profile",
+            path: "myprofile",
             element: <UserProfile />,
           },
           {

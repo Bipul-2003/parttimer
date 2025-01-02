@@ -20,7 +20,7 @@ function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, i18n } = useTranslation(['navbar', 'common']);
   const { language, setLanguage } = useLanguage();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -58,6 +58,31 @@ function Navbar() {
     { to: '/book-laborers', label: t('bookLaborers', { ns: 'navbar' }) },
     {to: '/advertisement', label: t('Advertisement', { ns: 'navbar' })},
   ];
+
+  const renderAuthButton = () => {
+    if (loading) {
+      return (
+        <Button size="sm" variant="default" className="h-9" disabled>
+          {t('loading', { ns: 'common' })}
+        </Button>
+      );
+    }
+
+    if (isAuthenticated) {
+      return (
+        <>
+          <CurrencyBadge />
+          <UserNav />
+        </>
+      );
+    }
+
+    return (
+      <Button size="sm" variant="default" className="h-9">
+        <Link to="/login">{t('signIn', { ns: 'navbar' })}</Link>
+      </Button>
+    );
+  };
 
   return (
     <header className="bg-white shadow-sm">
@@ -97,16 +122,7 @@ function Navbar() {
               ))}
             </SelectContent>
           </Select>
-          {isAuthenticated ? (
-            <>
-              <CurrencyBadge />
-              <UserNav />
-            </>
-          ) : (
-            <Button size="sm" variant="default" className="h-9">
-              <Link to="/login">{t('signIn', { ns: 'navbar' })}</Link>
-            </Button>
-          )}
+          {renderAuthButton()}
         </div>
         <button onClick={toggleMenu} className="md:hidden flex items-center justify-center h-9 w-9 rounded-md hover:bg-gray-100">
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -145,16 +161,9 @@ function Navbar() {
               ))}
             </SelectContent>
           </Select>
-          {isAuthenticated ? (
-            <div className="flex items-center justify-between">
-              <UserNav />
-              <CurrencyBadge />
-            </div>
-          ) : (
-            <Button size="sm" variant="default" className="w-full h-9">
-              <Link to="/login" onClick={toggleMenu}>{t('signIn', { ns: 'navbar' })}</Link>
-            </Button>
-          )}
+          <div className="flex items-center justify-between">
+            {renderAuthButton()}
+          </div>
         </nav>
       )}
     </header>

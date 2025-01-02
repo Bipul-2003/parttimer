@@ -120,7 +120,7 @@ export function LaborBookingForm() {
       phoneNumber: "",
       email: user?.user_type === "USER" ? user.email : "",
       city: user?.user_type === "USER" ? user.city || "" : "",
-      zipcode: user?.zipcode || "",
+      zipcode: user.zipcode,
       numberOfLabors: "1",
       sameDateForAll: false,
       sameTimeSlotForAll: false,
@@ -328,17 +328,22 @@ export function LaborBookingForm() {
                           <FormControl>
                             <Select
                               onValueChange={field.onChange}
-                              value={field.value || user.zipcode || ""}
+                              defaultValue={user.zipcode}
+                              value={field.value}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select zipcode" />
+                                <SelectValue placeholder={user.zipcode || "Select zipcode"} />
                               </SelectTrigger>
                               <SelectContent>
-                                {zipcodes.map((zipcode) => (
-                                  <SelectItem key={zipcode} value={zipcode}>
-                                    {zipcode}
-                                  </SelectItem>
-                                ))}
+                                {zipcodes.length > 0 ? (
+                                  zipcodes.map((zipcode) => (
+                                    <SelectItem key={zipcode} value={zipcode}>
+                                      {zipcode}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value={user.zipcode}>{user.zipcode}</SelectItem>
+                                )}
                               </SelectContent>
                             </Select>
                           </FormControl>

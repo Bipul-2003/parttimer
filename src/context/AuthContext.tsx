@@ -26,6 +26,7 @@ interface RegularUser extends BaseUser {
   points: number;
   zipcode: string;
   city: string;
+  state: string; // New field added
   "user subscription": boolean;
   "seller subscription": boolean;
 }
@@ -62,6 +63,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   const fetchUser = async () => {
+    setLoading(true);
     try {
       const currentUser = await getCurrentUser();
       if (currentUser && isValidUser(currentUser)) {
@@ -86,7 +88,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (usernameOrEmail: string, password: string) => {
     try {
-      setLoading(true);
       await loginAPI(usernameOrEmail, password);
       await fetchUser();
     } catch (error) {
@@ -94,27 +95,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   const checkUser = async (email: string) => {
     try {
-      setLoading(true);
       const data = await checkUserProfile(email);
       return data;
     } catch (error) {
       console.error("Check user failed:", error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   const googleSignIn = async () => {
     try {
-      setLoading(true);
       const response = await signInwithGoogle();
       await fetchUser();
       return response;
@@ -123,22 +118,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      setLoading(true);
       await logoutAPI();
       setUser(null);
       setIsAuthenticated(false);
     } catch (error) {
       console.error("Error logging out:", error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -165,7 +155,8 @@ function isValidUser(user: any): user is User {
     "user_type" in user &&
     (user.user_type === "USER" || user.user_type === "LABOUR") &&
     "name" in user &&
-    typeof user.name === "string"
+    typeof user.name === "string" &&
+    (user.user_type === "LABOUR" || "state" in user) // Check for state in RegularUser
   );
 }
 

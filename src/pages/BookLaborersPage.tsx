@@ -38,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import config from "@/config/config";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { getZipbyCity } from "@/api/locationsApi";
+import { getZipbyCityandState } from "@/api/locationsApi";
 
 
 
@@ -52,6 +52,7 @@ const formSchema = z.object({
   sameNoteForAll: z.boolean().default(false),
   sharedNote: z.string().optional(),
   city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
   zipcode: z.string().min(1, "Zipcode is required"),
   laborDetails: z.array(
     z.object({
@@ -120,6 +121,7 @@ export function LaborBookingForm() {
       phoneNumber: "",
       email: user?.user_type === "USER" ? user.email : "",
       city: user?.user_type === "USER" ? user.city || "" : "",
+      state: user?.user_type === "USER" ? user.state || "" : "",
       zipcode: user.zipcode,
       numberOfLabors: "1",
       sameDateForAll: false,
@@ -132,9 +134,9 @@ export function LaborBookingForm() {
     },
   });
 
-  const fetchZipcodes = useCallback(async (city: string) => {
+  const fetchZipcodes = useCallback(async (city: string, state: string) => {
     try {
-      const fetchedZipcodes = await getZipbyCity(city);
+      const fetchedZipcodes = await getZipbyCityandState(city, state);
       setZipcodes(fetchedZipcodes);
     } catch (error) {
       console.error('Error fetching zipcodes:', error);
@@ -143,10 +145,11 @@ export function LaborBookingForm() {
 
   useEffect(() => {
     const city = form.watch("city");
-    if (city) {
-      fetchZipcodes(city);
+    const state = user?.state || "";
+    if (city && state) {
+      fetchZipcodes(city, state);
     }
-  }, [form.watch("city"), fetchZipcodes]);
+  }, [form.watch("city"), fetchZipcodes, user?.state]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -295,6 +298,24 @@ export function LaborBookingForm() {
                               {...field} 
                               disabled={user?.user_type === "USER"}
                               value={user?.user_type === "USER" ? user.email : field.value}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter your state" 
+                              {...field} 
+                              disabled={user?.user_type === "USER"}
+                              value={user?.user_type === "USER" ? user.state || "" : field.value}
                             />
                           </FormControl>
                           <FormMessage />

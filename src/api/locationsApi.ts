@@ -56,10 +56,12 @@ export const getZipcodes = async (country: string, state: string, city: string) 
   }
 };
 
-export const getZipbyCity = async (city: string) => {
+export const getZipbyCityandState = async (city:string, state: string) => {
+  console.log("state: ",state, "city: ", city);
+  
   try {
     const response = await axios.get(
-      `${API_URL}/${city}/zipcodes`
+      `${API_URL}/city-zipcode?city=${city}&state=${state}`
     );
     return response.data;
   } catch (error) {

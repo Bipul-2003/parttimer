@@ -61,10 +61,6 @@ function Navbar() {
   ];
 
   const renderAuthButton = () => {
-    if (loading) {
-      return null; // Don't show anything while loading
-    }
-
     if (isAuthenticated) {
       return (
         <>

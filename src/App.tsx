@@ -8,7 +8,7 @@ function App() {
   const location = useLocation();
   const hideNavbar = ["/login", "/signup"].includes(location.pathname);
 
-  const { checkUser, user } = useAuth();
+  const { checkUser, user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,10 +60,19 @@ function App() {
   }, [user, checkUser, navigate]);
 
   return (
-    <div className="">
-      {!hideNavbar && <Navbar />}
-      <Outlet />
-      <Footer />
+    <div className="min-h-screen flex flex-col">
+      {/* Ensure all JSX elements are correctly structured */}
+      {loading ? (
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-xl font-bold">Loading...</div>
+        </div>
+      ) : (
+        <>
+          {!hideNavbar && <Navbar />}
+          <Outlet />
+          <Footer />
+        </>
+      )}
     </div>
   );
 }

@@ -40,6 +40,7 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
   const [countries, setCountries] = useState<string[]>([])
   const [states, setStates] = useState<string[]>([])
   const [cities, setCities] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof workerLocationSchema>>({
     resolver: zodResolver(workerLocationSchema),
@@ -100,10 +101,28 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
     }
   }, [form.watch('country'), form.watch('state'), fetchCities])
 
-  const onSubmit = (values: z.infer<typeof workerLocationSchema>) => {
-    updateFormData(values)
-    completeSignup()
-  }
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'country' || name === 'state' || name === 'serviceCities') {
+        updateFormData(value as Partial<SignupData & { serviceCities?: string[] }>)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form, updateFormData])
+
+  const onSubmit = async (values: z.infer<typeof workerLocationSchema>) => {
+    setIsLoading(true);
+    updateFormData(values);
+    if (values.serviceCities.length > 0) {
+      await completeSignup();
+    } else {
+      form.setError('serviceCities', {
+        type: 'manual',
+        message: 'Please select at least one service city',
+      });
+    }
+    setIsLoading(false);
+  };
 
   return (
     <Form {...form}>
@@ -188,13 +207,11 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
                               <Checkbox
                                 checked={field.value?.includes(city)}
                                 onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, city])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== city
-                                        )
-                                      )
+                                  const updatedCities = checked
+                                    ? [...field.value, city]
+                                    : field.value?.filter((value) => value !== city)
+                                  field.onChange(updatedCities)
+                                  updateFormData({ ...form.getValues(), serviceCities: updatedCities })
                                 }}
                                 disabled={
                                   !field.value?.includes(city) &&
@@ -221,7 +238,9 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
           <Button type="button" onClick={prevStep} variant="outline">
             Back
           </Button>
-          <Button type="submit">Complete Sign Up</Button>
+          <Button type="submit" disabled={isLoading}>
+        {isLoading ? "Signing Up..." : "Complete Sign Up"}
+      </Button>
         </div>
       </form>
     </Form>

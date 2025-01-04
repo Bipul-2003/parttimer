@@ -46,7 +46,7 @@ export const signup = async (signupData: any) => {
 
 export const logoutUser = async () => {
   try {
-    await authAPI.post('/logout');
+    await axios.post(`${config.apiURI}/logout`, {}, { withCredentials: true });
   } catch (error) {
     console.error("Logout failed", error);
     throw error;

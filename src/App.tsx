@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import LoadingAnimation from "./components/LoadingAnimation";
 import { useAuth } from "./context/AuthContext";
 
 function App() {
@@ -13,18 +14,15 @@ function App() {
 
   useEffect(() => {
     const checkProfileComplete = async () => {
-      // Ensure the user is not null and is an object
       if (!user) {
         console.error('User is not defined');
         return;
       }
 
-      // Check if user_type exists and is LABOUR
       if ('user_type' in user && user.user_type === "LABOUR") {
         return;
       }
 
-      // Perform the profile completeness check for regular users
       if ('user_type' in user && user.user_type === "USER" && 'email' in user) {
         try {
           const profileStatus = await checkUser(user.email);
@@ -53,7 +51,6 @@ function App() {
       }
     };
 
-    // Run the profile check for all users
     if (user) {
       checkProfileComplete();
     }
@@ -61,10 +58,9 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Ensure all JSX elements are correctly structured */}
       {loading ? (
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-xl font-bold">Loading...</div>
+        <div className="flex-grow flex items-center justify-center bg-gradient-to-r from-blue-50 to-indigo-100">
+          <LoadingAnimation />
         </div>
       ) : (
         <>

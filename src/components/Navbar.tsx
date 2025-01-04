@@ -20,7 +20,7 @@ function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, i18n } = useTranslation(['navbar', 'common']);
   const { language, setLanguage } = useLanguage();
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);

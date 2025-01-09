@@ -99,6 +99,8 @@ export function SignupStep2({
   }, [form.watch("country"), form.watch("state"), form.watch("city")]);
 
   function onSubmit(values: z.infer<typeof step2Schema>) {
+    console.log(values);
+    
     updateFormData(values);
     // if (location.state) {
     //   // If we came from Google Sign-In, go to Step 3

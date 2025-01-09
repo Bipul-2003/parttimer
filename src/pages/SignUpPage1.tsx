@@ -51,6 +51,8 @@ export default function SignupPage1() {
 
   const regularSignup = useCallback(async (data: SignupData) => {
     try {
+      console.log(data);
+      
       const response = await signup(data)
       return response.data
     } catch (error) {
@@ -100,6 +102,9 @@ export default function SignupPage1() {
       if (formData.userType === 'LABOUR') {
         await laborSignup()
       } else {
+        console.log("Inside complete signup");
+        console.log(formData);
+        
         await regularSignup(formData as SignupData)
       }
       

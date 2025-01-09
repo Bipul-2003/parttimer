@@ -26,6 +26,8 @@ function App() {
       if ('user_type' in user && user.user_type === "USER" && 'email' in user) {
         try {
           const profileStatus = await checkUser(user.email);
+          console.log(profileStatus);
+          
 
           if (!profileStatus.profileComplete) {
             const nameParts = user.name.trim().split(/\s+/);

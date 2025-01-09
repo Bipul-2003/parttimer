@@ -1,72 +1,82 @@
-'use client'
-
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { useAuth } from "@/context/AuthContext"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Separator } from "@/components/ui/separator"
-import { Link, useNavigate } from "react-router-dom" // Added useNavigate
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { useAuth } from '@/context/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Separator } from '@/components/ui/separator'
+import { HCaptchaComponent } from '@/components/HCaptcha'
 
 const userFormSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
 const workerFormSchema = z.object({
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
 export default function EnhancedLoginPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
+  const [errorMessage, setErrorMessage] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [showCaptcha, setShowCaptcha] = useState({ user: false, worker: false })
+  const navigate = useNavigate()
   const { login, googleSignIn } = useAuth()
-  const navigate = useNavigate() // Initialize useNavigate
 
   const userForm = useForm<z.infer<typeof userFormSchema>>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
   })
 
   const workerForm = useForm<z.infer<typeof workerFormSchema>>({
     resolver: zodResolver(workerFormSchema),
     defaultValues: {
-      phone: "",
-      password: "",
+      phone: '',
+      password: '',
     },
   })
 
   async function onUserSubmit(values: z.infer<typeof userFormSchema>) {
+    if (!captchaToken) {
+      setShowCaptcha({ ...showCaptcha, user: true })
+      setErrorMessage('Please complete the CAPTCHA')
+      return
+    }
     setIsLoading(true)
-    setErrorMessage("")
+    setErrorMessage('')
     try {
       await login(values.email, values.password)
-      navigate("/") // Navigate to homepage after successful login
+      navigate('/')
     } catch (error: any) {
-      setErrorMessage(error.message || "Login failed. Please try again.")
+      setErrorMessage(error.message || 'Login failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
   async function onWorkerSubmit(values: z.infer<typeof workerFormSchema>) {
+    if (!captchaToken) {
+      setShowCaptcha({ ...showCaptcha, worker: true })
+      setErrorMessage('Please complete the CAPTCHA')
+      return
+    }
     setIsLoading(true)
-    setErrorMessage("")
+    setErrorMessage('')
     try {
-      // Implement worker login logic here
       await login(values.phone, values.password)
-      navigate("/") // Navigate to homepage after successful login
+      navigate('/')
     } catch (error: any) {
-      setErrorMessage(error.message || "Login failed. Please try again.")
+      setErrorMessage(error.message || 'Login failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -75,11 +85,11 @@ export default function EnhancedLoginPage() {
   async function handleGoogleSignIn() {
     try {
       setIsLoading(true)
-      setErrorMessage("")
+      setErrorMessage('')
       await googleSignIn()
-      navigate("/") // Navigate to homepage after successful login
+      navigate('/')
     } catch (error: any) {
-      setErrorMessage(error.message || "Google Sign-In failed. Please try again.")
+      setErrorMessage(error.message || 'Google Sign-In failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -127,8 +137,17 @@ export default function EnhancedLoginPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" disabled={isLoading}>
-                    {isLoading ? "Logging in..." : "Log in"}
+                  {showCaptcha.user && (
+                    <div className="mt-4">
+                      <HCaptchaComponent onVerify={(token) => setCaptchaToken(token)} />
+                    </div>
+                  )}
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Logging in..." : (captchaToken ? "Log in" : "Verify & Log in")}
                   </Button>
                 </form>
               </Form>
@@ -184,8 +203,17 @@ export default function EnhancedLoginPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white" disabled={isLoading}>
-                    {isLoading ? "Logging in..." : "Log in"}
+                  {showCaptcha.worker && (
+                    <div className="mt-4">
+                      <HCaptchaComponent onVerify={(token) => setCaptchaToken(token)} />
+                    </div>
+                  )}
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Logging in..." : (captchaToken ? "Log in" : "Verify & Log in")}
                   </Button>
                 </form>
               </Form>

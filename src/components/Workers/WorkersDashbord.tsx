@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getOpenWorkerBookings, workerOfferPrice } from "@/api/WorkerApis";
 import { toast } from "@/hooks/use-toast";
 
@@ -54,9 +55,6 @@ type LaborRequest = {
 
 export function WorkerDashboard() {
   const [requests, setRequests] = useState<LaborRequest[]>([]);
-  // const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
-  //   null
-  // );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,8 +128,21 @@ export function WorkerDashboard() {
     );
   };
 
+  const renderSkeletonLoader = () => (
+    <div className="w-full space-y-4">
+        <div className="flex items-center space-x-4">
+          <Skeleton className="h-10 w-[250px]" />
+          <Skeleton className="h-10 w-[200px]" />
+          <Skeleton className="h-10 w-[100px] ml-auto" />
+        </div>
+        {[...Array(5)].map((_, i) => (
+          <Skeleton key={i} className="h-16 w-full" />
+        ))}
+      </div>
+  );
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return renderSkeletonLoader();
   }
 
   if (error) {
@@ -161,7 +172,6 @@ export function WorkerDashboard() {
                   <TableHead>Zipcode</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Status</TableHead>
-                  {/* <TableHead>Offered Price</TableHead> */}
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -184,11 +194,6 @@ export function WorkerDashboard() {
                         {request.status}
                       </Badge>
                     </TableCell>
-                    {/* <TableCell>
-                      {request.offeredPrice
-                        ? `$${request.offeredPrice}`
-                        : "N/A"}
-                    </TableCell> */}
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -206,11 +211,6 @@ export function WorkerDashboard() {
                             Copy request ID
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          {/* <DropdownMenuItem
-                              onSelect={(e) => e.preventDefault()}
-                              onClick={() => setSelectedRequestId(request.id)}>
-                              View Details
-                            </DropdownMenuItem> */}
                           {request.status === "OPEN" && (
                             <Dialog>
                               <DialogTrigger asChild>
@@ -291,3 +291,4 @@ export function WorkerDashboard() {
     </>
   );
 }
+

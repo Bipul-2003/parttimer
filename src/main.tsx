@@ -53,6 +53,7 @@ import ShopDetailPage from "./components/Advertisements/ShopDeatiledPage.tsx";
 import PublishAdPage from "./components/Advertisements/PublishAdPage.tsx";
 import MyAdsPage from "./components/Advertisements/MyAdsPage.tsx";
 import ManageAdPage from "./components/Advertisements/ManageAdPage.tsx";
+import WorkerPendingRequestsTable from "./components/Workers/WorkerPendingTable.tsx";
 
 const router = createBrowserRouter([
   {
@@ -284,6 +285,10 @@ const router = createBrowserRouter([
           {
             path: "history",
             element: <WorkerHistoryTable />,
+          },
+          {
+            path: "pending",
+            element :<WorkerPendingRequestsTable/>
           },
           {
             path: "labor-request/:id",

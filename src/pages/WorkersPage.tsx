@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { LayoutDashboard,ClipboardList } from 'lucide-react';
+import { LayoutDashboard,ClipboardList,Clock } from 'lucide-react';
 import { Sidebar, SidebarItem } from '@/components/Sidebar/Sidebar';
 
 const sidebarItems: SidebarItem[] = [
@@ -7,6 +7,11 @@ const sidebarItems: SidebarItem[] = [
     icon: LayoutDashboard,
     label: "Dashboard",
     path: "dashboard",
+  },
+  {
+    icon: Clock,
+    label: "Pendings",
+    path: "pending",
   },
   {
     icon: ClipboardList,

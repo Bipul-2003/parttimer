@@ -49,6 +49,8 @@ const step1WorkerSchema = workerSchema.pick({
   phoneNumber: true,
   password: true,
   email: true,
+}).extend({
+  email: z.string().email("Invalid email address").optional(),
 })
 
 export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1Props) {
@@ -98,6 +100,10 @@ export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1P
           return
         }
       }
+      // For workers, convert empty string email to undefined
+      // if (userType === "LABOUR" && values.email === "") {
+      //   values.email = ''
+      // }
       updateFormData({ ...values, userType })
       nextStep()
     } catch (error) {
@@ -222,7 +228,11 @@ export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1P
             <FormItem>
               <FormLabel>{userType === "LABOUR" ? "Email (Optional)" : "Email"}</FormLabel>
               <FormControl>
-                <Input {...field} type="email" placeholder="john.doe@example.com" />
+                <Input {...field} type="email" placeholder="john.doe@example.com"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  field.onChange(value === '' ? undefined : value);
+                }} />
               </FormControl>
               <FormMessage />
             </FormItem>

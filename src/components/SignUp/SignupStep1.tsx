@@ -231,7 +231,7 @@ export function SignupStep1({ formData, updateFormData, nextStep }: SignupStep1P
                 <Input {...field} type="email" placeholder="john.doe@example.com"
                 onChange={(e) => {
                   const value = e.target.value;
-                  field.onChange(value === '' ? undefined : value);
+                  field.onChange(value === ''? undefined : value);
                 }} />
               </FormControl>
               <FormMessage />

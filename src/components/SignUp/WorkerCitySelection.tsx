@@ -20,20 +20,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { SignupData } from '@/lib/validations/signup'
+import { SignupData, workerSchema } from '@/lib/validations/signup'
 import { getCountry, getState, getCity } from "@/api/locationsApi"
 
 type WorkerLocationSelectionProps = {
-  formData: Partial<SignupData & { serviceCities?: string[] }>
-  updateFormData: (data: Partial<SignupData & { serviceCities?: string[] }>) => void
-  completeSignup: () => void
+  formData: Partial<SignupData>
+  updateFormData: (data: Partial<SignupData>) => void
+  completeSignup: () => Promise<void>
   prevStep: () => void
 }
 
-const workerLocationSchema = z.object({
-  country: z.string().min(1, "Please select a country"),
-  state: z.string().min(1, "Please select a state"),
-  serviceCities: z.array(z.string()).min(1, "Please select at least one city").max(3, "You can select up to 3 cities"),
+const workerLocationSchema = workerSchema.pick({
+  country: true,
+  state: true,
+  serviceCities: true,
 })
 
 export function WorkerCitySelection({ formData, updateFormData, completeSignup, prevStep }: WorkerLocationSelectionProps) {
@@ -47,7 +47,7 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
     defaultValues: {
       country: formData.country || '',
       state: formData.state || '',
-      serviceCities: formData.serviceCities || [],
+      serviceCities: (formData as any).serviceCities || [],
     },
   })
 
@@ -104,7 +104,7 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'country' || name === 'state' || name === 'serviceCities') {
-        updateFormData(value as Partial<SignupData & { serviceCities?: string[] }>)
+        updateFormData(value as Partial<SignupData>)
       }
     })
     return () => subscription.unsubscribe()
@@ -112,16 +112,22 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
 
   const onSubmit = async (values: z.infer<typeof workerLocationSchema>) => {
     setIsLoading(true);
-    updateFormData(values);
-    if (values.serviceCities.length > 0) {
-      await completeSignup();
-    } else {
-      form.setError('serviceCities', {
-        type: 'manual',
-        message: 'Please select at least one service city',
-      });
+    try {
+      updateFormData(values);
+      if (values.serviceCities.length > 0) {
+        await completeSignup();
+      } else {
+        form.setError('serviceCities', {
+          type: 'manual',
+          message: 'Please select at least one service city',
+        });
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
+      // Handle error (e.g., show error message to user)
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -189,7 +195,7 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
           name="serviceCities"
           render={() => (
             <FormItem>
-              <FormLabel>Cities</FormLabel>
+              <FormLabel>Service Cities</FormLabel>
               <FormControl>
                 <ScrollArea className="h-72 rounded-md border p-4">
                   {cities.map((city) => (
@@ -239,8 +245,8 @@ export function WorkerCitySelection({ formData, updateFormData, completeSignup, 
             Back
           </Button>
           <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Signing Up..." : "Complete Sign Up"}
-      </Button>
+            {isLoading ? "Signing Up..." : "Complete Sign Up"}
+          </Button>
         </div>
       </form>
     </Form>

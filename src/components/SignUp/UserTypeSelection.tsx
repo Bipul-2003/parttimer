@@ -8,7 +8,7 @@ type UserTypeSelectionProps = {
   prevStep: () => void
 }
 
-export function UserTypeSelection({  updateFormData, nextStep, prevStep }: UserTypeSelectionProps) {
+export function UserTypeSelection({ updateFormData, nextStep, prevStep }: UserTypeSelectionProps) {
   const handleSelection = (userType: 'REGULAR' | 'LABOUR') => {
     updateFormData({ userType })
     nextStep()
@@ -17,7 +17,7 @@ export function UserTypeSelection({  updateFormData, nextStep, prevStep }: UserT
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-center">Choose Account Type</h2>
+        <h2 className="text-2xl font-bold text-center">Confirm Account Type</h2>
         <p className="text-muted-foreground text-center">Select whether you want to be a user or a worker</p>
       </div>
       <div className="flex flex-col space-y-4">

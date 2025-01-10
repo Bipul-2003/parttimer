@@ -4,6 +4,8 @@ import config from "@/config/config";
 const API_URL = config.apiURI+"/api/auth";
 
 export const checkUser = async (email: string) => {
+  console.log(email);
+  
   try {
     const response = await axios.post(`${API_URL}/check-user`, { email });
     return response.data;

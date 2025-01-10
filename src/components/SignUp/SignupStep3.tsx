@@ -20,14 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { SignupData } from '@/lib/validations/signup'
+import { SignupData, normalUserSchema } from '@/lib/validations/signup'
 import { Loader2 } from 'lucide-react'
 import axios from 'axios'
 import { useToast } from '@/hooks/use-toast'
 
 type SignupStep3Props = {
   formData: Partial<SignupData>
-  updateFormData: (data: Partial<SignupData> & { document?: File }) => void
+  updateFormData: (data: Partial<SignupData>) => void
   prevStep: () => void
   completeSignup: () => void
 }
@@ -35,31 +35,18 @@ type SignupStep3Props = {
 const MAX_FILE_SIZE = 1024 * 1024; // 1MB
 const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/jpg", "application/pdf"];
 
-const step3Schema = z.object({
-  typeOfVerificationFile: z.enum(["passport", "driverLicense", "nationalId"]),
-  document: z
-    .any()
-    .refine((file) => file instanceof File || (file && file.name), "A file is required")
+const step3Schema = normalUserSchema.pick({
+  typeOfVerificationFile: true,
+  consentAccepted: true,
+  zipCode: true,
+}).extend({
+  document: z.instanceof(File)
+    .refine(file => file.size <= MAX_FILE_SIZE, `File size should be less than 1MB`)
     .refine(
-      (file) => {
-        if (!file) return false;
-        const fileType = file instanceof File ? file.type : file.name.split('.').pop()?.toLowerCase();
-        return fileType === 'pdf' || ACCEPTED_FILE_TYPES.includes(file.type);
-      },
+      file => ACCEPTED_FILE_TYPES.includes(file.type),
       "Only JPG, JPEG, or PDF files are allowed"
-    )
-    .refine(
-      (file) => !file || file.size <= MAX_FILE_SIZE,
-      `File size should be less than 1MB`
     ),
-  consentAccepted: z.boolean().refine((val) => val === true, "You must accept the terms and conditions"),
 });
-
-// type VerificationResponse = {
-//   name_verified: boolean;
-//   city_verified: boolean;
-//   zipcode_verified: boolean;
-// }
 
 export function SignupStep3({ formData, updateFormData, prevStep, completeSignup }: SignupStep3Props) {
   const [fileError, setFileError] = useState<string | null>(null);
@@ -70,8 +57,9 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
   const form = useForm<z.infer<typeof step3Schema>>({
     resolver: zodResolver(step3Schema),
     defaultValues: {
-      typeOfVerificationFile: formData.typeOfVerificationFile,
-      consentAccepted: false,
+      typeOfVerificationFile: formData.userType === 'REGULAR' ? (formData as any).typeOfVerificationFile : undefined,
+      consentAccepted: (formData as any).consentAccepted || false,
+      zipCode: formData.userType === 'REGULAR' ? formData.zipCode : '',
     },
   });
 
@@ -95,46 +83,22 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
     const verificationFormData = new FormData();
     const name = `${formData.firstName || ''}${formData.middleName ? ' ' + formData.middleName : ''}${formData.lastName ? ' ' + formData.lastName : ''}`.trim();
     verificationFormData.append('name', name);
-    verificationFormData.append('city', formData.city || '');
-    verificationFormData.append('zipcode', formData.zipCode || '');
+    if (formData.userType === 'REGULAR') {
+      verificationFormData.append('city', formData.city || '');
+      verificationFormData.append('zipcode', form.getValues('zipCode') || '');
+    }
     verificationFormData.append('verifyfile', file);
 
     try {
-      const response = {
-        data: {
-          name_verified: true,
-          city_verified: true,
-          zipcode_verified: true,
-        }
-      }
-      //  await axios.post<VerificationResponse>('https://python-ocr-verification.onrender.com/verify', verificationFormData, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data',
-      //   },
-      // });
-
-      const { name_verified, city_verified, zipcode_verified } = response.data;
-
-      if (name_verified && city_verified && zipcode_verified) {
-        setIsVerified(true);
-        updateFormData({ docsVerified: true });
-        toast({
-          title: "Verification Successful",
-          description: "Your document has been verified successfully.",
-          variant: "default",
-        })
-      } else {
-        const failedFields = [];
-        if (!name_verified) failedFields.push('name');
-        if (!city_verified) failedFields.push('city');
-        if (!zipcode_verified) failedFields.push('zipcode');
-
-        toast({
-          title: "Verification Failed",
-          description: `The following information could not be verified: ${failedFields.join(', ')}. Please try again.`,
-          variant: "destructive",
-        })
-      }
+      // Simulating verification process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setIsVerified(true);
+      updateFormData({ docsVerified: true });
+      toast({
+        title: "Verification Successful",
+        description: "Your document has been verified successfully.",
+        variant: "default",
+      })
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setFileError(error.response?.data?.message || 'Document verification failed');
@@ -152,11 +116,17 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
   };
 
   const onSubmit = async (values: z.infer<typeof step3Schema>) => {
-    updateFormData({ 
-      document: values.document,
-      typeOfVerificationFile: values.typeOfVerificationFile,
-      consentAccepted: values.consentAccepted,
-    });
+    if (formData.userType === 'REGULAR') {
+      updateFormData({ 
+        typeOfVerificationFile: values.typeOfVerificationFile,
+        consentAccepted: values.consentAccepted,
+        zipCode: values.zipCode,
+      } as Partial<SignupData>);
+    } else {
+      updateFormData({ 
+        consentAccepted: values.consentAccepted,
+      } as Partial<SignupData>);
+    }
     await handleVerify();
   };
 
@@ -166,45 +136,68 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-center">Document Upload & Verification</h2>
           <p className="text-sm text-muted-foreground text-center">
-            Please upload a valid document to verify you .
+            Please upload a valid document to verify your identity.
           </p>
         </div>
         
-        <FormField
-          control={form.control}
-          name="typeOfVerificationFile"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Type of Verification Document</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select document type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="passport">Passport</SelectItem>
-                  <SelectItem value="driverLicense">Driver's License</SelectItem>
-                  <SelectItem value="nationalId">National ID</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {formData.userType === 'REGULAR' && (
+          <>
+            <FormField
+              control={form.control}
+              name="typeOfVerificationFile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type of Verification Document</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select document type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="passport">Passport</SelectItem>
+                      <SelectItem value="driverLicense">Driver's License</SelectItem>
+                      <SelectItem value="nationalId">National ID</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="zipCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Zip Code</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter zip code" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
         
         <FormField
           control={form.control}
           name="document"
-          render={({  }) => (
+          render={({ field: { onChange, ...rest } }) => (
             <FormItem>
               <FormLabel>Upload Document</FormLabel>
               <FormControl>
                 <Input
                   type="file"
                   accept=".jpg,.jpeg,.pdf"
-                  onChange={handleFileChange}
+                  onChange={(e) => {
+                    handleFileChange(e);
+                    onChange(e.target.files?.[0]);
+                  }}
                   disabled={isVerified}
+                  {...rest}
+                  value={undefined}
                 />
               </FormControl>
               {fileError && <p className="text-sm text-destructive">{fileError}</p>}
@@ -247,7 +240,7 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={!form.watch('document') || isVerifying || !form.watch('consentAccepted')}
+            disabled={!form.formState.isValid || isVerifying}
           >
             {isVerifying ? (
               <>

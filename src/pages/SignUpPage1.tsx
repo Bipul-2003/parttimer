@@ -8,13 +8,12 @@ import { SignupStep2 } from '@/components/SignUp/SignupStep2'
 import { SignupStep3 } from '@/components/SignUp/SignupStep3'
 import { UserTypeSelection } from '@/components/SignUp/UserTypeSelection'
 import { WorkerCitySelection } from '@/components/SignUp/WorkerCitySelection'
-import { SignupData } from '@/lib/validations/signup'
+import { SignupData, workerSchema, normalUserSchema } from '@/lib/validations/signup'
 import { signup } from '@/api/auth'
 import config from '@/config/config'
+import { z } from 'zod'
 
-interface FormDataState extends Partial<SignupData> {
-  serviceCities?: string[]
-}
+type FormDataState = Partial<SignupData>
 
 export default function SignupPage1() {
   const [step, setStep] = useState(1)
@@ -27,7 +26,7 @@ export default function SignupPage1() {
     if (location.state) {
       const { firstName, lastName, middleName, email } = location.state
 
-      const updateData: Partial<SignupData> = {
+      const updateData: FormDataState = {
         firstName,
         lastName,
         email,
@@ -42,7 +41,7 @@ export default function SignupPage1() {
     }
   }, [location])
 
-  const updateFormData = useCallback((data: Partial<SignupData & { serviceCities?: string[] }>) => {
+  const updateFormData = useCallback((data: Partial<SignupData>) => {
     setFormData((prev) => ({ ...prev, ...data }))
   }, [])
 
@@ -51,9 +50,8 @@ export default function SignupPage1() {
 
   const regularSignup = useCallback(async (data: SignupData) => {
     try {
-      console.log(data);
-      
-      const response = await signup(data)
+      const parsedData = normalUserSchema.parse(data)
+      const response = await signup(parsedData)
       return response.data
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -65,26 +63,36 @@ export default function SignupPage1() {
   }, [])
 
   const laborSignup = useCallback(async () => {
-    if (!formData.serviceCities || formData.serviceCities.length === 0) {
-      throw new Error('Please select at least one service city')
+    if (!formData.userType || formData.userType !== 'LABOUR') {
+      throw new Error('Invalid user type')
     }
-
-    const laborData = {
-      ...formData,
-      serviceCities: formData.serviceCities,
-      isRideNeeded: false,
-      subscriptionStatus: 'BASIC'
-    }
-    console.log("Labor signup data:", laborData)
 
     try {
-      const response = await axios.post(config.apiURI+'/api/auth/labour/sign-up', laborData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
+      const laborData = {
+        ...formData,
+        isRideNeeded: false,
+        subscriptionStatus: 'BASIC'
+      }
+
+      // Validate the data against the worker schema
+      const parsedData = workerSchema.parse(laborData)
+      console.log( parsedData);
+      
+      const response = await axios.post(
+        `${config.apiURI}/api/auth/labour/sign-up`,
+        parsedData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
       return response.data
     } catch (error) {
+      console.error('Labor signup error:', error);
+      if (error instanceof z.ZodError) {
+        throw new Error(`Validation error: ${error.errors.map(e => e.message).join(', ')}`)
+      }
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data?.error || 
                            error.response?.data?.message ||
@@ -101,11 +109,10 @@ export default function SignupPage1() {
     try {
       if (formData.userType === 'LABOUR') {
         await laborSignup()
-      } else {
-        console.log("Inside complete signup");
-        console.log(formData);
-        
+      } else if (formData.userType === 'REGULAR') {
         await regularSignup(formData as SignupData)
+      } else {
+        throw new Error('Invalid user type')
       }
       
       toast({

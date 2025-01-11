@@ -29,7 +29,13 @@ type SignupStep3Props = {
   formData: Partial<SignupData>
   updateFormData: (data: Partial<SignupData>) => void
   prevStep: () => void
-  completeSignup: () => void
+  completeSignup: () => Promise<void>
+}
+
+interface VerificationResponse {
+  name_verified: boolean;
+  city_verified: boolean;
+  zipcode_verified: boolean;
 }
 
 const MAX_FILE_SIZE = 1024 * 1024; // 1MB
@@ -38,7 +44,6 @@ const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/jpg", "application/pdf"];
 const step3Schema = normalUserSchema.pick({
   typeOfVerificationFile: true,
   consentAccepted: true,
-  zipCode: true,
 }).extend({
   document: z.instanceof(File)
     .refine(file => file.size <= MAX_FILE_SIZE, `File size should be less than 1MB`)
@@ -52,6 +57,7 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
   const [fileError, setFileError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [isCompletingSignup, setIsCompletingSignup] = useState(false);
   const { toast } = useToast()
 
   const form = useForm<z.infer<typeof step3Schema>>({
@@ -59,7 +65,6 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
     defaultValues: {
       typeOfVerificationFile: formData.userType === 'REGULAR' ? (formData as any).typeOfVerificationFile : undefined,
       consentAccepted: (formData as any).consentAccepted || false,
-      zipCode: formData.userType === 'REGULAR' ? formData.zipCode : '',
     },
   });
 
@@ -68,11 +73,14 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
     if (file) {
       form.setValue('document', file, { shouldValidate: true });
       setFileError(null);
+      setIsVerified(false); // Reset verification status when file changes
     }
   };
 
   const handleVerify = async () => {
     setIsVerifying(true);
+    setFileError(null);
+    
     const file = form.getValues('document');
     if (!file) {
       setFileError('No file selected');
@@ -84,22 +92,54 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
     const name = `${formData.firstName || ''}${formData.middleName ? ' ' + formData.middleName : ''}${formData.lastName ? ' ' + formData.lastName : ''}`.trim();
     verificationFormData.append('name', name);
     if (formData.userType === 'REGULAR') {
-      verificationFormData.append('city', formData.city || '');
-      verificationFormData.append('zipcode', form.getValues('zipCode') || '');
+      verificationFormData.append('city', (formData as any).city || '');
+      verificationFormData.append('zipcode', (formData as any).zipCode || '');
+    } else {
+      // For LABOUR type, use the first service city as the city
+      const firstServiceCity = (formData as any).serviceCities?.[0] || '';
+      verificationFormData.append('city', firstServiceCity);
+      verificationFormData.append('zipcode', ''); // Empty string for zipcode as it's not applicable for LABOUR
     }
     verificationFormData.append('verifyfile', file);
 
     try {
-      // Simulating verification process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setIsVerified(true);
-      updateFormData({ docsVerified: true });
-      toast({
-        title: "Verification Successful",
-        description: "Your document has been verified successfully.",
-        variant: "default",
-      })
+      const response = await axios.post<VerificationResponse>(
+        'https://python-ocr-verification.onrender.com/verify',
+        verificationFormData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (response.data.name_verified && response.data.city_verified && response.data.zipcode_verified) {
+        setIsVerified(true);
+        updateFormData({ docsVerified: true });
+        toast({
+          title: "Verification Successful",
+          description: "Your document has been verified successfully.",
+          variant: "default",
+        });
+      } else {
+        let errorMessage = "Verification failed. The following information did not match:";
+        if (!response.data.name_verified) errorMessage += " Name,";
+        if (formData.userType === 'REGULAR') {
+          if (!response.data.city_verified) errorMessage += " City,";
+          if (!response.data.zipcode_verified) errorMessage += " Zipcode,";
+        } else if (!response.data.city_verified) {
+          errorMessage += " Service City,";
+        }
+        errorMessage = errorMessage.slice(0, -1); // Remove trailing comma
+        setFileError(errorMessage);
+        toast({
+          title: "Verification Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
+      console.error('Verification error:', error);
       if (axios.isAxiosError(error)) {
         setFileError(error.response?.data?.message || 'Document verification failed');
       } else {
@@ -109,9 +149,25 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
         title: "Verification Error",
         description: "An error occurred during verification. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const handleCompleteSignup = async () => {
+    try {
+      setIsCompletingSignup(true);
+      await completeSignup();
+    } catch (error) {
+      console.error('Signup completion error:', error);
+      toast({
+        title: "Signup Error",
+        description: "Failed to complete signup. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCompletingSignup(false);
     }
   };
 
@@ -120,7 +176,6 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
       updateFormData({ 
         typeOfVerificationFile: values.typeOfVerificationFile,
         consentAccepted: values.consentAccepted,
-        zipCode: values.zipCode,
       } as Partial<SignupData>);
     } else {
       updateFormData({ 
@@ -141,44 +196,28 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
         </div>
         
         {formData.userType === 'REGULAR' && (
-          <>
-            <FormField
-              control={form.control}
-              name="typeOfVerificationFile"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type of Verification Document</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select document type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="passport">Passport</SelectItem>
-                      <SelectItem value="driverLicense">Driver's License</SelectItem>
-                      <SelectItem value="nationalId">National ID</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="zipCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Zip Code</FormLabel>
+          <FormField
+            control={form.control}
+            name="typeOfVerificationFile"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type of Verification Document</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <Input {...field} placeholder="Enter zip code" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select document type" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
+                  <SelectContent>
+                    <SelectItem value="passport">Passport</SelectItem>
+                    <SelectItem value="driverLicense">Driver's License</SelectItem>
+                    <SelectItem value="nationalId">National ID</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         )}
         
         <FormField
@@ -195,7 +234,7 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
                     handleFileChange(e);
                     onChange(e.target.files?.[0]);
                   }}
-                  disabled={isVerified}
+                  disabled={isVerified || isVerifying}
                   {...rest}
                   value={undefined}
                 />
@@ -245,7 +284,7 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
             {isVerifying ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Verifying
+                Verifying Document...
               </>
             ) : (
               'Verify Document'
@@ -254,13 +293,29 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-primary">Verification successful!</p>
-            <Button onClick={completeSignup} className="w-full">
-              Complete Signup
+            <Button 
+              onClick={handleCompleteSignup} 
+              className="w-full"
+              disabled={isCompletingSignup}
+            >
+              {isCompletingSignup ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Completing Signup...
+                </>
+              ) : (
+                'Complete Signup'
+              )}
             </Button>
           </div>
         )}
         
-        <Button onClick={prevStep} variant="outline" className="w-full">
+        <Button 
+          onClick={prevStep} 
+          variant="outline" 
+          className="w-full"
+          disabled={isVerifying || isCompletingSignup}
+        >
           Back
         </Button>
       </form>

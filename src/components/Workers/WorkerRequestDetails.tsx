@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { ChevronLeft, User, DollarSign, Star, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -15,30 +15,33 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 import config from "@/config/config";
 
-
 export type LaborRequest = {
-    bookingDate: string;
-    bookingNote: string;
-    bookingStatus: string;
-    timeSlot: string;
-    userPhoneNumber: string | null;
-    userEmail: string | null;
-    bookingAddress: string | null;
-    acceptedPrice: number | null;
-    acceptedLabourRating: number | null;
-    status: "ACCEPTED" | "PENDING" | "WITHDRAWN";
-    offeredPrice?: number | null;
-  };
-  
-  
+  bookingDate: string;
+  bookingNote: string;
+  bookingStatus: string;
+  timeSlot: string;
+  userPhoneNumber: string | null;
+  userEmail: string | null;
+  bookingAddress: string | null;
+  acceptedPrice: number | null;
+  acceptedLabourRating: number | null;
+  status: "ACCEPTED" | "PENDING" | "WITHDRAWN";
+  offeredPrice?: number | null;
+};
+
 export default function LaborRequestDetails() {
   const { id: requestId } = useParams<{ id: string }>();
   const [request, setRequest] = useState<LaborRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -47,6 +50,7 @@ export default function LaborRequestDetails() {
           withCredentials: true,
         });
         setRequest(response.data);
+        await checkFeedbackEligibility();
       } catch (err) {
         toast({
           variant: "destructive",
@@ -63,6 +67,59 @@ export default function LaborRequestDetails() {
       fetchRequestDetails();
     }
   }, [requestId, toast]);
+
+  const checkFeedbackEligibility = async () => {
+    if (!requestId) return;
+    
+    try {
+      const response = await axios.get(`${config.apiURI}/api/reviews/check-labour-review?bookingId=${requestId}`, { withCredentials: true });
+      const canGiveFeedback = !response.data;
+      
+      if (request && request.status === "ACCEPTED") {
+        const serviceDate = new Date(request.bookingDate);
+        const currentDate = new Date();
+        setShowFeedback(canGiveFeedback && serviceDate < currentDate);
+      } else {
+        setShowFeedback(false);
+      }
+    } catch (error) {
+      console.error("Error checking feedback eligibility:", error);
+      setShowFeedback(false);
+    }
+  };
+
+  const handleFeedbackSubmission = async () => {
+    if (!requestId) return;
+    setIsSubmittingFeedback(true);
+    try {
+      const response = await axios.post(
+        `${config.apiURI}/api/reviews//labour-review`,
+        {
+          bookingId: parseInt(requestId),
+          rating,
+          review: feedback,
+          feedbackType: "LABOUR_TO_USER"
+        },
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
+        setShowFeedback(false);
+        toast({
+          title: "Feedback Submitted",
+          description: "Thank you for your feedback!",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to submit feedback. Please try again later.",
+      });
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -198,14 +255,51 @@ export default function LaborRequestDetails() {
                   <p>{request.bookingNote}</p>
                 </div>
                 {renderStatusSpecificContent()}
+
+                {showFeedback && (
+                  <Card className="mt-4">
+                    <CardHeader>
+                      <CardTitle>Provide Feedback</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Rate your experience</Label>
+                          <div className="flex space-x-1 mt-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-8 h-8 cursor-pointer ${
+                                  star <= rating ? "fill-primary text-primary" : "fill-muted text-muted-foreground"
+                                }`}
+                                onClick={() => setRating(star)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="feedback">Additional Comments</Label>
+                          <Textarea
+                            id="feedback"
+                            placeholder="Tell us about your experience with the customer"
+                            value={feedback}
+                            onChange={(e) => setFeedback(e.target.value)}
+                            className="mt-2"
+                          />
+                        </div>
+                        <Button
+                          onClick={handleFeedbackSubmission}
+                          className="w-full"
+                          disabled={isSubmittingFeedback || rating === 0}
+                        >
+                          {isSubmittingFeedback ? "Submitting..." : "Submit Feedback"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </ScrollArea>
-
-            {/* <div className="mt-6 flex justify-end">
-              <Button variant="outline" asChild>
-                <Link to="/">Back to Dashboard</Link>
-              </Button>
-            </div> */}
           </>
         ) : null}
       </CardContent>

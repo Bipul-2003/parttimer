@@ -22,7 +22,8 @@ import {
 import { getReqDetails, getReqOffers } from "@/api/UserApis/bookingsApi";
 import axios from 'axios';
 import config from "@/config/config";
-
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type LaborOffer = {
   priceOfferId: number;
@@ -33,6 +34,13 @@ type LaborOffer = {
   proposedPrice: number;
 };
 
+type SelectedLabour = {
+  labourId: number;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+};
+
 type WorkerService = {
   date: string;
   timeSlot: string;
@@ -41,9 +49,8 @@ type WorkerService = {
   location: string;
   zipcode: string;
   city: string;
+  selectedLabour: SelectedLabour | null;
 };
-
-
 
 export function UserWorkerServiceReqestDetailsPage() {
   const { serviceId } = useParams<{ serviceId: string }>();
@@ -52,22 +59,25 @@ export function UserWorkerServiceReqestDetailsPage() {
   const [offers, setOffers] = useState<LaborOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const labourAssignmentId = serviceId?.split('-')[1];
-      if (!labourAssignmentId) 
-        return;
-      if (!serviceId) return;
+      const bookingId = serviceId?.split('-')[1];
+      if (!bookingId) return;
       setLoading(true);
       setError(null);
       try {
         const [serviceDetails, offerDetails] = await Promise.all([
-          getReqDetails(labourAssignmentId),
-          getReqOffers(labourAssignmentId)
+          getReqDetails(bookingId),
+          getReqOffers(bookingId)
         ]);
         setService(serviceDetails);
         setOffers(offerDetails);
+        await checkFeedbackEligibility(bookingId, serviceDetails);
       } catch (err) {
         setError("Failed to fetch data. Please try again later.");
         console.error(err);
@@ -79,6 +89,30 @@ export function UserWorkerServiceReqestDetailsPage() {
     fetchData();
   }, [serviceId]);
 
+  const checkFeedbackEligibility = async (bookingId: string, serviceDetails: WorkerService) => {
+    if (serviceDetails.status !== "ACCEPTED") {
+      setShowFeedback(false);
+      return;
+    }
+
+    const serviceDate = new Date(serviceDetails.date);
+    const currentDate = new Date();
+
+    if (serviceDate > currentDate) {
+      setShowFeedback(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${config.apiURI}/api/reviews/check-user-review?bookingId=${bookingId}`, { withCredentials: true });
+      const canGiveFeedback = !response.data;
+      setShowFeedback(canGiveFeedback);
+    } catch (error) {
+      console.error("Error checking feedback eligibility:", error);
+      setShowFeedback(false);
+    }
+  };
+
   const handleBack = () => {
     navigate(-1);
   };
@@ -88,7 +122,7 @@ export function UserWorkerServiceReqestDetailsPage() {
     setError(null);
     try {
       const response = await axios.post(
-        config.apiURI+`/api/user/labour-bookings/accept-offer/${priceOfferId}`,
+        `${config.apiURI}/api/user/labour-bookings/accept-offer/${priceOfferId}`,
         {}, // empty body since it's just the URL parameter
         { withCredentials: true }
       );
@@ -110,6 +144,35 @@ export function UserWorkerServiceReqestDetailsPage() {
     // TODO: Implement API call to cancel the request
     console.log(`Cancelled service ${serviceId}`);
     navigate(-1);
+  };
+
+  const handleFeedbackSubmission = async () => {
+    if (!serviceId || !service || !service.selectedLabour) return;
+    const bookingId = serviceId.split('-')[1];
+    const labourId = service.selectedLabour.labourId;
+    setIsLoading(true);
+    try {
+      const response = await axios.post(
+        `${config.apiURI}/api/reviews/user-review`,
+        {
+          bookingId: parseInt(bookingId),
+          labourId,
+          rating,
+          review: feedback,
+          feedbackType: "USER_TO_LABOUR"
+        },
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
+        setShowFeedback(false);
+        // Optionally, show a success message to the user
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      // Optionally, show an error message to the user
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (loading) {
@@ -208,9 +271,63 @@ export function UserWorkerServiceReqestDetailsPage() {
                 <p className="text-sm sm:text-base">
                   <strong>Location:</strong> {service.location}, {service.city}, {service.zipcode}
                 </p>
+                {service.status === "ACCEPTED" && service.selectedLabour && (
+                  <div className="mt-4">
+                    <h3 className="text-md font-semibold mb-2">Selected Labour</h3>
+                    <p className="text-sm sm:text-base">
+                      <strong>Name:</strong> {service.selectedLabour.firstName} {service.selectedLabour.lastName}
+                    </p>
+                    <p className="text-sm sm:text-base">
+                      <strong>Phone:</strong> {service.selectedLabour.phoneNumber}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
+
+          {showFeedback && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Service Feedback</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Rate your experience</Label>
+                    <div className="flex space-x-1 mt-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-8 h-8 cursor-pointer ${
+                            star <= rating ? "fill-primary text-primary" : "fill-muted text-muted-foreground"
+                          }`}
+                          onClick={() => setRating(star)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="feedback">Additional Comments</Label>
+                    <Textarea
+                      id="feedback"
+                      placeholder="Tell us about your experience"
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                      className="mt-2"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleFeedbackSubmission}
+                    className="w-full"
+                    disabled={isLoading || rating === 0}
+                  >
+                    {isLoading ? "Submitting..." : "Submit Feedback"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {service.status !== "COMPLETED" && (

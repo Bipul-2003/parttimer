@@ -92,7 +92,7 @@ export default function WorkerPendingRequestsTable() {
     }
 
     try {
-      await changeOfferPrice(numericPrice, offerId.toString())
+      await changeOfferPrice(numericPrice, offerId)
       toast({
         title: "Success",
         description: "Offer price updated successfully.",

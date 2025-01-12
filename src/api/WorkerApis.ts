@@ -66,7 +66,7 @@ export const getWorkerPendingRequests = async () => {
   }
 };
 
-export const changeOfferPrice = async (newPrice: number, priceOfferId: string) => {
+export const changeOfferPrice = async (newPrice: number, priceOfferId: number) => {
   try {
     const response = await axios.post(
       `${API_URL}/edit-offer/${priceOfferId}`,

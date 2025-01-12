@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -23,7 +23,8 @@ import {
 import { SignupData, normalUserSchema } from '@/lib/validations/signup'
 import { Loader2 } from 'lucide-react'
 import axios from 'axios'
-import { useToast } from '@/hooks/use-toast'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useNavigate } from 'react-router-dom';
 
 type SignupStep3Props = {
   formData: Partial<SignupData>
@@ -54,16 +55,22 @@ const step3Schema = normalUserSchema.pick({
 });
 
 export function SignupStep3({ formData, updateFormData, prevStep, completeSignup }: SignupStep3Props) {
-  const [fileError, setFileError] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | JSX.Element | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [isCompletingSignup, setIsCompletingSignup] = useState(false);
-  const { toast } = useToast()
+  const router =  useNavigate();
+
+  useEffect(() => {
+    if (formData.userType === 'LABOUR') {
+      router('/signup');
+    }
+  }, [formData.userType, router]);
 
   const form = useForm<z.infer<typeof step3Schema>>({
     resolver: zodResolver(step3Schema),
     defaultValues: {
-      typeOfVerificationFile: formData.userType === 'REGULAR' ? (formData as any).typeOfVerificationFile : undefined,
+      typeOfVerificationFile: (formData as any).typeOfVerificationFile,
       consentAccepted: (formData as any).consentAccepted || false,
     },
   });
@@ -91,15 +98,8 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
     const verificationFormData = new FormData();
     const name = `${formData.firstName || ''}${formData.middleName ? ' ' + formData.middleName : ''}${formData.lastName ? ' ' + formData.lastName : ''}`.trim();
     verificationFormData.append('name', name);
-    if (formData.userType === 'REGULAR') {
-      verificationFormData.append('city', (formData as any).city || '');
-      verificationFormData.append('zipcode', (formData as any).zipCode || '');
-    } else {
-      // For LABOUR type, use the first service city as the city
-      const firstServiceCity = (formData as any).serviceCities?.[0] || '';
-      verificationFormData.append('city', firstServiceCity);
-      verificationFormData.append('zipcode', ''); // Empty string for zipcode as it's not applicable for LABOUR
-    }
+    verificationFormData.append('city', (formData as any).city || '');
+    verificationFormData.append('zipcode', (formData as any).zipCode || '');
     verificationFormData.append('verifyfile', file);
 
     try {
@@ -110,46 +110,44 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-        }
+        },
+
       );
 
       if (response.data.name_verified && response.data.city_verified && response.data.zipcode_verified) {
         setIsVerified(true);
         updateFormData({ docsVerified: true });
-        toast({
-          title: "Verification Successful",
-          description: "Your document has been verified successfully.",
-          variant: "default",
-        });
+        setFileError(
+          <Alert>
+            <AlertTitle>Verification Successful</AlertTitle>
+            <AlertDescription>Your document has been verified successfully.</AlertDescription>
+          </Alert>
+        );
       } else {
         let errorMessage = "Verification failed. The following information did not match:";
         if (!response.data.name_verified) errorMessage += " Name,";
-        if (formData.userType === 'REGULAR') {
-          if (!response.data.city_verified) errorMessage += " City,";
-          if (!response.data.zipcode_verified) errorMessage += " Zipcode,";
-        } else if (!response.data.city_verified) {
-          errorMessage += " Service City,";
-        }
+        if (!response.data.city_verified) errorMessage += " City,";
+        if (!response.data.zipcode_verified) errorMessage += " Zipcode,";
         errorMessage = errorMessage.slice(0, -1); // Remove trailing comma
-        setFileError(errorMessage);
-        toast({
-          title: "Verification Failed",
-          description: errorMessage,
-          variant: "destructive",
-        });
+        setFileError(
+          <Alert variant="destructive">
+            <AlertTitle>Verification Failed</AlertTitle>
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        );
       }
     } catch (error) {
       console.error('Verification error:', error);
+      let errorMessage = 'An unexpected error occurred';
       if (axios.isAxiosError(error)) {
-        setFileError(error.response?.data?.message || 'Document verification failed');
-      } else {
-        setFileError('An unexpected error occurred');
+        errorMessage = error.response?.data?.message || 'Document verification failed';
       }
-      toast({
-        title: "Verification Error",
-        description: "An error occurred during verification. Please try again.",
-        variant: "destructive",
-      });
+      setFileError(
+        <Alert variant="destructive">
+          <AlertTitle>Verification Error</AlertTitle>
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      );
     } finally {
       setIsVerifying(false);
     }
@@ -161,29 +159,28 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
       await completeSignup();
     } catch (error) {
       console.error('Signup completion error:', error);
-      toast({
-        title: "Signup Error",
-        description: "Failed to complete signup. Please try again.",
-        variant: "destructive",
-      });
+      setFileError(
+        <Alert variant="destructive">
+          <AlertTitle>Signup Error</AlertTitle>
+          <AlertDescription>Failed to complete signup. Please try again.</AlertDescription>
+        </Alert>
+      );
     } finally {
       setIsCompletingSignup(false);
     }
   };
 
   const onSubmit = async (values: z.infer<typeof step3Schema>) => {
-    if (formData.userType === 'REGULAR') {
-      updateFormData({ 
-        typeOfVerificationFile: values.typeOfVerificationFile,
-        consentAccepted: values.consentAccepted,
-      } as Partial<SignupData>);
-    } else {
-      updateFormData({ 
-        consentAccepted: values.consentAccepted,
-      } as Partial<SignupData>);
-    }
+    updateFormData({ 
+      typeOfVerificationFile: values.typeOfVerificationFile,
+      consentAccepted: values.consentAccepted,
+    } as Partial<SignupData>);
     await handleVerify();
   };
+
+  if (formData.userType === 'LABOUR') {
+    return null; // This will prevent rendering anything for LABOUR users
+  }
 
   return (
     <Form {...form}>
@@ -195,30 +192,28 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
           </p>
         </div>
         
-        {formData.userType === 'REGULAR' && (
-          <FormField
-            control={form.control}
-            name="typeOfVerificationFile"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type of Verification Document</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select document type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="passport">Passport</SelectItem>
-                    <SelectItem value="driverLicense">Driver's License</SelectItem>
-                    <SelectItem value="nationalId">National ID</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+        <FormField
+          control={form.control}
+          name="typeOfVerificationFile"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Type of Verification Document</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select document type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="passport">Passport</SelectItem>
+                  <SelectItem value="driverLicense">Driver's License</SelectItem>
+                  <SelectItem value="nationalId">National ID</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <FormField
           control={form.control}
@@ -239,7 +234,8 @@ export function SignupStep3({ formData, updateFormData, prevStep, completeSignup
                   value={undefined}
                 />
               </FormControl>
-              {fileError && <p className="text-sm text-destructive">{fileError}</p>}
+              {typeof fileError === 'string' && <p className="text-sm text-destructive">{fileError}</p>}
+              {typeof fileError !== 'string' && fileError}
               <FormMessage />
               <p className="text-xs text-muted-foreground">Only JPG, JPEG, or PDF files less than 1MB are accepted.</p>
             </FormItem>

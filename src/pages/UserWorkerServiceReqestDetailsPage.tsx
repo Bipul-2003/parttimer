@@ -24,6 +24,7 @@ import axios from 'axios';
 import config from "@/config/config";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type LaborOffer = {
   priceOfferId: number;
@@ -176,7 +177,20 @@ export function UserWorkerServiceReqestDetailsPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <Card className="w-full">
+        <CardHeader className="bg-primary text-primary-foreground">
+          <Skeleton className="h-4 w-[200px] mb-2" />
+          <Skeleton className="h-6 w-[300px]" />
+        </CardHeader>
+        <CardContent className="pt-6 px-4 sm:px-6">
+          <Skeleton className="h-4 w-[100px] mb-4" />
+          <Skeleton className="h-[200px] w-full mb-6" />
+          <Skeleton className="h-[100px] w-full mb-6" />
+          <Skeleton className="h-10 w-[150px]" />
+        </CardContent>
+      </Card>
+    );
   }
 
   if (error) {

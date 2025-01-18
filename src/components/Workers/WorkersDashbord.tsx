@@ -151,7 +151,7 @@ export function WorkerDashboard() {
 
   return (
     <>
-      <div className="">
+      <div className="bg-background p-4">
         <h1 className="text-2xl font-bold mb-4">Labor Requests</h1>
 
         <Card>

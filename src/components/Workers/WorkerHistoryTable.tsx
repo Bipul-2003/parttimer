@@ -235,7 +235,7 @@ export default function WorkerHistoryTable() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-background p-4">
       <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
         <Select
           value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"}

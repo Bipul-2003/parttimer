@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,7 +80,6 @@ export function UserWorkerServiceReqestDetailsPage() {
         
         setService(serviceDetails);
         setOffers(offerDetails);
-        await checkFeedbackEligibility(bookingId, serviceDetails);
       } catch (err) {
         setError("Failed to fetch data. Please try again later.");
         console.error(err);
@@ -92,8 +91,8 @@ export function UserWorkerServiceReqestDetailsPage() {
     fetchData();
   }, [serviceId]);
 
-  const checkFeedbackEligibility = async (bookingId: string, serviceDetails: WorkerService) => {
-    if (serviceDetails.status !== "ACCEPTED") {
+  const checkFeedbackEligibility = useCallback(async (bookingId: string, serviceDetails: WorkerService) => {
+    if (serviceDetails.status !== "ACCEPTED" || !serviceDetails.selectedLabour) {
       setShowFeedback(false);
       return;
     }
@@ -109,12 +108,20 @@ export function UserWorkerServiceReqestDetailsPage() {
     try {
       const response = await axios.get(`${config.apiURI}/api/reviews/check-user-review?bookingId=${bookingId}`, { withCredentials: true });
       const canGiveFeedback = !response.data;
+      console.log('Can give feedback:', canGiveFeedback);
       setShowFeedback(canGiveFeedback);
     } catch (error) {
       console.error("Error checking feedback eligibility:", error);
       setShowFeedback(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (service && serviceId) {
+      const bookingId = serviceId.split('-')[1];
+      checkFeedbackEligibility(bookingId, service);
+    }
+  }, [service, serviceId, checkFeedbackEligibility]);
 
   const handleBack = () => {
     navigate(-1);
@@ -151,7 +158,7 @@ export function UserWorkerServiceReqestDetailsPage() {
 
   const handleFeedbackSubmission = async () => {
     if (!serviceId || !service || !service.selectedLabour) return;
-    const bookingId = serviceId.split('-')[0];
+    const bookingId = serviceId.split('-')[1];
     const labourId = service.selectedLabour.labourId;
     setIsLoading(true);
     try {
@@ -169,6 +176,7 @@ export function UserWorkerServiceReqestDetailsPage() {
       if (response.status === 200) {
         setShowFeedback(false);
         // Optionally, show a success message to the user
+        console.log('Feedback submitted successfully');
       }
     } catch (error) {
       console.error("Error submitting feedback:", error);

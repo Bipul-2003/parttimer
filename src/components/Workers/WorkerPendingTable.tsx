@@ -181,7 +181,7 @@ export default function WorkerPendingRequestsTable() {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuCheckboxItem
-                  onClick={() => navigate(`/worker/pending-request/${request.offerId}`)}
+                  onClick={() => navigate(`/worker/labor-request/${request.offerId}`)}
                 >
                   View Details
                 </DropdownMenuCheckboxItem>
@@ -233,7 +233,7 @@ export default function WorkerPendingRequestsTable() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-background p-4">
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter by address..."

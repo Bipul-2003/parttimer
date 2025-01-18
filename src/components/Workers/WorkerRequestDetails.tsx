@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { ChevronLeft, User, DollarSign, Star, Clock } from 'lucide-react';
@@ -52,7 +52,6 @@ export default function LaborRequestDetails() {
           withCredentials: true,
         });
         setRequest(response.data);
-        await checkFeedbackEligibility();
       } catch (err) {
         toast({
           variant: "destructive",
@@ -70,21 +69,20 @@ export default function LaborRequestDetails() {
     }
   }, [requestId, toast]);
 
-  const checkFeedbackEligibility = async () => {
-    if (!requestId) return;
+  const checkFeedbackEligibility = useCallback(async () => {
+    if (!requestId || !request) return;
     
     try {
       const response = await axios.get(`${config.apiURI}/api/reviews/check-labour-review?bookingId=${requestId}`, { withCredentials: true });
       const canGiveFeedback = !response.data;
-      console.log(canGiveFeedback);
+      console.log('Can give feedback:', canGiveFeedback);
       
-      
-      if (request && request.status === "ACCEPTED") {
+      if (request.status === "ACCEPTED") {
         const serviceDate = new Date(request.bookingDate);
         const currentDate = new Date();
-        setShowFeedback(canGiveFeedback && serviceDate < currentDate);
-        console.log(showFeedback);
-        
+        const shouldShowFeedback = canGiveFeedback && serviceDate < currentDate;
+        console.log('Should show feedback:', shouldShowFeedback);
+        setShowFeedback(shouldShowFeedback);
       } else {
         setShowFeedback(false);
       }
@@ -92,7 +90,13 @@ export default function LaborRequestDetails() {
       console.error("Error checking feedback eligibility:", error);
       setShowFeedback(false);
     }
-  };
+  }, [requestId, request]);
+
+  useEffect(() => {
+    if (request) {
+      checkFeedbackEligibility();
+    }
+  }, [request, checkFeedbackEligibility]);
 
   const handleFeedbackSubmission = async () => {
     if (!requestId) return;
@@ -208,13 +212,13 @@ export default function LaborRequestDetails() {
   };
 
   return (
-    <Card className="w-full mx-auto mt-8">
+    <Card className="w-full mx-auto ">
       <CardHeader className="bg-primary text-primary-foreground">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-              <Link to="/worker">
+              <Link to="/worker/history">
                 <ChevronLeft className="mr-2 h-4 w-4 inline" />
                 Back to Dashboard
               </Link>

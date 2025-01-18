@@ -42,6 +42,8 @@ export default function LaborRequestDetails() {
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  console.log(request);
+  
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -74,11 +76,15 @@ export default function LaborRequestDetails() {
     try {
       const response = await axios.get(`${config.apiURI}/api/reviews/check-labour-review?bookingId=${requestId}`, { withCredentials: true });
       const canGiveFeedback = !response.data;
+      console.log(canGiveFeedback);
+      
       
       if (request && request.status === "ACCEPTED") {
         const serviceDate = new Date(request.bookingDate);
         const currentDate = new Date();
         setShowFeedback(canGiveFeedback && serviceDate < currentDate);
+        console.log(showFeedback);
+        
       } else {
         setShowFeedback(false);
       }
@@ -231,6 +237,8 @@ export default function LaborRequestDetails() {
           </div>
         ) : request ? (
           <>
+
+
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
                 <Label className="text-xl font-semibold">Status</Label>
@@ -240,23 +248,8 @@ export default function LaborRequestDetails() {
               </div>
             </div>
 
-            <ScrollArea className="h-[400px] rounded-md border p-4">
-              <div className="space-y-4">
-                <div>
-                  <Label className="font-medium">Booking Date</Label>
-                  <p>{new Date(request.bookingDate).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <Label className="font-medium">Time Slot</Label>
-                  <p>{request.timeSlot}</p>
-                </div>
-                <div>
-                  <Label className="font-medium">Booking Note</Label>
-                  <p>{request.bookingNote}</p>
-                </div>
-                {renderStatusSpecificContent()}
 
-                {showFeedback && (
+            {showFeedback && (
                   <Card className="mt-4">
                     <CardHeader>
                       <CardTitle>Provide Feedback</CardTitle>
@@ -298,6 +291,23 @@ export default function LaborRequestDetails() {
                     </CardContent>
                   </Card>
                 )}
+            <ScrollArea className="h-[400px] rounded-md border p-4">
+              <div className="space-y-4">
+                <div>
+                  <Label className="font-medium">Booking Date</Label>
+                  <p>{new Date(request.bookingDate).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <Label className="font-medium">Time Slot</Label>
+                  <p>{request.timeSlot}</p>
+                </div>
+                <div>
+                  <Label className="font-medium">Booking Note</Label>
+                  <p>{request.bookingNote}</p>
+                </div>
+                {renderStatusSpecificContent()}
+
+               
               </div>
             </ScrollArea>
           </>

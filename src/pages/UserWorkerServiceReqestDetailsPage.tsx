@@ -76,6 +76,8 @@ export function UserWorkerServiceReqestDetailsPage() {
           getReqDetails(bookingId),
           getReqOffers(bookingId)
         ]);
+        console.log(serviceDetails);
+        
         setService(serviceDetails);
         setOffers(offerDetails);
         await checkFeedbackEligibility(bookingId, serviceDetails);

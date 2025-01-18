@@ -99,7 +99,7 @@ export default function LaborRequestDetails() {
     setIsSubmittingFeedback(true);
     try {
       const response = await axios.post(
-        `${config.apiURI}/api/reviews//labour-review`,
+        `${config.apiURI}/api/reviews/labour-review`,
         {
           bookingId: parseInt(requestId),
           rating,

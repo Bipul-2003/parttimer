@@ -151,7 +151,7 @@ export function UserWorkerServiceReqestDetailsPage() {
 
   const handleFeedbackSubmission = async () => {
     if (!serviceId || !service || !service.selectedLabour) return;
-    const bookingId = serviceId.split('-')[1];
+    const bookingId = serviceId.split('-')[0];
     const labourId = service.selectedLabour.labourId;
     setIsLoading(true);
     try {

@@ -24,6 +24,7 @@ export type LaborRequest = {
   bookingNote: string;
   bookingStatus: string;
   timeSlot: string;
+  bookingId: number;
   userPhoneNumber: string | null;
   userEmail: string | null;
   bookingAddress: string | null;
@@ -105,7 +106,7 @@ export default function LaborRequestDetails() {
       const response = await axios.post(
         `${config.apiURI}/api/reviews/labour-review`,
         {
-          bookingId: parseInt(requestId),
+          bookingId: request?.bookingId,
           rating,
           review: feedback,
           feedbackType: "LABOUR_TO_USER"

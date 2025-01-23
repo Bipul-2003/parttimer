@@ -4,13 +4,17 @@ const API_URL = config.apiURI+"/api";
 
 interface BookingRequest {
   serviceId: string;
-  customerName: string;
+  // customerName: string;
   email: string;
   address: string;
   name: string;
   date: string;
   time: string;
   description: string;
+  phone: string;
+  // mobile: string;
+  city: string;
+  zipCode: string;
 }
 
 export const bookService = async (

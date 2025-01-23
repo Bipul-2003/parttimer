@@ -18,7 +18,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
+  // DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -104,6 +104,7 @@ const columns: ColumnDef<LabourAssignment>[] = [
   },
   {
     id: "actions",
+    header: "Actions",
     cell: ({ row }) => {
       const assignment = row.original
       const navigate = useNavigate()
@@ -121,7 +122,7 @@ const columns: ColumnDef<LabourAssignment>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(`${assignment.bookingId}-${assignment.assignmentId}`)}
             >
@@ -150,6 +151,8 @@ export function WorkerServicesTable() {
     setError(null)
     try {
       const response = await getUserWorkerBookings()
+      console.log(response);
+      
       setData(response.flatMap((service: { bookingId: number, labourAssignments: LabourAssignment[] }) => 
         service.labourAssignments.map(assignment => ({
           ...assignment,

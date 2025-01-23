@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
 import config from "@/config/config";
+import { format } from "date-fns";
 
 export type LaborRequest = {
   bookingDate: string;
@@ -300,7 +301,7 @@ export default function LaborRequestDetails() {
               <div className="space-y-4">
                 <div>
                   <Label className="font-medium">Booking Date</Label>
-                  <p>{new Date(request.bookingDate).toLocaleDateString()}</p>
+                  <p>{format(request.bookingDate, "PPP")}</p>
                 </div>
                 <div>
                   <Label className="font-medium">Time Slot</Label>

@@ -11,7 +11,7 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown } from "lucide-react"
+import {  ChevronDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -25,7 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "@/hooks/use-toast"
-import { getWorkerPendingRequests, changeOfferPrice } from "@/api/WorkerApis"
+import { getOpenWorkerBookings, workerOfferPrice } from "@/api/WorkerApis"
 import {
   Dialog,
   DialogContent,
@@ -35,20 +35,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { format } from "date-fns"
 
-interface PendingRequest {
-  offerId: number
-  labourAssignmentId: number
-  labourId: number
-  bookingId: number
-  offeredPrice: number
-  status: string
-  bookingAddress: string
-  bookingNote: string
-  bookingDate: string
-  timeSlot: string
-  offerCreatedAt: string
-}
+type LaborRequest = {
+    id: string
+    requestNumber: string
+    date: Date
+    timeSlot: string
+    status: "OPEN"
+    description: string
+    location: string
+    zipcode: string
+    city: string
+  }
 
 function PriceChangeDialog({
   isOpen,
@@ -99,8 +98,8 @@ function PriceChangeDialog({
   )
 }
 
-export default function WorkerPendingRequestsTable() {
-  const [data, setData] = useState<PendingRequest[]>([])
+export default function WorkerDashboard() {
+  const [data, setData] = useState<LaborRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -117,13 +116,23 @@ export default function WorkerPendingRequestsTable() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const response = await getWorkerPendingRequests()
-      setData(response)
+      const response = await getOpenWorkerBookings()
+      setData(response.map((item: any) => ({
+        id: item.id.toString(),
+        requestNumber: item.bookingId.toString(),
+        date: new Date(item.bookingDate),
+        timeSlot: item.timeSlot,
+        status: item.bookingStatus,
+        description: item.bookingNote,
+        location: item.city,
+        zipcode: item.zipcode,
+        city: item.city,
+      })))
     } catch (err) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to fetch pending requests. Please try again later.",
+        description: "Failed to fetch  requests. Please try again later.",
       })
     } finally {
       setLoading(false)
@@ -135,14 +144,14 @@ export default function WorkerPendingRequestsTable() {
     setIsPriceDialogOpen(true)
   }
 
-  const handlePriceSubmit = async (newPrice: number) => {
+  const handlePriceSubmit = async (price: number) => {
     if (selectedOfferId === null) return
 
     try {
-      await changeOfferPrice(newPrice, selectedOfferId)
+      await workerOfferPrice(selectedOfferId,price)
       toast({
         title: "Success",
-        description: "Offer price updated successfully.",
+        description: "Offer price sent successfully.",
       })
       fetchData() // Refresh the data
       setIsPriceDialogOpen(false) // Close the dialog
@@ -155,80 +164,51 @@ export default function WorkerPendingRequestsTable() {
     }
   }
 
-  const columns = useMemo<ColumnDef<PendingRequest>[]>(
+  const columns = useMemo<ColumnDef<LaborRequest>[]>(
     () => [
-      {
-        accessorKey: "offerId",
-        header: "Offer ID",
-        cell: ({ row }) => <div className="capitalize">{row.getValue("offerId")}</div>,
-      },
-      {
-        accessorKey: "bookingId",
-        header: "Booking ID",
-        cell: ({ row }) => <div className="lowercase">{row.getValue("bookingId")}</div>,
-      },
-      {
-        accessorKey: "bookingDate",
-        header: ({ column }) => {
-          return (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-              Date
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          )
-        },
-        cell: ({ row }) => <div>{row.getValue("bookingDate")}</div>,
-      },
-      {
-        accessorKey: "timeSlot",
-        header: "Time Slot",
-        cell: ({ row }) => <div>{row.getValue("timeSlot")}</div>,
-      },
-      {
-        accessorKey: "offeredPrice",
-        header: () => <div className="text-right">Price</div>,
-        cell: ({ row }) => {
-          const amount = Number.parseFloat(row.getValue("offeredPrice"))
-          const formatted = new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-          }).format(amount)
-
-          return <div className="text-right font-medium">{formatted}</div>
-        },
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => <Badge variant="secondary">{row.getValue("status")}</Badge>,
-      },
-      {
-        accessorKey: "bookingAddress",
-        header: "Address",
-        cell: ({ row }) => <div>{row.getValue("bookingAddress")}</div>,
-      },
+        {
+            accessorKey: "requestNumber",
+            header: "Request Number",
+          },
+          {
+            accessorKey: "date",
+            header: "Date",
+            cell: ({ row }) => format(row.getValue("date"), "PPP"),
+          },
+          {
+            accessorKey: "timeSlot",
+            header: "Time Slot",
+          },
+          {
+            accessorKey: "city",
+            header: "City",
+          },
+          {
+            accessorKey: "zipcode",
+            header: "Zipcode",
+          },
+          {
+            accessorKey: "description",
+            header: "Description",
+          },
+          {
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => <Badge variant="secondary">{row.getValue("status")}</Badge>,
+          },
       {
         id: "actions",
         enableHiding: false,
+        header: "Action",
         cell: ({ row }) => {
           const request = row.original
 
           return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost">
-                  Actions <ChevronDown className="ml-2 h-4 w-4" />
+            
+                <Button onClick={() => handleChangeOfferPrice(Number(request.id))}>
+                   Offer Price
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuCheckboxItem onClick={() => navigate(`/worker/labor-request/${request.offerId}`)}>
-                  View Details
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem onClick={() => handleChangeOfferPrice(request.offerId)}>
-                  Change Offer Price
-                </DropdownMenuCheckboxItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+             
           )
         },
       },
@@ -272,12 +252,12 @@ export default function WorkerPendingRequestsTable() {
   return (
     <div className="w-full bg-background p-4">
       <div className="flex items-center py-4">
-        <Input
+        {/* <Input
           placeholder="Filter by address..."
           value={(table.getColumn("bookingAddress")?.getFilterValue() as string) ?? ""}
           onChange={(event) => table.getColumn("bookingAddress")?.setFilterValue(event.target.value)}
           className="max-w-sm"
-        />
+        /> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

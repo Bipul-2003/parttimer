@@ -34,7 +34,6 @@ import { LanguageProvider } from "./context/LanguageContext.tsx";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n.ts";
 import { LaborBookingForm } from "./pages/BookLaborersPage.tsx";
-import { WorkerDashboard } from "./components/Workers/WorkersDashbord.tsx";
 import WorkersPage from "./pages/WorkersPage.tsx";
 import UserDashboard from "./components/User/UserDashboard.tsx";
 import UserProfile from "./components/User/UserProfile.tsx";
@@ -54,6 +53,7 @@ import PublishAdPage from "./components/Advertisements/PublishAdPage.tsx";
 import MyAdsPage from "./components/Advertisements/MyAdsPage.tsx";
 import ManageAdPage from "./components/Advertisements/ManageAdPage.tsx";
 import WorkerPendingRequestsTable from "./components/Workers/WorkerPendingTable.tsx";
+import WorkerDashboard from "./components/Workers/WokerOpenTable.tsx";
 
 const router = createBrowserRouter([
   {

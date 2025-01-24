@@ -26,7 +26,7 @@ export const getWorkerBookings = async () => {
 };
 
 export const workerOfferPrice = async (
-  labourAssignmentId: string,
+  labourAssignmentId: number,
   proposedPrice: number
 ) => {
   try {

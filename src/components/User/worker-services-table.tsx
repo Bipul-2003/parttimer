@@ -146,6 +146,9 @@ export function WorkerServicesTable() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  console.log(data);
+  
+
   const fetchData = async () => {
     setIsLoading(true)
     setError(null)

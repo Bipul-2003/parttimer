@@ -1,46 +1,27 @@
-import { useState, useEffect, useCallback } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
-import * as z from "zod";
-import { format } from "date-fns";
-import axios from "axios";
-import { useAuth } from "@/context/AuthContext";
+import { useState, useEffect, useCallback } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm, useFieldArray } from "react-hook-form"
+import * as z from "zod"
+import { format } from "date-fns"
+import axios from "axios"
+import { useAuth } from "@/context/AuthContext"
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Loader2, AlertTriangle } from 'lucide-react';
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
-import config from "@/config/config";
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
+import { CalendarIcon, Loader2, AlertTriangle } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/hooks/use-toast"
+import config from "@/config/config"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { getZipbyCityandState } from "@/api/locationsApi";
-
-
+import { getZipbyCityandState } from "@/api/locationsApi"
 
 const formSchema = z.object({
   address: z.string().min(1, "Address is required"),
@@ -57,28 +38,25 @@ const formSchema = z.object({
   laborDetails: z.array(
     z.object({
       date: z.date({ required_error: "Date is required" }),
-      timeSlot: z.enum(
-        ["7:30 AM - 11:30 AM", "12:30 PM - 4:30 PM", "Full Day", "Extended Hours"],
-        {
-          required_error: "Time slot is required",
-        }
-      ),
+      timeSlot: z.enum(["7:30 AM - 11:30 AM", "12:30 PM - 4:30 PM", "Full Day", "Extended Hours"], {
+        required_error: "Time slot is required",
+      }),
       note: z.string().optional(),
-    })
+    }),
   ),
-});
+})
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof formSchema>
 
 export function LaborBookingForm() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuth()
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 p-4 md:p-8 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    );
+    )
   }
 
   if (!user) {
@@ -87,12 +65,10 @@ export function LaborBookingForm() {
         <Alert variant="destructive" className="max-w-md">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Access Denied</AlertTitle>
-          <AlertDescription>
-            Please log in to access this page.
-          </AlertDescription>
+          <AlertDescription>Please log in to access this page.</AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
   if (user.user_type !== "USER") {
@@ -101,18 +77,16 @@ export function LaborBookingForm() {
         <Alert variant="destructive" className="max-w-md">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Access Denied</AlertTitle>
-          <AlertDescription>
-            This page is only accessible to regular users.
-          </AlertDescription>
+          <AlertDescription>This page is only accessible to regular users.</AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
-  const [sharedNote, setSharedNote] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [bookingSuccess, setBookingSuccess] = useState(false);
-  const [zipcodes, setZipcodes] = useState<string[]>([]);
+  const [sharedNote, setSharedNote] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [bookingSuccess, setBookingSuccess] = useState(false)
+  const [zipcodes, setZipcodes] = useState<string[]>([])
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -128,111 +102,103 @@ export function LaborBookingForm() {
       sameTimeSlotForAll: false,
       sameNoteForAll: false,
       sharedNote: "",
-      laborDetails: [
-        { date: new Date(), timeSlot: "7:30 AM - 11:30 AM", note: "" },
-      ],
+      laborDetails: [{ date: new Date(), timeSlot: "7:30 AM - 11:30 AM", note: "" }],
     },
-  });
+  })
 
   const fetchZipcodes = useCallback(async (city: string, state: string) => {
     try {
-      const fetchedZipcodes = await getZipbyCityandState(city, state);
-      setZipcodes(fetchedZipcodes);
+      const fetchedZipcodes = await getZipbyCityandState(city, state)
+      setZipcodes(fetchedZipcodes)
     } catch (error) {
-      console.error('Error fetching zipcodes:', error);
+      console.error("Error fetching zipcodes:", error)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    const city = form.watch("city");
-    const state = user?.state || "";
+    const city = form.watch("city")
+    const state = user?.state || ""
     if (city && state) {
-      fetchZipcodes(city, state);
+      fetchZipcodes(city, state)
     }
-  }, [form.watch("city"), fetchZipcodes, user?.state]);
+  }, [form.watch("city"), fetchZipcodes, user?.state])
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "laborDetails",
-  });
+  })
 
-  const numberOfLabors = parseInt(form.watch("numberOfLabors"));
+  const numberOfLabors = Number.parseInt(form.watch("numberOfLabors"))
 
   useEffect(() => {
-    const currentLength = fields.length;
+    const currentLength = fields.length
     if (numberOfLabors > currentLength) {
       for (let i = currentLength; i < numberOfLabors; i++) {
-        append({ date: new Date(), timeSlot: "7:30 AM - 11:30 AM", note: "" });
+        append({ date: new Date(), timeSlot: "7:30 AM - 11:30 AM", note: "" })
       }
     } else if (numberOfLabors < currentLength) {
       for (let i = currentLength; i > numberOfLabors; i--) {
-        remove(i - 1);
+        remove(i - 1)
       }
     }
-  }, [numberOfLabors, fields.length, append, remove]);
+  }, [numberOfLabors, fields.length, append, remove])
 
   const handleDateChange = (date: Date | undefined, index: number) => {
     if (date) {
       if (form.getValues("sameDateForAll")) {
         form.setValue(
           "laborDetails",
-          fields.map((f) => ({ ...f, date }))
-        );
+          fields.map((f) => ({ ...f, date })),
+        )
       } else {
-        form.setValue(`laborDetails.${index}.date`, date);
+        form.setValue(`laborDetails.${index}.date`, date)
       }
     }
-  };
+  }
 
-  const handleTimeSlotChange = (
-    timeSlot: FormValues["laborDetails"][number]["timeSlot"],
-    index: number
-  ) => {
+  const handleTimeSlotChange = (timeSlot: FormValues["laborDetails"][number]["timeSlot"], index: number) => {
     if (form.getValues("sameTimeSlotForAll")) {
       form.setValue(
         "laborDetails",
-        fields.map((f) => ({ ...f, timeSlot }))
-      );
+        fields.map((f) => ({ ...f, timeSlot })),
+      )
     } else {
-      form.setValue(`laborDetails.${index}.timeSlot`, timeSlot);
+      form.setValue(`laborDetails.${index}.timeSlot`, timeSlot)
     }
-  };
+  }
 
   async function onSubmit(values: FormValues) {
-    if (isSubmitting) return; // Prevent multiple submissions
-    setIsSubmitting(true);
+    if (isSubmitting) return // Prevent multiple submissions
+    setIsSubmitting(true)
     const formattedValues = {
       ...values,
       laborDetails: values.laborDetails.map((detail) => ({
         ...detail,
+        date: new Date(detail.date.getTime() - detail.date.getTimezoneOffset() * 60000),
         note: values.sameNoteForAll ? sharedNote : detail.note,
       })),
-    };
+    }
 
     try {
-      const response = await axios.post(
-        config.apiURI+"/api/user/labour-bookings",
-        formattedValues,
-        {
-          withCredentials: true,
-        }
-      );
-      console.log(response.data);
+       await axios.post(config.apiURI + "/api/user/labour-bookings", formattedValues, {
+        withCredentials: true,
+      })
+      console.log(formattedValues)
+
       toast({
         title: "Booking Successful",
         description: "Your labor booking has been submitted successfully.",
-      });
-      setBookingSuccess(true);
+      })
+      setBookingSuccess(true)
     } catch (error) {
-      console.error(error);
+      console.error(error)
       toast({
         title: "Booking Failed",
-        description:
-          "There was an error submitting your booking. Please try again.",
+        description: "There was an error submitting your booking. Please try again.",
         variant: "destructive",
-      });
+      })
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 
@@ -244,10 +210,12 @@ export function LaborBookingForm() {
             <div className="text-center">
               <h1 className="text-3xl font-bold mb-6">Booking Successful!</h1>
               <p className="mb-6">Your labor booking has been submitted successfully.</p>
-              <Button onClick={() => {
-                setBookingSuccess(false);
-                form.reset();
-              }}>
+              <Button
+                onClick={() => {
+                  setBookingSuccess(false)
+                  form.reset()
+                }}
+              >
                 Book Another
               </Button>
             </div>
@@ -277,10 +245,7 @@ export function LaborBookingForm() {
                         <FormItem>
                           <FormLabel>Phone Number</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="Enter your phone number"
-                              {...field}
-                            />
+                            <Input placeholder="Enter your phone number" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -293,9 +258,9 @@ export function LaborBookingForm() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter your email" 
-                              {...field} 
+                            <Input
+                              placeholder="Enter your email"
+                              {...field}
                               disabled={user?.user_type === "USER"}
                               value={user?.user_type === "USER" ? user.email : field.value}
                             />
@@ -311,9 +276,9 @@ export function LaborBookingForm() {
                         <FormItem>
                           <FormLabel>State</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter your state" 
-                              {...field} 
+                            <Input
+                              placeholder="Enter your state"
+                              {...field}
                               disabled={user?.user_type === "USER"}
                               value={user?.user_type === "USER" ? user.state || "" : field.value}
                             />
@@ -329,9 +294,9 @@ export function LaborBookingForm() {
                         <FormItem>
                           <FormLabel>City</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter your city" 
-                              {...field} 
+                            <Input
+                              placeholder="Enter your city"
+                              {...field}
                               disabled={user?.user_type === "USER"}
                               value={user?.user_type === "USER" ? user.city || "" : field.value}
                             />
@@ -347,11 +312,7 @@ export function LaborBookingForm() {
                         <FormItem>
                           <FormLabel>Zipcode</FormLabel>
                           <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={user.zipcode}
-                              value={field.value}
-                            >
+                            <Select onValueChange={field.onChange} defaultValue={user.zipcode} value={field.value}>
                               <SelectTrigger>
                                 <SelectValue placeholder={user.zipcode || "Select zipcode"} />
                               </SelectTrigger>
@@ -388,10 +349,7 @@ export function LaborBookingForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Number of Laborers</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select number of laborers" />
@@ -422,10 +380,7 @@ export function LaborBookingForm() {
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
                             <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                             </FormControl>
                             <div className="space-y-1 leading-none">
                               <FormLabel>Same date for all</FormLabel>
@@ -439,10 +394,7 @@ export function LaborBookingForm() {
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
                             <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                             </FormControl>
                             <div className="space-y-1 leading-none">
                               <FormLabel>Same time slot for all</FormLabel>
@@ -456,10 +408,7 @@ export function LaborBookingForm() {
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
                             <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                             </FormControl>
                             <div className="space-y-1 leading-none">
                               <FormLabel>Same note for all</FormLabel>
@@ -481,17 +430,15 @@ export function LaborBookingForm() {
                                 className="resize-none"
                                 {...field}
                                 onChange={(e) => {
-                                  field.onChange(e);
-                                  setSharedNote(e.target.value);
+                                  field.onChange(e)
+                                  setSharedNote(e.target.value)
                                   form.setValue(
                                     "laborDetails",
-                                    form
-                                      .getValues("laborDetails")
-                                      .map((detail) => ({
-                                        ...detail,
-                                        note: e.target.value,
-                                      }))
-                                  );
+                                    form.getValues("laborDetails").map((detail) => ({
+                                      ...detail,
+                                      note: e.target.value,
+                                    })),
+                                  )
                                 }}
                               />
                             </FormControl>
@@ -506,9 +453,7 @@ export function LaborBookingForm() {
                     {fields.map((field, index) => (
                       <Card key={field.id}>
                         <CardContent className="p-4">
-                          <h3 className="text-lg font-semibold mb-4">
-                            Labor {index + 1}
-                          </h3>
+                          <h3 className="text-lg font-semibold mb-4">Labor {index + 1}</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                               control={form.control}
@@ -523,32 +468,20 @@ export function LaborBookingForm() {
                                           variant={"outline"}
                                           className={cn(
                                             "w-full pl-3 text-left font-normal",
-                                            !field.value && "text-muted-foreground"
+                                            !field.value && "text-muted-foreground",
                                           )}
                                         >
-                                          {field.value ? (
-                                            format(field.value, "PPP")
-                                          ) : (
-                                            <span>Pick a date</span>
-                                          )}
+                                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                         </Button>
                                       </FormControl>
                                     </PopoverTrigger>
-                                    <PopoverContent
-                                      className="w-auto p-0"
-                                      align="start"
-                                    >
+                                    <PopoverContent className="w-auto p-0" align="start">
                                       <Calendar
                                         mode="single"
                                         selected={field.value}
-                                        onSelect={(date) =>
-                                          handleDateChange(date, index)
-                                        }
-                                        disabled={(date) =>
-                                          date < new Date() ||
-                                          date < new Date("1900-01-01")
-                                        }
+                                        onSelect={(date) => handleDateChange(date, index)}
+                                        disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
                                         initialFocus
                                       />
                                     </PopoverContent>
@@ -564,9 +497,9 @@ export function LaborBookingForm() {
                                 <FormItem>
                                   <FormLabel>Time Slot</FormLabel>
                                   <Select
-                                    onValueChange={(
-                                      value: FormValues["laborDetails"][number]["timeSlot"]
-                                    ) => handleTimeSlotChange(value, index)}
+                                    onValueChange={(value: FormValues["laborDetails"][number]["timeSlot"]) =>
+                                      handleTimeSlotChange(value, index)
+                                    }
                                     value={field.value}
                                   >
                                     <FormControl>
@@ -575,18 +508,10 @@ export function LaborBookingForm() {
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                      <SelectItem value="7:30 AM - 11:30 AM">
-                                        7:30 AM - 11:30 AM
-                                      </SelectItem>
-                                      <SelectItem value="12:30 PM - 4:30 PM">
-                                        12:30 PM - 4:30 PM
-                                      </SelectItem>
-                                      <SelectItem value="Full Day">
-                                        Full Day (7:30 AM - 4:30 PM) 
-                                      </SelectItem>
-                                      <SelectItem value="Extended Hours">
-                                        Extended Hours
-                                      </SelectItem>
+                                      <SelectItem value="7:30 AM - 11:30 AM">7:30 AM - 11:30 AM</SelectItem>
+                                      <SelectItem value="12:30 PM - 4:30 PM">12:30 PM - 4:30 PM</SelectItem>
+                                      <SelectItem value="Full Day">Full Day (7:30 AM - 4:30 PM)</SelectItem>
+                                      <SelectItem value="Extended Hours">Extended Hours</SelectItem>
                                     </SelectContent>
                                   </Select>
                                   <FormMessage />
@@ -605,14 +530,10 @@ export function LaborBookingForm() {
                                     placeholder="Add any additional notes for this laborer"
                                     className="resize-none"
                                     disabled={form.watch("sameNoteForAll")}
-                                    value={
-                                      form.watch("sameNoteForAll")
-                                        ? sharedNote
-                                        : field.value
-                                    }
+                                    value={form.watch("sameNoteForAll") ? sharedNote : field.value}
                                     onChange={(e) => {
                                       if (!form.watch("sameNoteForAll")) {
-                                        field.onChange(e);
+                                        field.onChange(e)
                                       }
                                     }}
                                   />
@@ -643,6 +564,6 @@ export function LaborBookingForm() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
 

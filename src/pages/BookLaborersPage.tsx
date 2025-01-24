@@ -187,13 +187,13 @@ export function LaborBookingForm() {
     }
   }, [numberOfLabors, fields.length, append, remove]);
 
-  function convertToUTCMidnight(date: Date): Date {
-    // Create a new Date object at UTC midnight
-    const utcDate = new Date(
-      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
-    );
-    return utcDate;
-  }
+  // function convertToUTCMidnight(date: Date): Date {
+  //   // Create a new Date object at UTC midnight
+  //   const utcDate = new Date(
+  //     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0)
+  //   );
+  //   return utcDate;
+  // }
 
   const handleDateChange = (date: Date | undefined, index: number) => {
     if (date) {
@@ -227,9 +227,13 @@ export function LaborBookingForm() {
       ...values,
       laborDetails: values.laborDetails.map((detail) => ({
         ...detail,
-        date: convertToUTCMidnight(detail.date),
+        date: new Date(Date.UTC(
+          detail.date.getFullYear(), 
+          detail.date.getMonth(), 
+          detail.date.getDate()
+        )),
       })),
-    };
+    }
 
     try {
       await axios.post(
@@ -592,7 +596,6 @@ export function LaborBookingForm() {
                                         selected={field.value}
                                         onSelect={(date) => {
                                           if (date) {
-                                            // Ensure the selected date is set without timezone shift
                                             const localDate = new Date(
                                               date.getFullYear(),
                                               date.getMonth(),
@@ -606,8 +609,7 @@ export function LaborBookingForm() {
                                           }
                                         }}
                                         disabled={(date) => {
-                                          const today = new Date();
-                                          today.setHours(0, 0, 0, 0);
+                                          const today = getLocalDate();
                                           return (
                                             date < today ||
                                             date <

@@ -35,7 +35,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { format } from "date-fns"
+// import { format } from "date-fns"
 
 type LaborRequest = {
     id: string
@@ -117,6 +117,8 @@ export default function WorkerDashboard() {
     setLoading(true)
     try {
       const response = await getOpenWorkerBookings()
+      console.log(response);
+      
       setData(response.map((item: any) => ({
         id: item.id.toString(),
         requestNumber: item.bookingId.toString(),
@@ -173,7 +175,7 @@ export default function WorkerDashboard() {
           {
             accessorKey: "date",
             header: "Date",
-            cell: ({ row }) => format(row.getValue("date"), "PPP"),
+            cell: ({ row }) => row.getValue("date"),
           },
           {
             accessorKey: "timeSlot",

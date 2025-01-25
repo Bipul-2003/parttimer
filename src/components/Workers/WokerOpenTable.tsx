@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -10,22 +10,29 @@ import {
   getSortedRowModel,
   getFilteredRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import {  ChevronDown } from "lucide-react"
+} from "@tanstack/react-table";
+import { ChevronDown } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { toast } from "@/hooks/use-toast"
-import { getOpenWorkerBookings, workerOfferPrice } from "@/api/WorkerApis"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
+import { getOpenWorkerBookings, workerOfferPrice } from "@/api/WorkerApis";
 import {
   Dialog,
   DialogContent,
@@ -33,57 +40,61 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-// import { format } from "date-fns"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
 
 type LaborRequest = {
-    id: string
-    requestNumber: string
-    date: Date
-    timeSlot: string
-    status: "OPEN"
-    description: string
-    location: string
-    zipcode: string
-    city: string
-  }
+  id: string;
+  requestNumber: string;
+  date: Date;
+  timeSlot: string;
+  status: "OPEN";
+  description: string;
+  location: string;
+  zipcode: string;
+  city: string;
+};
 
 function PriceChangeDialog({
   isOpen,
   onClose,
   onSubmit,
-}: { isOpen: boolean; onClose: () => void; onSubmit: (price: number) => void }) {
-  const [newPrice, setNewPrice] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (price: number) => void;
+}) {
+  const [price, setPrice] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
-    const price = Number.parseFloat(newPrice)
-    if (!isNaN(price)) {
-      setIsLoading(true)
-      await onSubmit(price)
-      setIsLoading(false)
-      onClose()
+    const formatedprice = Number.parseFloat(price);
+    if (!isNaN(formatedprice)) {
+      setIsLoading(true);
+      await onSubmit(formatedprice);
+      setIsLoading(false);
+      onClose();
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Change Offer Price</DialogTitle>
-          <DialogDescription>Enter the new offer price below.</DialogDescription>
+          <DialogTitle>Offer Price</DialogTitle>
+          <DialogDescription>Enter the offer price below.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="new-price" className="text-right">
-              New Price
+              Price
             </Label>
             <Input
               id="new-price"
               type="number"
-              value={newPrice}
-              onChange={(e) => setNewPrice(e.target.value)}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
               className="col-span-3"
             />
           </div>
@@ -95,128 +106,133 @@ function PriceChangeDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 export default function WorkerDashboard() {
-  const [data, setData] = useState<LaborRequest[]>([])
-  const [loading, setLoading] = useState(true)
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = useState({})
-  const navigate = useNavigate()
-  const [isPriceDialogOpen, setIsPriceDialogOpen] = useState(false)
-  const [selectedOfferId, setSelectedOfferId] = useState<number | null>(null)
+  const [data, setData] = useState<LaborRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+  const navigate = useNavigate();
+  const [isPriceDialogOpen, setIsPriceDialogOpen] = useState(false);
+  const [selectedOfferId, setSelectedOfferId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await getOpenWorkerBookings()
+      const response = await getOpenWorkerBookings();
       console.log(response);
-      
-      setData(response.map((item: any) => ({
-        id: item.id.toString(),
-        requestNumber: item.bookingId.toString(),
-        date: new Date(item.bookingDate),
-        timeSlot: item.timeSlot,
-        status: item.bookingStatus,
-        description: item.bookingNote,
-        location: item.city,
-        zipcode: item.zipcode,
-        city: item.city,
-      })))
+
+      setData(
+        response.map((item: any) => ({
+          id: item.id.toString(),
+          requestNumber: item.bookingId.toString(),
+          date: new Date(item.bookingDate),
+          timeSlot: item.timeSlot,
+          status: item.bookingStatus,
+          description: item.bookingNote,
+          location: item.city,
+          zipcode: item.zipcode,
+          city: item.city,
+        }))
+      );
     } catch (err) {
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to fetch  requests. Please try again later.",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleChangeOfferPrice = (offerId: number) => {
-    setSelectedOfferId(offerId)
-    setIsPriceDialogOpen(true)
-  }
+    setSelectedOfferId(offerId);
+    setIsPriceDialogOpen(true);
+  };
 
   const handlePriceSubmit = async (price: number) => {
-    if (selectedOfferId === null) return
+    if (selectedOfferId === null) return;
 
     try {
-      await workerOfferPrice(selectedOfferId,price)
+      await workerOfferPrice(selectedOfferId, price);
       toast({
         title: "Success",
         description: "Offer price sent successfully.",
-      })
-      fetchData() // Refresh the data
-      setIsPriceDialogOpen(false) // Close the dialog
+      });
+      fetchData(); // Refresh the data
+      setIsPriceDialogOpen(false); // Close the dialog
     } catch (err) {
       toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to update offer price. Please try again.",
-      })
+      });
     }
-  }
+  };
 
   const columns = useMemo<ColumnDef<LaborRequest>[]>(
     () => [
-        {
-            accessorKey: "requestNumber",
-            header: "Request Number",
-          },
-          {
-            accessorKey: "date",
-            header: "Date",
-            cell: ({ row }) => row.getValue("date"),
-          },
-          {
-            accessorKey: "timeSlot",
-            header: "Time Slot",
-          },
-          {
-            accessorKey: "city",
-            header: "City",
-          },
-          {
-            accessorKey: "zipcode",
-            header: "Zipcode",
-          },
-          {
-            accessorKey: "description",
-            header: "Description",
-          },
-          {
-            accessorKey: "status",
-            header: "Status",
-            cell: ({ row }) => <Badge variant="secondary">{row.getValue("status")}</Badge>,
-          },
+      {
+        accessorKey: "requestNumber",
+        header: "Request Number",
+      },
+      {
+        accessorKey: "date",
+        header: "Date",
+        cell: ({ row }) => {
+          const date = row.getValue("date") as Date;
+          return <div>{format(date, "MMM dd, yyyy")}</div>;
+        },
+      },
+      {
+        accessorKey: "timeSlot",
+        header: "Time Slot",
+      },
+      {
+        accessorKey: "city",
+        header: "City",
+      },
+      {
+        accessorKey: "zipcode",
+        header: "Zipcode",
+      },
+      {
+        accessorKey: "description",
+        header: "Description",
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <Badge variant="secondary">{row.getValue("status")}</Badge>
+        ),
+      },
       {
         id: "actions",
         enableHiding: false,
         header: "Action",
         cell: ({ row }) => {
-          const request = row.original
+          const request = row.original;
 
           return (
-            
-                <Button onClick={() => handleChangeOfferPrice(Number(request.id))}>
-                   Offer Price
-                </Button>
-             
-          )
+            <Button onClick={() => handleChangeOfferPrice(Number(request.id))}>
+              Offer Price
+            </Button>
+          );
         },
       },
     ],
-    [navigate, handleChangeOfferPrice],
-  )
+    [navigate, handleChangeOfferPrice]
+  );
 
   const table = useReactTable({
     data,
@@ -234,7 +250,7 @@ export default function WorkerDashboard() {
       columnVisibility,
       rowSelection,
     },
-  })
+  });
 
   if (loading) {
     return (
@@ -248,7 +264,7 @@ export default function WorkerDashboard() {
           <Skeleton key={i} className="h-16 w-full" />
         ))}
       </div>
-    )
+    );
   }
 
   return (
@@ -276,11 +292,12 @@ export default function WorkerDashboard() {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }>
                     {column.id}
                   </DropdownMenuCheckboxItem>
-                )
+                );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -293,9 +310,14 @@ export default function WorkerDashboard() {
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -303,15 +325,24 @@ export default function WorkerDashboard() {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center">
                   No pending requests.
                 </TableCell>
               </TableRow>
@@ -325,6 +356,5 @@ export default function WorkerDashboard() {
         onSubmit={handlePriceSubmit}
       />
     </div>
-  )
+  );
 }
-

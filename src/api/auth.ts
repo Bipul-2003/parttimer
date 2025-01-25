@@ -17,6 +17,14 @@ const authAPI = axios.create({
   }
 });
 
+authAPI.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const login = async (email: string, password: string) => {
   try {
     const response = await authAPI.post('/login', {

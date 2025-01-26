@@ -190,7 +190,7 @@ export default function WorkerDashboard() {
         header: "Date",
         cell: ({ row }) => {
           const date = row.getValue("date") as Date;
-          return <div>{format(date, "MMM dd, yyyy")}</div>;
+          return <div>{date.toISOString()}</div>;
         },
       },
       {

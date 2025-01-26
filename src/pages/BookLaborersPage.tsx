@@ -189,6 +189,7 @@ export function LaborBookingForm() {
   }
 
   async function onSubmit(values: FormValues) {
+    setIsSubmitting(true)
     const formattedValues = {
       ...values,
       laborDetails: values.laborDetails.map((detail) => ({

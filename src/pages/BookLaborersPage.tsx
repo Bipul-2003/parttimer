@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray } from "react-hook-form"
 import * as z from "zod"
 import { format } from "date-fns"
-import axios from "axios"
+// import axios from "axios"
 import { useAuth } from "@/context/AuthContext"
 
 import { Button } from "@/components/ui/button"
@@ -19,9 +19,10 @@ import { cn } from "@/lib/utils"
 import { CalendarIcon, Loader2, AlertTriangle } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
-import config from "@/config/config"
+// import config from "@/config/config"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { getZipbyCityandState } from "@/api/locationsApi"
+import axiosInstance from "@/api/axiosConfig"
 
 const formSchema = z.object({
   address: z.string().min(1, "Address is required"),
@@ -199,8 +200,14 @@ export function LaborBookingForm() {
     }
 
     try {
-      await axios.post(config.apiURI + "/api/user/labour-bookings", formattedValues, {
+      // await axios.post(config.apiURI + "/api/user/labour-bookings", formattedValues, {
+      //   withCredentials: true,
+      // })
+       await axiosInstance.post(`/api/user/labour-bookings`, formattedValues, {
         withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
       console.log(formattedValues)
 

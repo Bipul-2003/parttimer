@@ -59,7 +59,7 @@ const CookieConsent = () => {
   useEffect(() => {
     // Set consent state based on the cookie
     setConsent(checkConsent());
-  }, []);
+  }, [checkConsent]); // Added checkConsent to dependencies
 
   const handleAccept = () => {
     // Set the consent cookie and update state
@@ -69,28 +69,19 @@ const CookieConsent = () => {
     setConsent(true);
   };
 
-  // return (
-  //     !consent && (
-  //         <div className="cookie-banner">
-  //             <p>This site uses essential third-party cookies to function properly. By accepting, you agree to their use.</p>
-  //             <button onClick={handleAccept}>Accept</button>
-  //         </div>
-  //     )
-  // );
-
-  if (!consent) return null;
+  if (consent) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 z-50">
-      <div className="container mx-auto flex justify-between items-center">
-        <p className="mr-4">
+      <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+        <p className="text-center sm:text-left">
           This site requires third-party cookies to function properly. Please
           enable them to continue.
         </p>
         <Button
           onClick={handleAccept}
           variant="outline"
-          className="text-white border-white hover:bg-white hover:text-gray-800">
+          className="text-white border-white hover:bg-white hover:text-gray-800 w-full sm:w-auto">
           Accept
         </Button>
       </div>

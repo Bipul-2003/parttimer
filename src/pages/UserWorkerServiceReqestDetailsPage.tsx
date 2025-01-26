@@ -10,7 +10,7 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
-import { format } from "date-fns";
+// import { format } from "date-fns";
 import {
   Table,
   TableBody,
@@ -287,7 +287,7 @@ export function UserWorkerServiceReqestDetailsPage() {
                   {service.description}
                 </p>
                 <p className="text-sm sm:text-base">
-                  <strong>Date:</strong> {format(new Date(service.date), "PPP")}
+                  <strong>Date:</strong> {service.date}
                 </p>
                 <p className="text-sm sm:text-base">
                   <strong>Time:</strong> {service.timeSlot}

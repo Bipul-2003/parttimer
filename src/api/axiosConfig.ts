@@ -1,46 +1,63 @@
-// src/api/axiosConfig.ts
-import axios from 'axios';
-import config from "@/config/config";
-import Cookies from 'js-cookie';
+import axios from "axios"
+import config from "@/config/config"
+import Cookies from "js-cookie"
 
-const API_URL = config.apiURI;
+const API_URL = config.apiURI
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
-});
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+})
 
 // Token management
 export const tokenService = {
   setToken(token: string) {
-    Cookies.set('token', token, { expires: 7 });
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // Set in Cookies
+    Cookies.set("token", token, { expires: 7 })
+
+    // Set in Local Storage
+    localStorage.setItem("token", token)
+
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`
   },
-  
+
   getToken() {
-    return Cookies.get('token');
+    // Try to get from Cookies first, then from Local Storage
+    return Cookies.get("token") || localStorage.getItem("token")
   },
-  
+
   removeToken() {
-    Cookies.remove('token');
-    delete axiosInstance.defaults.headers.common['Authorization'];
-  }
-};
+    // Remove from Cookies
+    Cookies.remove("token")
+
+    // Remove from Local Storage
+    localStorage.removeItem("token")
+
+    delete axiosInstance.defaults.headers.common["Authorization"]
+  },
+}
 
 // Authentication interceptor
 axiosInstance.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     if (error.response?.status === 401) {
-      tokenService.removeToken();
-      window.location.href = '/login';
+      tokenService.removeToken()
+      window.location.href = "/login"
     }
-    return Promise.reject(error);
-  }
-);
+    return Promise.reject(error)
+  },
+)
 
-export default axiosInstance;
+// Set initial token if it exists
+const initialToken = tokenService.getToken()
+if (initialToken) {
+  axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${initialToken}`
+}
+
+export default axiosInstance
+

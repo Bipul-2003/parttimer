@@ -81,7 +81,7 @@ const CookieConsent = () => {
         <Button
           onClick={handleAccept}
           variant="outline"
-          className="text-white border-white hover:bg-white hover:text-gray-800 w-full sm:w-auto">
+          className="text-gray-800 border-white hover:bg-white w-full sm:w-auto">
           Accept
         </Button>
       </div>

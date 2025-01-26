@@ -1,42 +1,41 @@
-import axios from "axios";
+// api/axiosConfig.ts
+import axios from 'axios';
 import config from "@/config/config";
+
 const API_URL = config.apiURI;
 
-// const API_URL = "http://localhost:8080/api";
-
-
-export const getUserPartimeBookings = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/api/bookings/user`,{withCredentials: true});
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch user bookings");
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   }
-}
+});
 
-export const getUserWorkerBookings = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/api/user/labour-bookings`,{withCredentials: true});
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch worker bookings");
+// Add interceptor for handling authentication
+axiosInstance.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      // Redirect to login or refresh token
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
   }
-}
+);
 
-export const getReqOffers = async (serviceId: string) => {
-  try {
-    const response = await axios.get(`${API_URL}/api/user/labour-bookings/price-offers/${serviceId}`,{withCredentials: true});
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch offers");
-  }
-}
+// Refactored API methods
+export const getUserPartimeBookings = () => 
+  axiosInstance.get('/api/bookings/user').then(response => response.data);
 
-export const getReqDetails = async (serviceId: string) => {
-  try {
-    const response = await axios.get(`${API_URL}/api/user/labour-bookings/assignment-details/${serviceId}`,{withCredentials: true});
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to fetch service details");
-  }
-}
+export const getUserWorkerBookings = () => 
+  axiosInstance.get('/api/user/labour-bookings').then(response => response.data);
+
+export const getReqOffers = (serviceId: string) => 
+  axiosInstance.get(`/api/user/labour-bookings/price-offers/${serviceId}`).then(response => response.data);
+
+export const getReqDetails = (serviceId: string) => 
+  axiosInstance.get(`/api/user/labour-bookings/assignment-details/${serviceId}`).then(response => response.data);
+
+export default axiosInstance;

@@ -134,7 +134,7 @@ export default function WorkerDashboard() {
         response.map((item: any) => ({
           id: item.id.toString(),
           requestNumber: item.bookingId.toString(),
-          date: new Date(item.bookingDate),
+          date: item.bookingDate,
           timeSlot: item.timeSlot,
           status: item.bookingStatus,
           description: item.bookingNote,

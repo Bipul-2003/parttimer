@@ -1,40 +1,39 @@
-import { useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import LoadingAnimation from "./components/LoadingAnimation";
-import { useAuth } from "./context/AuthContext";
+import { useEffect } from "react"
+import { Outlet, useLocation, useNavigate } from "react-router-dom"
+import Navbar from "./components/Navbar"
+import Footer from "./components/Footer"
+import LoadingAnimation from "./components/LoadingAnimation"
+import CookieBanner from "./components/CookieBanner"
+import { useAuth } from "./context/AuthContext"
 
 function App() {
-  const location = useLocation();
-  const hideNavbar = ["/login", "/signup"].includes(location.pathname);
+  const location = useLocation()
+  const hideNavbar = ["/login", "/signup"].includes(location.pathname)
 
-  const { checkUser, user, loading } = useAuth();
-  const navigate = useNavigate();
+  const { checkUser, user, loading } = useAuth()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const checkProfileComplete = async () => {
       if (!user) {
-        console.error('User is not defined');
-        return;
+        console.error("User is not defined")
+        return
       }
 
-      if ('user_type' in user && user.user_type === "LABOUR") {
-        return;
+      if ("user_type" in user && user.user_type === "LABOUR") {
+        return
       }
 
-      if ('user_type' in user && user.user_type === "USER" && 'email' in user) {
+      if ("user_type" in user && user.user_type === "USER" && "email" in user) {
         try {
-          const profileStatus = await checkUser(user.email);
-          console.log(profileStatus);
-          
+          const profileStatus = await checkUser(user.email)
+          console.log(profileStatus)
 
           if (!profileStatus.profileComplete) {
-            const nameParts = user.name.trim().split(/\s+/);
-            const firstName = nameParts[0] || "";
-            const lastName = nameParts[nameParts.length - 1] || "";
-            const middleName =
-              nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : "";
+            const nameParts = user.name.trim().split(/\s+/)
+            const firstName = nameParts[0] || ""
+            const lastName = nameParts[nameParts.length - 1] || ""
+            const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : ""
 
             navigate("/signup", {
               state: {
@@ -43,20 +42,20 @@ function App() {
                 lastName,
                 email: user.email,
               },
-            });
+            })
           }
         } catch (error) {
-          console.error('Error checking user profile:', error);
+          console.error("Error checking user profile:", error)
         }
       } else {
-        console.error('Unexpected user type or missing email:', user);
+        console.error("Unexpected user type or missing email:", user)
       }
-    };
+    }
 
     if (user) {
-      checkProfileComplete();
+      checkProfileComplete()
     }
-  }, [user, checkUser, navigate]);
+  }, [user, checkUser, navigate])
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -67,13 +66,16 @@ function App() {
       ) : (
         <>
           {!hideNavbar && <Navbar />}
-          <Outlet />
+          <main className="flex-grow">
+            <Outlet />
+          </main>
           <Footer />
+          <CookieBanner />
         </>
       )}
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
 

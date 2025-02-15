@@ -141,15 +141,32 @@ export default function OrgDashboard() {
 
   const handleOfferPrice = async (bookingId: number, newPrice: number) => {
     try {
-      await axios.post(`/api/organization/${orgId}/offer-price`, {
-        bookingId,
-        offerPrice: newPrice,
-      });
-      // Refresh the bookings data after successful offer
+      // await axios.post(`/api/organization/${user?.organization.id.toString()}/offer-price`, {
+      //   bookingId,
+      //   offerPrice: newPrice,
+      // });
+      // // Refresh the bookings data after successful offer
+      // const response = await axios.get<Booking[]>(
+      //   `/api/organization/${orgId}/bookings`
+      // );
+      // setRecentBookings(response.data);
+
+      if (user?.user_type === "USER" && user.organization) {
+        await axios.post(`/api/organization/${user.organization.id.toString()}/offer-price`, {
+          bookingId,
+          offerPrice: newPrice,
+        });
+
+
+         // Refresh the bookings data after successful offer
       const response = await axios.get<Booking[]>(
         `/api/organization/${orgId}/bookings`
       );
       setRecentBookings(response.data);
+      } else {
+        console.error("User does not have organization data");
+        // Handle the error appropriately
+      }
     } catch (err) {
       console.error("Error offering price:", err);
       // Handle error (e.g., show an error message to the user)

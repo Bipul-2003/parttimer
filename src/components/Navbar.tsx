@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import { Button } from "./ui/button";
-import { Menu, X } from 'lucide-react';
+import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { UserNav } from "./user-nav";
 import { Badge } from "@/components/ui/badge";
-import { useTranslation } from 'react-i18next';
-import { useLanguage } from '@/context/LanguageContext';
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Select,
   SelectContent,
@@ -18,7 +18,7 @@ import FlagIcon from "./FlagIcon";
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { t, i18n } = useTranslation(['navbar', 'common']);
+  const { t, i18n } = useTranslation(["navbar", "common"]);
   const { language, setLanguage } = useLanguage();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ function Navbar() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const CurrencyBadge = () => {
-    if (user?.user_type === 'USER') {
+    if (user?.user_type === "USER") {
       return (
         <Link to="/points">
           <Badge variant="secondary" className="ml-2">
@@ -48,16 +48,16 @@ function Navbar() {
   }, [language, i18n]);
 
   const languageOptions = [
-    { value: 'en', label: t('english', { ns: 'common' }) },
-    { value: 'es', label: t('spanish', { ns: 'common' }) },
+    { value: "en", label: t("english", { ns: "common" }) },
+    { value: "es", label: t("spanish", { ns: "common" }) },
   ];
 
   const navItems = [
-    { to: '/services', label: t('services', { ns: 'navbar' }) },
-    { to: '/how-it-works', label: t('howItWorks', { ns: 'navbar' }) },
-    { to: '/post-request', label: t('postRequest', { ns: 'navbar' }) },
-    { to: '/book-laborers', label: t('bookLaborers', { ns: 'navbar' }) },
-    { to: '/advertisement', label: t('Advertisement', { ns: 'navbar' })},
+    { to: "/services", label: t("services", { ns: "navbar" }) },
+    { to: "/how-it-works", label: t("howItWorks", { ns: "navbar" }) },
+    { to: "/post-request", label: t("postRequest", { ns: "navbar" }) },
+    { to: "/book-laborers", label: t("bookLaborers", { ns: "navbar" }) },
+    { to: "/advertisement", label: t("Advertisement", { ns: "navbar" }) },
   ];
 
   const renderAuthButton = () => {
@@ -71,13 +71,12 @@ function Navbar() {
     }
 
     return (
-      <Button 
-        size="sm" 
-        variant="default" 
+      <Button
+        size="sm"
+        variant="default"
         className="h-9"
-        onClick={() => navigate('/login')}
-      >
-        {t('signIn', { ns: 'navbar' })}
+        onClick={() => navigate("/login")}>
+        {t("signIn", { ns: "navbar" })}
       </Button>
     );
   };
@@ -85,7 +84,15 @@ function Navbar() {
   return (
     <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold text-blue-600">
+        <Link
+          to="/"
+          onClick={(e) => {
+            e.preventDefault();
+            startTransition(() => {
+              navigate("/");
+            });
+          }}
+          className="text-2xl font-bold text-blue-600">
           PartTimer
         </Link>
         <nav className="hidden md:flex space-x-6">
@@ -93,8 +100,7 @@ function Navbar() {
             <Link
               key={item.to}
               to={item.to}
-              className="text-gray-600 hover:text-blue-600 transition-colors"
-            >
+              className="text-gray-600 hover:text-blue-600 transition-colors">
               {item.label}
             </Link>
           ))}
@@ -102,10 +108,11 @@ function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <Select onValueChange={handleLanguageChange} value={language}>
             <SelectTrigger className="w-[116px] h-9">
-              <SelectValue placeholder={t('languageSelector', { ns: 'common' })}>
+              <SelectValue
+                placeholder={t("languageSelector", { ns: "common" })}>
                 <div className="flex items-center">
                   <FlagIcon country={language} className="mr-2" />
-                  {languageOptions.find(opt => opt.value === language)?.label}
+                  {languageOptions.find((opt) => opt.value === language)?.label}
                 </div>
               </SelectValue>
             </SelectTrigger>
@@ -122,7 +129,9 @@ function Navbar() {
           </Select>
           {renderAuthButton()}
         </div>
-        <button onClick={toggleMenu} className="md:hidden flex items-center justify-center h-9 w-9 rounded-md hover:bg-gray-100">
+        <button
+          onClick={toggleMenu}
+          className="md:hidden flex items-center justify-center h-9 w-9 rounded-md hover:bg-gray-100">
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -134,17 +143,17 @@ function Navbar() {
               key={item.to}
               to={item.to}
               className="text-gray-600 hover:text-blue-600 transition-colors"
-              onClick={toggleMenu}
-            >
+              onClick={toggleMenu}>
               {item.label}
             </Link>
           ))}
           <Select onValueChange={handleLanguageChange} value={language}>
             <SelectTrigger className="w-full h-9">
-              <SelectValue placeholder={t('languageSelector', { ns: 'common' })}>
+              <SelectValue
+                placeholder={t("languageSelector", { ns: "common" })}>
                 <div className="flex items-center">
                   <FlagIcon country={language} className="mr-2" />
-                  {languageOptions.find(opt => opt.value === language)?.label}
+                  {languageOptions.find((opt) => opt.value === language)?.label}
                 </div>
               </SelectValue>
             </SelectTrigger>
@@ -169,4 +178,3 @@ function Navbar() {
 }
 
 export default Navbar;
-

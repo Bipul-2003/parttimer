@@ -41,6 +41,7 @@ import axios from "axios";
 import { dashboardAPI } from "@/api/dashboard";
 import { Booking, DashboardStats } from "@/types/dashboardTypes";
 import { useAuth } from "@/context/AuthContext";
+import config from "@/config/config";
 
 // type ServiceRequest = {
 //   bookingId: number;
@@ -68,6 +69,8 @@ export default function OrgDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [offerPrice, setOfferPrice] = useState<string>("");
   const { user } = useAuth();
+
+
 
 
 
@@ -152,7 +155,7 @@ export default function OrgDashboard() {
       // setRecentBookings(response.data);
 
       if (user?.user_type === "USER" && user.organization) {
-        await axios.post(`/api/organizations/${user.organization.id.toString()}/bookings/${bookingId}/price-offer`, {
+        await axios.post(config.apiURI+`/api/organizations/${user.organization.id.toString()}/bookings/${bookingId}/price-offer`, {
           bookingId,
           offerPrice: newPrice,
         },{withCredentials: true});
@@ -160,7 +163,7 @@ export default function OrgDashboard() {
 
          // Refresh the bookings data after successful offer
       const response = await axios.get<Booking[]>(
-        `/api/organization/${orgId}/bookings`,{withCredentials: true}
+        config.apiURI+`/api/organization/${orgId}/bookings`,{withCredentials: true}
       );
       setRecentBookings(response.data);
       } else {

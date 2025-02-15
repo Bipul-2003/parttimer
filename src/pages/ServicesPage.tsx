@@ -118,7 +118,10 @@ function ServicesPage() {
   const [selectedSubcategory, setSelectedSubcategory] =
     useState("All Subcategories");
   const [searchQuery, setSearchQuery] = useState("");
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<Service[]>([])
+
+ 
+  
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState<{
@@ -150,6 +153,7 @@ function ServicesPage() {
       setIsServicesLoading(true);
       try {
         const fetchedServices = await fetchServices();
+        console.log(fetchServices);
         setServices(fetchedServices);
         setFilteredServices(fetchedServices);
       } catch (error) {
@@ -212,18 +216,18 @@ function ServicesPage() {
         )
         ?.serviceId?.toString() || "";
 
-    const bookingRequest: BookingRequest = {
+    const bookingRequest: any = {
       serviceId: serviceId,
-      customerName: data.fullName,
+      // customerName: data.fullName,
       email: data.email,
-      address: data.address,
+      location: data.address,
       name: data.fullName,
       date: data.date.toISOString().split("T")[0],
       time: data.time,
       description: data.description || "",
-      phone: data.phone,
-      city: data.city || "",
-      zipCode: data.zipCode || "",
+      // phone: data.phone,
+      // city: data.city || "",
+      // zipCode: data.zipCode || "",
     };
 
     try {
@@ -445,7 +449,7 @@ function ServicesPage() {
       {isBookDialogOpen &&
         createPortal(
           <Dialog open={isBookDialogOpen} onOpenChange={setIsBookDialogOpen}>
-            <DialogContent className="sm:max-w-[425px] md:max-w-[600px] lg:max-w-[800px] z-dialog">
+            <DialogContent className="sm:max-w-[425px] md:max-w-[600px] lg:max-w-[800px] z-dialog overflow-y-scroll">
               <DialogHeader>
                 <DialogTitle>Book a Service</DialogTitle>
                 <DialogDescription>

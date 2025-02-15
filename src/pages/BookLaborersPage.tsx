@@ -216,11 +216,11 @@ export function LaborBookingForm() {
         description: "Your labor booking has been submitted successfully.",
       })
       setBookingSuccess(true)
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
       toast({
-        title: "Booking Failed",
-        description: "There was an error submitting your booking. Please try again.",
+        title: error?.message || "Booking Failed",
+        // description: "There was an error submitting your booking. Please try again.",
         variant: "destructive",
       })
     } finally {

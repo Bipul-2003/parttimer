@@ -449,7 +449,7 @@ function ServicesPage() {
       {isBookDialogOpen &&
         createPortal(
           <Dialog open={isBookDialogOpen} onOpenChange={setIsBookDialogOpen}>
-            <DialogContent className="sm:max-w-[425px] md:max-w-[600px] lg:max-w-[800px] z-dialog overflow-y-scroll">
+            <DialogContent className="sm:max-w-[425px] md:max-w-[600px] lg:max-w-[800px] z-dialog max-h-svh overflow-y-scroll">
               <DialogHeader>
                 <DialogTitle>Book a Service</DialogTitle>
                 <DialogDescription>

@@ -152,7 +152,7 @@ export default function OrgDashboard() {
       // setRecentBookings(response.data);
 
       if (user?.user_type === "USER" && user.organization) {
-        await axios.post(`/api/organization/${user.organization.id.toString()}/offer-price`, {
+        await axios.post(`/api/organizations/${user.organization.id.toString()}/bookings/${bookingId}/price-offer`, {
           bookingId,
           offerPrice: newPrice,
         },{withCredentials: true});

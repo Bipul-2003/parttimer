@@ -74,19 +74,19 @@ interface Service {
   description: string;
 }
 
-interface BookingRequest {
-  serviceId: string;
-  customerName: string;
-  email: string;
-  address: string;
-  name: string;
-  date: string;
-  time: string;
-  description: string;
-  phone: string;
-  city: string;
-  zipCode: string;
-}
+// interface BookingRequest {
+//   serviceId: string;
+//   customerName: string;
+//   email: string;
+//   address: string;
+//   name: string;
+//   date: string;
+//   time: string;
+//   description: string;
+//   phone: string;
+//   city: string;
+//   zipCode: string;
+// }
 
 const formSchema = z.object({
   service: z.string({

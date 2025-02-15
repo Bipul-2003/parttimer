@@ -156,8 +156,7 @@ export default function OrgDashboard() {
 
       if (user?.user_type === "USER" && user.organization) {
         await axios.post(config.apiURI+`/api/organizations/${user.organization.id.toString()}/bookings/${bookingId}/price-offer`, {
-          bookingId,
-          offerPrice: newPrice,
+          offerdPrice: newPrice,
         },{withCredentials: true});
 
 

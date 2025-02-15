@@ -155,12 +155,12 @@ export default function OrgDashboard() {
         await axios.post(`/api/organization/${user.organization.id.toString()}/offer-price`, {
           bookingId,
           offerPrice: newPrice,
-        });
+        },{withCredentials: true});
 
 
          // Refresh the bookings data after successful offer
       const response = await axios.get<Booking[]>(
-        `/api/organization/${orgId}/bookings`
+        `/api/organization/${orgId}/bookings`,{withCredentials: true}
       );
       setRecentBookings(response.data);
       } else {

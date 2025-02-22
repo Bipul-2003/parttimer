@@ -8,7 +8,7 @@ import {
 
 import App from "./App.tsx";
 import "./index.css";
-import ServicesPage from "./pages/ServicesPage.tsx";
+// import ServicesPage from "./pages/ServicesPage.tsx";
 import RequestedServicesPage from "./pages/RequestedServicesPage.tsx";
 import UserProfilePage from "./pages/userProfilePage.tsx";
 import ServiceRequestManager from "./components/Organization/ServiceRequestManager.tsx";
@@ -54,6 +54,7 @@ import MyAdsPage from "./components/Advertisements/MyAdsPage.tsx";
 import ManageAdPage from "./components/Advertisements/ManageAdPage.tsx";
 import WorkerPendingRequestsTable from "./components/Workers/WorkerPendingTable.tsx";
 import WorkerDashboard from "./components/Workers/WokerOpenTable.tsx";
+import ServicesPage from "./pages/servicePage.tsx";
 
 const router = createBrowserRouter([
   {

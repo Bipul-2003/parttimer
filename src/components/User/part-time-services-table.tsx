@@ -130,7 +130,7 @@ const columns: ColumnDef<PartTimeService>[] = [
       const navigate = useNavigate()
 
       const handleViewDetails = () => {
-        navigate(`/part-time-services/${service.bookingId}`)
+        navigate(`/requests/${service.bookingId}`)
       }
 
       const handleAcceptOffer = async () => {

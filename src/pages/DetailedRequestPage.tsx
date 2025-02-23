@@ -412,7 +412,7 @@ export default function DetailedServiceRequestPage() {
                     <div>
                       <div className="font-medium">{org.name}</div>
                       <Badge variant="secondary" className="mt-1">
-                        ${org.expectedFee.toFixed(2)}
+                        ${org.expectedFee}
                       </Badge>
                     </div>
                     <Button
